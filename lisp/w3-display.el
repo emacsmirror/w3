@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.35 $
+;; Version: $Revision: 1.36 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2236,8 +2236,8 @@ Format: (((image-alt row column) . offset) ...)")
 	       )
 	     )
 	    ((ol ul dl menu)
-	     (push (if (w3-get-attribute 'seqnum)
-		       (1- (string-to-int (w3-get-attribute 'seqnum)))
+	     (push (if (or (w3-get-attribute 'start) (w3-get-attribute 'seqnum))
+		       (1- (string-to-int (or (w3-get-attribute 'start) (w3-get-attribute 'seqnum))))
 		     0) w3-display-list-stack)
 	     (w3-handle-content node))
 	    (dir

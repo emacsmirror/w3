@@ -2474,6 +2474,25 @@ Returns a data structure containing the parsed information."
                (cond ((eq ?> (char-after (point)))
                       ;; Ordinary tag end.
                       (forward-char 1))
+                     ;; jbw 2001-06-25: added next sexp to make XHTML
+                     ;; masquerading as HTML work.  This is a crude
+                     ;; disgusting hack which happens to make many of
+                     ;; the common cases work.  One thing it does not
+                     ;; handle is if the input contains <br></br> which
+                     ;; is legal XHTML.  Probably to handle that we need
+                     ;; to set a flag if we see an XML declaration and
+                     ;; then treat the EMPTY content model differently
+                     ;; below.
+                     ((looking-at "/>")
+                      (forward-char 2)
+                      (or ;; XHTML-style empty tag
+                       (eq 'EMPTY
+                           (w3-element-content-model
+                            (get w3-p-d-tag-name 'html-element-info))) 
+                       ;; XHTML empty element which is not ordinarily
+                       ;; empty.  Simulate by inserting an end tag.
+                       (save-excursion
+                         (insert "</" (symbol-name w3-p-d-tag-name) ">"))))
                      ((and (eq ?/ (char-after (point)))
                            (not w3-p-d-end-tag-p))
                       ;; This is a NET-enabling start-tag.
