@@ -1,7 +1,7 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/06/07 17:24:58 $
-;; Version: $Revision: 1.9 $
+;; Created: $Date: 2001/09/09 15:30:49 $
+;; Version: $Revision: 1.10 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,7 +139,7 @@
 	       (mapcar (function (lambda (pair)
 				   (length (car pair))))
 		       w3-form-valid-key-sizes))))
-    (otherwise (or size 22))))    
+    (otherwise (or size 22))))
  
 ;;;###autoload
 (defun w3-form-add-element (plist face)
@@ -368,11 +368,11 @@
 		 :value (w3-form-element-value el)))
 
 (defun w3-form-create-keygen-list (el face)
-  (let* ((size (apply 'max (mapcar (lambda (pair) (length (car pair))) 
+  (let* ((size (apply 'max (mapcar (lambda (pair) (length (car pair)))
 				   w3-form-valid-key-sizes)))
 	 (options (mapcar (lambda (pair)
 			    (list 'choice-item
-				  :format "%[%t%]" 
+				  :format "%[%t%]"
 				  :tab-order -1
 				  :button-face face
 				  :value-face face
@@ -485,7 +485,7 @@
 
 (defun w3-form-default-button-update (w v)
   (let ((info (widget-get w :w3-form-data)))
-    (widget-put w :tag 
+    (widget-put w :tag
 		(if info
 		    (truncate-string-to-width
 		     (if (eq 'password (w3-form-element-type info))
@@ -553,7 +553,7 @@ This can be used as the :help-echo property of all w3 form entry widgets."
   (declare (special w3-form-labels))
   (cdr-safe
    (assoc (or (plist-get (w3-form-element-plist data) 'id)
-	      (plist-get (w3-form-element-plist data) 'label))	      
+	      (plist-get (w3-form-element-plist data) 'label))
 	  w3-form-labels)))
 
 (defun w3-form-summarize-default (data widget)
@@ -624,7 +624,7 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 								"[nothing]"))))
 
 (defun w3-form-summarize-keygen-list (data widget)
-  (format "Submitting this form will generate a %d bit key (not)" 
+  (format "Submitting this form will generate a %d bit key (not)"
 	  (widget-value (w3-form-element-widget data))))
 
 (defun w3-form-maybe-submit-by-keypress ()
@@ -817,9 +817,9 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 		   (keygen
 		    (condition-case ()
 			(require 'ssl)
-		      (error (error "Not configured for SSL, please read the info pages.")))
+		      (error (error "Not configured for SSL, please read the info pages")))
 		    (if (fboundp 'ssl-req-user-cert) nil
-		      (error "This version of SSL isn't capable of requesting certificates."))
+		      (error "This version of SSL isn't capable of requesting certificates"))
 		    (let ((challenge (plist-get (w3-form-element-plist formobj) 'challenge))
 			  (size (widget-value widget)))
 		      (cons (w3-form-element-name formobj)
@@ -891,6 +891,9 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 		(concat nam " " val))))
 	   (w3-form-encode-helper result) "\n"))
     query))
+
+;; Fixme: check the charset issues on form submission
+;; http://ppewww.ph.gla.ac.uk/%7Eflavell/charset/form-i18n.html
 
 (defun w3-form-encode-xwfu (chunk)
   "Escape characters in a string for application/x-www-form-urlencoded.
