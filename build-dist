@@ -28,7 +28,6 @@ export CVSROOT
 
 ( cd .    ; cvs admin -s"p${version}" README )
 ( cd lisp ; cvs admin -s"p${version}" w3-vars.el )
-( cd lisp ; cvs admin -s"p${version}" url-vars.el )
 ( cd texi ; cvs admin -s"v${version}" w3.txi )
 ( cd texi ; cvs admin -s"v${version}" w3-faq.txi )
 

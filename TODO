@@ -3,6 +3,7 @@ BUGS (4.0):
 - border-color can have multiple color specifications, but we
   currently choke with 'args out of range' when we see this.
 - document how to translate Netscape foo.pac files to emacs lisp
+- Make LinuxConf URLs work (they use = and & in URLs)
 
 BUGS (4.1):
 - background colors are not heeded on table rows (<tr>).  Same

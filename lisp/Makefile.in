@@ -17,7 +17,7 @@ URLDIR    = @URL@
 INSTALL   = @INSTALL@
 RM        = rm -f
 
-DEPS = -l $(srcdir)/docomp.el -l $(srcdir)/url-vars.el -l $(srcdir)/w3-vars.el
+DEPS = -l $(srcdir)/docomp.el -l $(URLDIR)/url-vars.el -l $(srcdir)/w3-vars.el
 
 # compile with noninteractive and relatively clean environment
 BATCHFLAGS = -batch -q -no-site-file

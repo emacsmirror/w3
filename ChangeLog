@@ -1,7 +1,27 @@
+1999-12-10  William M. Perry  <wmperry@aventail.com>
+
+
+1999-12-06  William M. Perry  <wmperry@aventail.com>
+
+	* lisp/w3-display.el (w3-prepare-tree): Analog to
+	w3-prepare-buffer, but works on a ready-made parse tree instead of
+	parsing it on the fly.
+
+	* lisp/w3.el (w3-fetch-callback): Added in special case for
+	handling content-type of application/x-elisp-parsed-html, for when
+	we want to 
+
+	* lisp/css.el (css-handle-import): Protect against
+	url-insert-file-contents signalling an error.
+	(css-handle-import): Use url-insert-file-contents instead of the
+	old url-retrieve interface.  We cannot retrieve stylesheets
+	asynchronously (for now).
+	(css-expand-value): Nuke quotes around URL attributes.
+
 1999-12-05  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/w3-display.el (w3-prepare-buffer): Don't do the history
-	  stuff - this died a long time ago anyway.
+	stuff - this died a long time ago anyway.
 
 1999-12-05  Dave Love  <fx@gnu.org>
 
@@ -10,16 +30,16 @@
 1999-12-05  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/w3.el (w3-fetch): Urk, call w3-notify-when-ready if we
-	  found a buffer visiting the URL, otherwise nothing happens.
-	  User just silently gets no feedback about the operation.
+	found a buffer visiting the URL, otherwise nothing happens.
+	User just silently gets no feedback about the operation.
 
 	* w3.el: Lots of changes to work with the new URL package.
 
 	* w3-vars.el: Removed lots of old varialbes.  Updated to use new
-	  URL package where necessary.
-	  (w3-graphlink-menu): Removed the 'info' menu item.  Not
-	  (re)implemented yet.
-	  (w3-hyperlink-menu): Ditto.
+	URL package where necessary.
+	(w3-graphlink-menu): Removed the 'info' menu item.  Not
+	(re)implemented yet.
+	(w3-hyperlink-menu): Ditto.
 
 	* w3-toolbar.el (w3-mouse-print-this-url): Ditto.
 
@@ -29,54 +49,54 @@
 
 	* w3-menu.el: Removed LaTeX-related menu entries.
 	(w3-menu-links-constructor): Expand the URL in the menu
-	  constructor if necessary, don't use url-maybe-relative anymore.
+	constructor if necessary, don't use url-maybe-relative anymore.
 
 	* w3-keymap.el: New separate file just for keymaps
 
 	* w3-java.el: Deal with removal of old 'mm' file and use
-	  mailcap.el functions.
+	mailcap.el functions.
 
 	* w3-forms.el: Removed gopher query support.
 
 	* w3-emulate.el: Remove arena masquerade code.  Does anybody even
-	  use this masquerading code?
+	use this masquerading code?
 
 	* w3-jscript.el, w3-elisp.el, w3-script.el: Removed files related
-	  to scripting.
+	to scripting.
 
 	* w3-xemac.el (w3-mouse-handler): Ditto.
 
 	* w3-e19.el (w3-mouse-handler): Don't bother with scripting
-	  elements yet.
+	elements yet.
 
 	* w3-display.el: Lots of changes to deal with the new URL package
-	  and using the new mailcap.el file from Gnus.
+	and using the new mailcap.el file from Gnus.
 
 	* w3-cus.el: Removed lots of obsolete variables
 
 	* w3-hot.el (w3-hotlist-add-document): Disable due to default use
-	  of html bookmark files now.
-	  (w3-hotlist-delete): Ditto.
-	  (w3-hotlist-apropos): Use new URL-based hotlist interface
-	  (w3-hotlist-view): Ditto.
-	  (w3-use-hotlist): Now deals with html-based bookmark lists.
-	  (w3-hot-convert-to-alist): New function to conver an internal
-	  bookmark list to an assoc list with oddly formatted keys.
-	  (w3-read-html-bookmarks): Don't set w3-html-bookmarks any more -
-	  this will be the main format now.
-	  (w3-hot-push-now-item): Don't push a menu-object onto the list,
-	  use a regular format we can convert to a menu when necessary.
+	of html bookmark files now.
+	(w3-hotlist-delete): Ditto.
+	(w3-hotlist-apropos): Use new URL-based hotlist interface
+	(w3-hotlist-view): Ditto.
+	(w3-use-hotlist): Now deals with html-based bookmark lists.
+	(w3-hot-convert-to-alist): New function to conver an internal
+	bookmark list to an assoc list with oddly formatted keys.
+	(w3-read-html-bookmarks): Don't set w3-html-bookmarks any more -
+	this will be the main format now.
+	(w3-hot-push-now-item): Don't push a menu-object onto the list,
+	use a regular format we can convert to a menu when necessary.
 
 	* url-hotlist.el: New URL-based interface for searching your
-	  hotlist.
+	hotlist.
 
 1999-12-04  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/base64.el: Updated to latest base64.el from Kyle.  Now no conflicts
-	  between this and the Gnus-distributed version.
+	between this and the Gnus-distributed version.
 
 1999-12-03  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/font.el (font-set-face-font-new-redisplay): Don't set the :family
-	  face attribute if it is nil.  The new redisplay doesn't like that.
+	face attribute if it is nil.  The new redisplay doesn't like that.
 
