@@ -1,12 +1,12 @@
 ;;; css.el -- Cascading Style Sheet parser
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/06/05 16:02:18 $
-;; Version: $Revision: 1.7 $
+;; Created: $Date: 2002/01/22 19:01:57 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 97, 98, 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -780,6 +780,8 @@ For a terminal frame, the value is always 1."
 	  t)))
   (defun css-color-values (color)
     (cond
+     ((fboundp 'display-color-p)
+      (color-values color))
      ((eq window-system 'x)
       (x-color-values color))
      ((eq window-system 'pm)
