@@ -56,7 +56,6 @@
 	* lisp/w3-parse.el (w3-parse-buffer): Use
 	w3-resolve-numeric-entity for bogus characters.
 
->>>>>>> 1.60
 2001-05-25  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3-speak-table.el: Make sure to load cl-extra at load time
