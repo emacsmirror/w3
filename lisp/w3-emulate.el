@@ -1,7 +1,7 @@
 ;;; w3-emulate.el --- All variable definitions for emacs-w3
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:05 $
-;; Version: $Revision: 1.2 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/05/29 15:52:51 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -30,6 +30,7 @@
 ;;; Provide emulations of various other web browsers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'w3-vars)
+(require 'url-vars)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -70,7 +71,7 @@
 (define-key w3-netscape-emulation-minor-mode-map "\M-r" 'w3-reload-document)
 (define-key w3-netscape-emulation-minor-mode-map "\M-i" 'w3-load-delayed-images)
 (define-key w3-netscape-emulation-minor-mode-map "\M-a" 'w3-hotlist-add-document)
-(define-key w3-netscape-emulation-minor-mode-map "\M-b" 'w3-show-hotlist)
+(define-key w3-netscape-emulation-minor-mode-map "\M-b" 'w3-hotlist-view)
 (define-key w3-netscape-emulation-minor-mode-map "\M-h" 'w3-show-history-list)
 
 (define-key w3-netscape-emulation-minor-mode-map [up]
@@ -183,8 +184,8 @@
 (define-key w3-lynx-emulation-minor-mode-map "t"   'ignore) ; tag
 (define-key w3-lynx-emulation-minor-mode-map "u"   'w3-history-backward)
 (define-key w3-lynx-emulation-minor-mode-map "/"   'w3-search-forward)
-(define-key w3-lynx-emulation-minor-mode-map "v"   'w3-show-hotlist)
-(define-key w3-lynx-emulation-minor-mode-map "V"   'w3-show-hotlist)
+(define-key w3-lynx-emulation-minor-mode-map "v"   'w3-hotlist-view)
+(define-key w3-lynx-emulation-minor-mode-map "V"   'w3-hotlist-view)
 (define-key w3-lynx-emulation-minor-mode-map "x"   'widget-button-press)
 (define-key w3-lynx-emulation-minor-mode-map "z"   'keyboard-quit)
 (define-key w3-lynx-emulation-minor-mode-map "="   'w3-document-information)
