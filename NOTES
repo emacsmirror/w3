@@ -13,14 +13,10 @@ I'm also aiming to dump w3-sysdp.  It's unclean, for instance, to
 define `extent' functions in Emacs without a name prefix -- other
 packages test for their existence and then lose.
 
-I haven't been testing on XEmacs, and may well have broken things for
-it.  In fact, I've really only been testing in development Emacs 21.
+I haven't been testing much on XEmacs, and may well have broken things
+for it.  In fact, I've mostly been testing in development Emacs 21.
 
 There's plenty that still doesn't work, and docs are likely wrong.
-
-It will be more profitable to correspond with me than send to the bug
-address; I seem to be the only one currently working on this stuff and
-can't read any w3-related mail boxes other than w3-beta.
 
 HTH.
 
