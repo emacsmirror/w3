@@ -8,7 +8,7 @@ if test -z "$3"; then
 fi
 AC_CACHE_VAL(EMACS_cv_SYS_$1,[
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))"  > /dev/null 2>&1 
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
 	retval=`cat ${OUTPUT}`
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_$1=$retval

@@ -1,3 +1,8 @@
+1999-11-14  William M. Perry  <wmperry@aventail.com>
+
+* aclocal.m4 (AC_EMACS_LISP): work around bug in current Emacs 21.1
+  pretests where (princ "foo") crashes in batch mode.
+
 1999-11-13  William M. Perry  <wmperry@aventail.com>
 
 * lisp/w3-cus.el (w3-use-terminal-glyphs): Changed default value to nil,
