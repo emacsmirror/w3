@@ -1,11 +1,11 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.40 $
+;; Version: $Revision: 1.41 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; This file is part of GNU Emacs.
