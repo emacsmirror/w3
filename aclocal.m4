@@ -217,3 +217,9 @@ fi
 AC_MSG_RESULT("${REBUILD_CUSTOMLOADS}")
 AC_SUBST(REBUILD_CUSTOMLOADS)
 ])
+
+dnl (aclocal.m4) Local variables:
+dnl (aclocal.m4) eval: (make-local-hook 'kill-buffer-hook)
+dnl (aclocal.m4) eval: (defun w3-rebuild-configure-files () (if (file-newer-than-file-p (buffer-file-name) (expand-file-name "configure" (file-name-directory (buffer-file-name)))) (shell-command "autoreconf")))
+dnl (aclocal.m4) eval: (add-hook 'kill-buffer-hook 'w3-rebuild-configure-files nil t)
+dnl (aclocal.m4) End: ***
