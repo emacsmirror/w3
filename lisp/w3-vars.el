@@ -1,12 +1,12 @@
 ;;; w3-vars.el,v --- All variable definitions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/01/07 15:10:36 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -34,7 +34,7 @@
 (require 'wid-edit)			; For `widget-keymap'
 
 (defconst w3-version-number
-  (let ((x "$State: Exp $"))
+  (let ((x "$State: p4.0pre.42 $"))
     (if (string-match "State:[ \t\n]+.\\([^ \t\n]+\\)" x)
 	(setq x (substring x (match-beginning 1) (match-end 1)))
       (setq x (substring x 1)))
@@ -42,7 +42,7 @@
      (function (lambda (x) (if (= x ?-) "." (char-to-string x)))) x ""))
   "Version # of w3-mode.")
 
-(defconst w3-version-date (let ((x "$Date: 1998/12/01 22:12:11 $"))
+(defconst w3-version-date (let ((x "$Date: 1999/01/07 15:10:36 $"))
 			    (if (string-match "Date: \\([^ \t\n]+\\)" x)
 				(substring x (match-beginning 1) (match-end 1))
 			      x))
@@ -609,8 +609,8 @@ for a charset indication")
 (define-key w3-mode-map [(control meta t)] 'url-list-processes)
 
 ;; Have fun with document ordering
-(define-key w3-mode-map (read-kbd-macro "M-SPC") 'w3-next-document)
-(define-key w3-mode-map (read-kbd-macro "M-DEL") 'w3-prev-document)
+(define-key w3-mode-map [(meta space)] 'w3-next-document)
+(define-key w3-mode-map [(meta delete)] 'w3-prev-document)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Keyword definitions
