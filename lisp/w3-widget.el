@@ -1,7 +1,7 @@
 ;;; w3-widget.el --- An image widget
-;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:48:08 $
-;; Version: $Revision: 1.5 $
+;; Author: ll Perry <wmperry@gnu.org>$Author: fx $
+;; Created: $Date: 2001/05/14 17:27:57 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: faces, images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -50,9 +50,11 @@
 ;;;    These are either URLs (http://foo/...) or alternative text.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'cl)
 (require 'widget)
 (require 'url-util)
+(require 'w3-vars)
+(autoload 'w3-fetch "w3")
+(autoload 'w3-point-in-map "w3-imap")
 
 (defvar widget-image-keymap (make-sparse-keymap)
   "Keymap used over glyphs in an image widget")
@@ -61,7 +63,7 @@
 (defconst widget-mouse-button2 nil)
 (defconst widget-mouse-button3 nil)
 
-(if (string-match "XEmacs" (emacs-version))
+(if (featurep 'xemacs)
     (if (featurep 'mouse)
 	(setq widget-mouse-button1 'button1
 	      widget-mouse-button2 'button2
@@ -127,7 +129,8 @@
   ;; Recreate widget with new value.
   (save-excursion
     (widget-image-delete widget)
-    (if (widget-glyphp value)
+    (if (or (eq 'image (car-safe value)) ; Emacs 21
+	    (widget-glyphp value))
 	(widget-put widget 'glyph value)
       (widget-put widget :value value))
     (put-text-property (point)
@@ -141,7 +144,7 @@
   (let ((usemap (widget-get widget 'usemap)))
     (if (listp usemap)
 	usemap
-      (if (and usemap (string-match "^#" usemap))
+      (if (and usemap (> (length usemap) 0) (eq ?# (aref usemap 0)))
 	  (setq usemap (substring usemap 1 nil)))
       (cdr-safe (assoc usemap w3-imagemaps)))))
 
@@ -150,19 +153,18 @@
       (w3-fetch (widget-get widget :href) (widget-get widget :target))))
 
 (defmacro widget-image-create-subwidget (&rest args)
-  (` (widget-create (,@ args)
-		    :parent widget
-		    :help-echo 'widget-image-summarize
-		    'usemap (widget-get widget 'usemap)
-		    :href href
-		    :target target
-		    :src (widget-get widget :src)
-		    'ismap server-map)))
+  `(widget-create ,@args
+		  :parent widget
+		  :help-echo 'widget-image-summarize
+		  'usemap (widget-get widget 'usemap)
+		  :href href
+		  :target target
+		  :src (widget-get widget :src)
+		  'ismap server-map))
 
 (defun widget-image-value-create (widget)
   ;; Insert the printed representation of the value
-  (let (
-	(href (widget-get widget :href))
+  (let ((href (widget-get widget :href))
 	(target (widget-get widget :target))
 	(face (widget-get widget :button-face))
 	(server-map (widget-get widget 'ismap))
@@ -170,9 +172,9 @@
 	(where (or (widget-get widget 'where) (point)))
 	(glyph (widget-get widget 'glyph))
 	(alt (widget-get widget 'alt))
+	(align (widget-get widget 'align))
 	(real-widget nil)
-	(invalid-glyph nil)
-	)
+	(invalid-glyph nil))
     (if target (setq target (intern (downcase target))))
 
     ;; Specifier-instance will signal an error if we have an invalid
@@ -180,7 +182,7 @@
     ;; data back from a URL somewhere.
 
     (cond
-     (w3-running-xemacs
+     ((featurep 'xemacs)
       ;; All XEmacsen have support for glyphs
       (setq invalid-glyph (and glyph (condition-case ()
 					 (if (fboundp 'specifier-instance)
@@ -194,9 +196,7 @@
       (require 'image)
       (setq invalid-glyph
 	    (and glyph
-		 (not (image-type-available-p (plist-get glyph :type))))))
-     (t
-      nil))
+		 (not (image-type-available-p (plist-get (cdr glyph) :type)))))))
 
     (if (or (not glyph) invalid-glyph)
 	;; Do a TTY or delayed image version of the image.
@@ -207,18 +207,17 @@
 	   (client-map
 	    (let* ((default nil)
 		   (options (mapcar
-			     (function
-			      (lambda (x)
-				(if (eq (aref x 0) 'default)
-				    (setq default (aref x 2)))
-				(if (and (not default) (stringp (aref x 2)))
-				    (setq default (aref x 2)))
-				(list 'choice-item
-				      :tab-order -1
-				      :delete 'widget-default-delete
-				      :format "%[%t%]"
-				      :tag (or (aref x 3) (aref x 2))
-				      :value (aref x 2)))) client-map)))
+			     (lambda (x)
+			       (if (eq (aref x 0) 'default)
+				   (setq default (aref x 2)))
+			       (if (and (not default) (stringp (aref x 2)))
+				   (setq default (aref x 2)))
+			       (list 'choice-item
+				     :tab-order -1
+				     :delete 'widget-default-delete
+				     :format "%[%t%]"
+				     :tag (or (aref x 3) (aref x 2))
+				     :value (aref x 2))) client-map)))
 	      (setq real-widget
 		    (apply 'widget-create 'menu-choice
 			   :tag (or (widget-get widget :tag) alt "Imagemap")
@@ -262,33 +261,45 @@
 		   :delete 'widget-default-delete
 		   :action (widget-get widget :action)
 		   :notify 'widget-image-callback))))
-	  (if (not real-widget)
-	      nil
-	    (widget-put widget :children (list real-widget))))
+	  (if real-widget
+	      (widget-put widget :children (list real-widget))))
       ;;; Actually use the image
-      (let ((extent (or (widget-get widget 'extent)
-			(make-extent where where))))
-	(set-extent-endpoints extent where where)
-	(widget-put widget 'extent extent)
-	(widget-put widget :children nil)
-	(set-extent-property extent 'keymap widget-image-keymap)
-	(set-extent-property extent 'begin-glyph glyph)
-	(set-extent-property extent 'detachable t)
-	(set-extent-property extent 'help-echo (cond
-						((and href (or client-map
-							       server-map))
-						 (format "%s [map]" href))
-						(href href)
-						(t nil)))
-	(set-glyph-property glyph 'widget widget)))))
+      (if (featurep 'xemacs)
+	  (let ((extent (or (widget-get widget 'extent)
+			    (make-extent where where))))
+	    (set-extent-endpoints extent where where)
+	    (widget-put widget 'extent extent)
+	    (widget-put widget :children nil)
+	    (set-extent-property extent 'keymap widget-image-keymap)
+	    (set-extent-property extent 'begin-glyph glyph)
+	    (set-extent-property extent 'detachable t)
+	    (set-extent-property extent 'help-echo
+				 (cond
+				  ((and href (or client-map
+						 server-map))
+				   (format "%s [map]" href))
+				  (href href)
+				  (t nil)))
+	    (set-glyph-property glyph 'widget widget))
+	
+      (insert-image glyph
+		    (propertize " "
+				'keymap widget-image-keymap
+				'help-echo (cond
+					    ((and href (or client-map
+							   server-map))
+					     (format "%s [map]" href))
+					    (href href))))))))
 
 (defun widget-image-delete (widget)
-  ;; Remove the widget from the buffer
+  "Remove WIDGET from the buffer."
   (let ((extent (widget-get widget 'extent))
 	(child  (car (widget-get widget :children))))
     (cond
      (extent				; Remove a glyph
-      (delete-extent extent))
+      (if (fboundp 'delete-extent)
+	  (delete-extent extent)
+	(delete-overlay extent)))
      (child				; Remove a child widget
       (widget-apply child :delete))
      (t					; Doh!  Do nothing.
@@ -303,15 +314,21 @@
   (defalias 'widget-glyphp 'glyphp))
  ((boundp 'image-types)
   (defun widget-glyphp (glyph)
-    (and (listp glyph) (plist-get glyph :type))))
+    (and (listp glyph) (eq 'image (car glyph)))))
  (t
   (defalias 'widget-glyphp 'ignore)))
 
 (defun widget-image-button-press (event)
   (interactive "@e")
-  (let* ((glyph (and event (widget-mouse-event-p event) (event-glyph event)))
-	 (widget (and glyph (glyph-property glyph 'widget))))
-    (widget-image-notify widget widget event)))    
+  (if (featurep 'xemacs)
+      (let* ((glyph (and event (widget-mouse-event-p event)
+			 (event-glyph event)))
+	     (widget (and glyph (glyph-property glyph 'widget))))
+	(widget-image-notify widget widget event))
+    (save-excursion
+      (mouse-set-point event)
+      (let ((widget (widget-at (point))))
+	(widget-image-notify widget widget event)))))    
 
 (defun widget-image-usemap-default (usemap)
   (let ((rval (and usemap (car usemap))))
@@ -376,11 +393,11 @@ Any other value means ask the user each time.")
      ((and glyph x y ismap)		; Do the server-side imagemap stuff
       (w3-fetch (format "%s?%d,%d" href x y) target))
      (usemap				; Dumbed-down tty client side imap
-      (let ((choices (mapcar (function
-			      (lambda (entry)
-				(cons
-				 (or (aref entry 3) (aref entry 2))
-				 (aref entry 2)))) usemap))
+      (let ((choices (mapcar (lambda (entry)
+			       (cons
+				(or (aref entry 3) (aref entry 2))
+				(aref entry 2)))
+			     usemap))
 	    (choice nil)
 	    (case-fold-search t))
 	(setq choice (completing-read "Imagemap: " choices nil t)
