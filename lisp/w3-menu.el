@@ -1,6 +1,6 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.9 $
+;; Version: $Revision: 1.10 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,8 +27,10 @@
 
 (require 'w3-vars)
 (require 'w3-mouse)
-(require 'widget)
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar w3-html-bookmarks))
+(autoload 'url-truncate-url-for-viewing "url-util")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; InfoDock stuff
@@ -125,6 +127,7 @@ on that platform."
     (list "Ignored" (vector item nil nil))))
       
 (defun w3-menu-hotlist-constructor (menu-items)
+  (require 'w3-hotlist)
   (easy-menu-define
    w3-menu-hotlist-menu nil "Emacs/W3 Dynamic menu"
    (or (cdr w3-html-bookmarks)
@@ -359,7 +362,7 @@ on that platform."
 (defconst w3-menu-bookmark-menu
   (list
    "Bookmark"
-   ["View Bookmarks..." w3-show-hotlist w3-hotlist]
+   ["View Bookmarks..." w3-hotlist-view w3-hotlist]
    ["Add Bookmark" w3-hotlist-add-document t]
    ["Delete Bookmark" w3-hotlist-delete t]
    ["Rename Bookmark" w3-hotlist-rename-entry t]
@@ -800,8 +803,9 @@ on that platform."
 		     (and parent (widget-get parent :href))))
 	   (imag (or (and widget (widget-get widget :src))
 		     (and parent (widget-get parent :src))))
-	   ;; Fixme: runtime dependency on cl through copy-tree.
-	   (menu (copy-tree w3-popup-menu))
+	   (menu (if (featurep 'xemacs)
+		     (copy-tree w3-popup-menu)
+		   (copy-keymap w3-popup-menu)))
 	   url val trunc-url)
       (if href
 	  (progn
