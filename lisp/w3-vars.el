@@ -1,12 +1,12 @@
 ;;; w3-vars.el,v --- All variable definitions for emacs-w3
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/07/10 14:43:36 $
-;; Version: $Revision: 1.6 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/06/05 15:56:16 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -35,14 +35,14 @@
 
 (defconst w3-version-number
   (let ((x "$State: Exp $"))
-    (if (string-match "State:[ \t\n]+.\\([^ \t\n]+\\)" x)
+    (if (string-match "State:[ \t\n]+\\([^ \t\n]+\\)" x)
 	(setq x (substring x (match-beginning 1) (match-end 1)))
       (setq x (substring x 1)))
     (mapconcat
      (function (lambda (x) (if (= x ?-) "." (char-to-string x)))) x ""))
-  "Version # of w3-mode.")
+  "Version number of w3-mode.")
 
-(defconst w3-version-date (let ((x "$Date: 2000/07/10 14:43:36 $"))
+(defconst w3-version-date (let ((x "$Date: 2001/06/05 15:56:16 $"))
 			    (if (string-match "Date: \\([^ \t\n]+\\)" x)
 				(substring x (match-beginning 1) (match-end 1))
 			      x))
@@ -76,37 +76,37 @@ in later garbage collections taking more time.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Store the database of HTML general entities.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Commentary on the basis of the current W3C entity list.  -- fx
 (defvar w3-html-entities 
   '(
-    (excl        .  33)
+    ;;(excl        .  33)
     (quot        .  34)
-    (num         .  35)
-    (dollar      .  36)
-    (percent     .  37)
+    ;;(num         .  35)
+    ;;(dollar      .  36)
+    ;;(percent     .  37)
     (amp         .  38)
-    (rsquo       .  39)
-    (apos        .  39)
-    (lpar        .  40)
-    (rpar        .  41)
-    (times       .  42)
-    (ast         .  42)
-    (plus        .  43)
-    (comma       .  44)
-    (period      .  46)
-    (colon       .  58)
-    (semi        .  59)
+    (rsquo       .  39)			; should be U+8217
+    ;;(apos        .  39)
+    ;;(lpar        .  40)
+    ;;(rpar        .  41)
+    ;;(ast         .  42)
+    ;;(plus        .  43)
+    ;;(comma       .  44)
+    ;;(period      .  46)
+    ;;(colon       .  58)
+    ;;(semi        .  59)
     (lt          .  60)
-    (equals      .  61)
+    ;;(equals      .  61)
     (gt          .  62)
-    (quest       .  63)
-    (commat      .  64)
-    (lsqb        .  91)
-    (rsqb        .  93)
-    (uarr        .  94)
-    (lowbar      .  95)
-    (lsquo       .  96)
+    ;;(quest       .  63)
+    ;;(commat      .  64)
+    ;;(lsqb        .  91)
+    ;;(rsqb        .  93)
+    (uarr        .  94)			; should be U+8593
+    ;;(lowbar      .  95)
+    (lsquo       .  96)			; should be U+8216
     (lcub        . 123)
-    (verbar      . 124)
+    ;;(verbar      . 124)
     (rcub        . 125)
     (tilde       . 126)
     (nbsp        . 160)
@@ -376,6 +376,7 @@ for a charset indication")
 (defvar w3-id-positions nil "Internal use only.")
 (defvar w3-imagemaps nil "Internal use only.")
 
+;; Why aren't these just permanent-local?  -- fx
 (defvar w3-persistent-variables
   '(
     ;; So we can show the URL in the list-buffers listing
