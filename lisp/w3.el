@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/11/22 00:34:31 $
-;; Version: $Revision: 1.26 $
+;; Author: $Author: fx $
+;; Created: $Date: 2002/01/22 17:56:53 $
+;; Version: $Revision: 1.27 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -208,11 +208,12 @@ variable `http-header'."
 					 (cdr (assq 'content attrs))))))))
 	      (w3-http-equiv-headers (nth 2 node)))))))
 
-(defun w3-nasty-disgusting-http-equiv-handling (&optional buffer)
-  "Propagate information from <meta http-equiv...> elements to MIME headers."
+(defun w3-nasty-disgusting-http-equiv-handling (buffer)
+  "Propagate information from <meta http-equiv...> elements to MIME headers.
+Operate on BUFFER."
   (let (content-type end-of-headers extra-headers)
     (save-excursion
-      (if buffer (set-buffer buffer))
+      (set-buffer buffer)
       (goto-char (point-min))
       (mail-narrow-to-head)
       (setq content-type (mail-fetch-field "content-type"))
@@ -223,7 +224,7 @@ variable `http-header'."
 	(if (and content-type (string-match "^text/html" content-type)
 		 ;; Try not to parse past the head element.
 		 (re-search-forward "</[ \n]*head\\|<[ \n]*body" nil t))
-	    (let ((end-of-head (point)))
+	    (let ((end-of-head (match-beginning 0)))
 	      ;; Find any <meta http-equiv> stuff in the head so we
 	      ;; can promote it into the MIME headers before
 	      ;; mm-dissect-buffer looks at them.
@@ -233,7 +234,17 @@ variable `http-header'."
 		  (goto-char (point-min))
 		  ;; Quick check before parsing.
 		  (if (search-forward "http-equiv=" nil t)
-		      (w3-http-equiv-headers (w3-parse-buffer))))
+		      (w3-http-equiv-headers
+		       ;; We need to take a copy of the region we're
+		       ;; going to parse (which we hope is small) to
+		       ;; avoid assumptions about what
+		       ;; `w3-parse-buffer' does in the way of
+		       ;; widening and munging character references
+		       ;; &c.
+		       (with-temp-buffer
+			 (insert-buffer-substring buffer
+						  end-of-headers end-of-head)
+			 (w3-parse-buffer)))))
 		(when http-header
 		  (goto-char (point-min))
 		  (insert http-header)))))))))
@@ -279,7 +290,7 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 			       (string-to-int (or reload "5"))))))
 
 (defun w3-fetch-callback (url)
-  (w3-nasty-disgusting-http-equiv-handling)
+  (w3-nasty-disgusting-http-equiv-handling (current-buffer))
   ;; Process any cookie and refresh headers.
   (let (headers)
     (ignore-errors
