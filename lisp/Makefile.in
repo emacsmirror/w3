@@ -103,7 +103,7 @@ install: all
 	done;
 
 distclean: clean
-	$(RM) config.* Makefile w3-cfg.el w3-auto.el
+	$(RM) config.* Makefile w3-cfg.el w3-auto.el $(AUTOSOURCES)
 
 clean:
 	$(RM) *.elc *~
