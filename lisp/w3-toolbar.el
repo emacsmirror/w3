@@ -1,7 +1,7 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
-;; Author: $Author: fx $
-;; Created: $Date: 2001/05/29 15:57:46 $
-;; Version: $Revision: 1.5 $
+;; Author: William M. Perry <wmperry@gnu.org>
+;; Created: $Date: 2001/06/05 15:50:25 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: mouse, toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,7 +27,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Toolbar specific function for XEmacs 19.12+
+;;; Toolbar specific function for XEmacs and Emacs 21
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (condition-case ()
     (progn
@@ -35,18 +35,42 @@
       (require 'xbm-button))
   (error nil))
 
-(defvar w3-toolbar-icon-directory nil "Where the toolbar icons for w3 are.")
-(defvar w3-toolbar-back-icon nil "Toolbar icon for back")
-(defvar w3-toolbar-forw-icon nil "Toolbar icon for forward")
-(defvar w3-toolbar-home-icon nil "Toolbar icon for home")
-(defvar w3-toolbar-reld-icon nil "Toolbar icon for reload")
-(defvar w3-toolbar-imag-icon nil "Toolbar icon for images")
-(defvar w3-toolbar-open-icon nil "Toolbar icon for open url")
-(defvar w3-toolbar-print-icon nil "Toolbar icon for printing")
-(defvar w3-toolbar-find-icon nil "Toolbar icon for find")
-(defvar w3-toolbar-stop-icon nil "Toolbar icon for stop")
-(defvar w3-toolbar-help-icon nil "Toolbar icon for help")
-(defvar w3-toolbar-hotl-icon nil "Toolbar icon for hotlist")
+(defvar w3-toolbar-icon-directory nil
+  "Where the toolbar icons for W3 are.
+In Emacs, this is searched preferentially to the normal search path.")
+(defvar w3-toolbar-back-icon (if (featurep 'tool-bar)
+				 "left_arrow")
+  "Toolbar icon for back")
+(defvar w3-toolbar-forw-icon (if (featurep 'tool-bar)
+				 "right_arrow")
+  "Toolbar icon for forward")
+(defvar w3-toolbar-home-icon (if (featurep 'tool-bar)
+				 "home")
+  "Toolbar icon for home")
+(defvar w3-toolbar-reld-icon (if (featurep 'tool-bar)
+				 "refresh")
+  "Toolbar icon for reload")
+(defvar w3-toolbar-imag-icon (if (featurep 'tool-bar)
+				 "images")
+  "Toolbar icon for images")
+(defvar w3-toolbar-open-icon (if (featurep 'tool-bar)
+				 "open")
+  "Toolbar icon for open url")
+(defvar w3-toolbar-print-icon (if (featurep 'tool-bar)
+				  "print")
+  "Toolbar icon for printing")
+(defvar w3-toolbar-find-icon (if (featurep 'tool-bar)
+				 "search")
+  "Toolbar icon for find")
+(defvar w3-toolbar-stop-icon (if (featurep 'tool-bar)
+				 "cancel")
+  "Toolbar icon for stop")
+(defvar w3-toolbar-help-icon (if (featurep 'tool-bar)
+				 "help")
+  "Toolbar icon for help")
+(defvar w3-toolbar-hotl-icon (if (featurep 'tool-bar)
+				 "jump_to")
+  "Toolbar icon for hotlist")
 
 (defvar w3-link-toolbar-orientation 'bottom
   "*Where to put the document specific toolbar.  Must be one of these symbols:
@@ -94,10 +118,6 @@ not `none'.")
     nil
     [w3-toolbar-help-icon w3-show-info-node t "Help"])
   "The toolbar for w3")
-
-(if (featurep 'tool-bar)
-    (defun toolbar-make-button-list (up &optional dn no cap-up cap-dn cap-no)
-      (file-name-sans-extension up)))
 
 (defun w3-toolbar-make-captioned-buttons ()
   (mapcar
@@ -177,6 +197,10 @@ not `none'.")
 	(w3-toolbar-make-text-buttons))
        ((boundp 'toolbar-buttons-captioned-p)
 	(w3-toolbar-make-captioned-buttons))
+       ((featurep 'tool-bar)
+	nil)
+       ;; Fixme: Redundant?  XEmacs versions supported have captioned
+       ;; buttons.
        (t
 	(w3-toolbar-make-picture-buttons)))
     (error nil)))
@@ -334,6 +358,26 @@ not `none'.")
 		 ["Cancel" (beep) t])))
     (popup-dialog-box descr)))
 
+(eval-and-compile
+  (if (featurep 'tool-bar)
+(defvar w3-toolbar-map
+  (progn
+    (if (not w3-toolbar-icon-directory)
+	(setq w3-toolbar-icon-directory
+	      (file-name-as-directory
+	       (expand-file-name "w3" data-directory))))
+    (let ((tool-bar-map (make-sparse-keymap))
+	  ;; Add to normal image search path:
+	  (load-path (cons w3-toolbar-icon-directory load-path)))
+    (dolist (desc w3-toolbar)
+      (if (and desc (not (keywordp (aref desc 0))))
+	  (tool-bar-add-item (symbol-value (aref desc 0)) ; image
+			     (aref desc 1) ; binding
+			     (intern (aref desc 3)) ; key
+			     :help (aref desc 3)
+			     :enable (aref desc 2))))
+    tool-bar-map)))))
+
 (defun w3-add-toolbar-to-buffer ()
   (cond
    ((featurep 'infodock)
@@ -350,16 +394,7 @@ not `none'.")
 	 (display-graphic-p)
 	 (> (frame-parameter nil 'tool-bar-lines) 0))
     ;; Emacs 21.x way of doing things
-    (let ((toolbar-map (make-sparse-keymap)))
-      (mapc (lambda (desc)
-	      (if (and desc (not (keywordp (aref desc 0))))
-		  (tool-bar-add-item (symbol-value (aref desc 0)) ; image
-				     (aref desc 1) ; binding
-				     (intern (aref desc 3)) ; key
-				     toolbar-map ; keymap
-				     :enable (aref desc 2))))
-	      w3-toolbar)
-      (define-key w3-mode-map [tool-bar] toolbar-map)))
+    (set (make-local-variable 'tool-bar-map) w3-toolbar-map))
    (t
     nil)))
 
