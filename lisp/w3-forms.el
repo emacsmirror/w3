@@ -1,7 +1,7 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/07/10 14:43:34 $
-;; Version: $Revision: 1.8 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/06/07 17:24:58 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -38,29 +38,23 @@
   (require 'url)
   (require 'url-util)
   (require 'widget)
-  (condition-case nil
-      (require 'wid-edit)
-    (error (require 'widget-edit))))
+  (require 'wid-edit))
 
 (require 'w3-vars)
-(require 'mule-sysdp)
+(autoload 'custom-magic-reset "cus-edit")
+(autoload 'w3-warn "w3")
 
 (defvar w3-form-use-old-style nil
   "*Non-nil means use the old way of interacting for form fields.")
 
 (defvar w3-form-keymap
+  ;; Fixme: Why doesn't this use inheritance?  -- fx
   (let ((map (copy-keymap global-map))
 	(eol-loc (where-is-internal 'end-of-line global-map t)))
-    (if widget-keymap
-	(cl-map-keymap (function
-			(lambda (key binding)
-			  (define-key map
-			    (if (vectorp key) key (vector key))
-			    (case binding
-				  (widget-backward 'w3-widget-backward)
-				  (widget-forward  'w3-widget-forward)
-				  (otherwise binding)))))
-		       widget-keymap))
+    (substitute-key-definition 'widget-backward 'w3-widget-backward
+			       map widget-keymap)
+    (substitute-key-definition 'widget-forward 'w3-widget-forward
+			       map widget-keymap)
     (define-key map [return]      'w3-form-maybe-submit-by-keypress)
     (define-key map "\r"          'w3-form-maybe-submit-by-keypress)
     (define-key map "\n"          'w3-form-maybe-submit-by-keypress)
@@ -265,9 +259,7 @@
 (make-variable-buffer-local 'w3-custom-options)
 
 (defun w3-form-create-custom (el face)
-  (condition-case ()
-      (require 'cus-edit)
-    (error (require 'custom-edit)))
+  (require 'cus-edit)
   (let* ((name (w3-form-element-name el))
 	 (var-name (w3-form-element-value el))
 	 (type (plist-get (w3-form-element-plist el) 'custom-type))
@@ -376,17 +368,18 @@
 		 :value (w3-form-element-value el)))
 
 (defun w3-form-create-keygen-list (el face)
-  (let* ((size (apply 'max (mapcar (function (lambda (pair) (length (car pair)))) 
+  (let* ((size (apply 'max (mapcar (lambda (pair) (length (car pair))) 
 				   w3-form-valid-key-sizes)))
-	 (options (mapcar (function (lambda (pair)
-				      (list 'choice-item
-					    :format "%[%t%]" 
-					    :tab-order -1
-					    :button-face face
-					    :value-face face
-					    :menu-tag-get `(lambda (zed) ,(car pair))
-					    :tag (mule-truncate-string (car pair) size ? )
-					    :value (cdr pair))))
+	 (options (mapcar (lambda (pair)
+			    (list 'choice-item
+				  :format "%[%t%]" 
+				  :tab-order -1
+				  :button-face face
+				  :value-face face
+				  :menu-tag-get `(lambda (zed) ,(car pair))
+				  :tag (truncate-string-to-width (car pair)
+								 size nil ? )
+				  :value (cdr pair)))
 			  w3-form-valid-key-sizes)))
     (apply 'widget-create 'menu-choice
 	   :emacspeak-help 'w3-form-summarize-field
@@ -414,7 +407,8 @@
 			   (list 'choice-item :format "%[%t%]"
 				 :emacspeak-help 'w3-form-summarize-field
 				 :menu-tag-get (` (lambda (zed) (, (car x))))
-				 :tag (mule-truncate-string (car x) size ? )
+				 :tag (truncate-string-to-width (car x)
+								size ? )
 				 :button-face face
 				 :value-face face
 				 :value (car x))))
@@ -493,7 +487,7 @@
   (let ((info (widget-get w :w3-form-data)))
     (widget-put w :tag 
 		(if info
-		    (mule-truncate-string
+		    (truncate-string-to-width
 		     (if (eq 'password (w3-form-element-type info))
 			 (make-string (length v) ?*)
 		       v)
@@ -639,6 +633,10 @@ This can be used as the :help-echo property of all w3 form entry widgets."
     (if widget
 	(w3-form-possibly-submit widget))))
 
+(defsubst w3-all-widgets (actn)
+  ;; Return a list of data entry widgets in form number ACTN
+  (cdr-safe (assoc actn w3-form-elements)))
+
 (defun w3-form-possibly-submit (widget &rest ignore)
   (let* ((formobj (widget-get widget :w3-form-data))
 	 (ident (w3-form-element-action formobj))
@@ -711,10 +709,6 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 	    (message "Could not find the form buffer for this text!")
 	  (switch-to-buffer buff)
 	  (w3-form-element-set-value formobj valu)))))
-
-(defsubst w3-all-widgets (actn)
-  ;; Return a list of data entry widgets in form number ACTN
-  (cdr-safe (assoc actn w3-form-elements)))
 
 (defun w3-revert-form (actn)
   (save-excursion
@@ -908,13 +902,20 @@ spaces.  Die Die Die."
       (setq chunk (cdr chunk)))
 
   (mapconcat
-   (function
-    (lambda (char)
-      (cond
-       ((= char ?  ) "+")
-       ((memq char url-unreserved-chars) (char-to-string char))
-       (t (upcase (format "%%%02x" char))))))
-    (mule-encode-string chunk) ""))
+   (lambda (char)
+     (cond
+      ((= char ?  ) "+")
+      ((memq char url-unreserved-chars) (char-to-string char))
+      (t (upcase (format "%%%02x" char)))))
+   ;; Fixme: Should this actually be accepting multibyte?  Is there a
+   ;; better way in XEmacs?
+   (if (featurep 'mule)
+       (encode-coding-string chunk
+			     (if (fboundp 'find-coding-systems-string)
+				 (car (find-coding-systems-string chunk))
+				 buffer-file-coding-system))
+     chunk)
+   ""))
 
 (defun w3-form-encode-application/x-www-form-urlencoded (result)
   (mapconcat
