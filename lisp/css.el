@@ -1,7 +1,7 @@
 ;;; css.el -- Cascading Style Sheet parser
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/09 19:56:30 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/12/11 00:53:12 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -521,8 +521,13 @@ For a terminal frame, the value is always 1."
 	 (setq value (css-expand-color value)))
 	(url				; CSS, Section 6.4
 	 (declare (special url purl))
+	 ;; Potentially remove url(...) from around the URL
 	 (if (string-match "url *(\\([^ )]+\\) *)" value)
 	     (setq value (match-string 1 value)))
+	 ;; Nuke quotes
+	 (if (string-match "\"\\([^\"]+\\)\"" value)
+	     (setq value (match-string 1 value)))
+	 ;; Nuke whitespace
 	 (if (string-match " *\\([^ ]+\\) *" value)
 	     (setq value (match-string 1 value)))
 	 (setq value (url-expand-file-name value (or url purl))))
@@ -723,14 +728,14 @@ For a terminal frame, the value is always 1."
     (setq purl url-current-object)
     (setq url (css-expand-value 'url data))
     (and url
-	 (let ((url-working-buffer (generate-new-buffer-name " *styleimport*"))
-	       (url-mime-accept-string
-		"text/css ; level=2")
+	 (let ((url-mime-accept-string "text/css ; level=2")
 	       (sheet nil))
 	   (save-excursion
-	     (set-buffer (get-buffer-create url-working-buffer))
-	     (setq url-be-asynchronous nil)
-	     (url-retrieve url)
+	     (set-buffer (generate-new-buffer " *styleimport*"))
+	     ;; ftp/file URLs can signal an error.
+	     (condition-case ()
+		 (url-insert-file-contents url)
+	       (error nil))
 	     (css-clean-buffer)
 	     (setq sheet (buffer-string))
 	     (set-buffer-modified-p nil)
@@ -919,13 +924,14 @@ For a terminal frame, the value is always 1."
 	(val nil)
 	(device-type nil)
 	(purl (url-view-url t))
+	(pobj url-current-object)
 	(active-device-types (css-active-device-types (selected-device)))
 	(sheet inherit))
     (if (not sheet)
 	(setq sheet (make-hash-table :size 13 :test 'eq)))
     (save-excursion
-      (set-buffer (get-buffer-create
-		   (generate-new-buffer-name " *style*")))
+      (set-buffer (generate-new-buffer " *style*"))
+      (setq url-current-object pobj)
       (set-syntax-table css-syntax-table)
       (erase-buffer)
       (if url (url-insert-file-contents url))
