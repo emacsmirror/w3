@@ -1,3 +1,8 @@
+1999-01-08  William M. Perry  <wmperry@aventail.com>
+
+* lisp/docomp.el (emacs-build-autoloads): Only do the autoloads one way
+  for Emacs or XEmacs.
+
 1999-01-07  William M. Perry  <wmperry@aventail.com>
 
 * build.bat: More tweaking of finding EMACSDIR automatically.
