@@ -1,12 +1,12 @@
 ;;; css.el -- Cascading Style Sheet parser
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/11 00:53:12 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:52:38 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -260,7 +260,7 @@ For a terminal screen, the value is always 1."
   (setq css-scratch-id (or (cdr-safe (assq 'id args))
 			   (cdr-safe (assq 'name args)))
 	css-scratch-class (or (cdr-safe (assq 'class args)) t)  
-	css-scratch-possibles (cl-gethash tag sheet))
+	css-scratch-possibles (gethash tag sheet))
   (while css-scratch-possibles
     (setq css-scratch-current (car css-scratch-possibles)
 	  css-scratch-current-rule (car css-scratch-current)
@@ -880,10 +880,10 @@ For a terminal frame, the value is always 1."
 
 (defun css-copy-stylesheet (sheet)
   (let ((new (make-hash-table :size (hash-table-count sheet))))
-    (cl-maphash
+    (maphash
      (function
       (lambda (k v)
-	(cl-puthash k (copy-tree v) new))) sheet)
+	(puthash k (copy-tree v) new))) sheet)
     new))
 
 (defsubst css-store-rule (attrs applies-to)
@@ -894,11 +894,11 @@ For a terminal frame, the value is always 1."
 	    tag (car cur))
       (if (listp tag)
 	  (setq tag (car tag)))
-      (setq rules (cl-gethash tag sheet))
+      (setq rules (gethash tag sheet))
       (cond
        ((null rules)
 	;; First rule for this tag.  Create new ruleset
-	(cl-puthash tag (list (cons cur attrs)) sheet))
+	(puthash tag (list (cons cur attrs)) sheet))
        ((setq node (assoc cur rules))
 	;; Similar rule already exists, splice in our information
 	(setcdr node (append attrs (cdr node))))
@@ -906,7 +906,7 @@ For a terminal frame, the value is always 1."
 	;; First rule for this particular combination of tag/ancestors/class.
 	;; Slap it onto the existing set of rules and push back into sheet.
 	(setq rules (cons (cons cur attrs) rules))
-	(cl-puthash tag rules sheet))
+	(puthash tag rules sheet))
        )
       )
     )
@@ -1050,7 +1050,7 @@ For a terminal frame, the value is always 1."
 	    "# styles specified by the document.  The rules are in no\n"
 	    "# particular order.\n\n")
     (let (tmp cur goal-col)
-      (cl-maphash
+      (maphash
        (function
 	(lambda (k v)
 	  (while v
