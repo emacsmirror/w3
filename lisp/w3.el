@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/05/14 17:45:50 $
-;; Version: $Revision: 1.17 $
+;; Created: $Date: 2001/05/16 19:11:12 $
+;; Version: $Revision: 1.18 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -145,42 +145,31 @@ hypertext document."
 		    (url-get-url-at-point))))
     url))
 
-(defun w3-decode-charset ()
+(defun w3-decode-charset (handle)
   "Decode charset-encoded text in the document.
+HANDLE is the MIME handle of the original part.
 Return the coding system used for the decoding."
   (interactive "P")
-  (let (coding-system)
+  (let* ((encoding (mm-handle-encoding handle))
+	 (charset (or (mail-content-type-get (mm-handle-type handle)
+					     'charset)
+		      "iso-8859-1"))
+	 (type (mm-handle-media-type handle))
+	 (coding-system (mm-charset-to-coding-system charset)))
+    (if (and (not coding-system)
+	     (not (equal charset "ascii")))
+	;; Does this work for XEmacs?  Should we guess anyhow?
+	(setq coding-system 'undecided))
     (save-excursion
-      (mail-narrow-to-head)
-      (let* ((inhibit-point-motion-hooks t)
-	     (case-fold-search t)
-	     (ct (mail-fetch-field "Content-Type" t))
-	     (cte (mail-fetch-field "Content-Transfer-Encoding" t))
-	     (ctl (and ct (ignore-errors
-			   (mail-header-parse-content-type ct))))
-	     (charset (if ctl
-			  (mail-content-type-get ctl 'charset)))
-	     (mail-parse-charset 'iso-8859-1) ; Always true for HTTP, right?
-	     (mail-parse-ignored-charsets nil)
-	     buffer-read-only)
-	(setq coding-system
-	      (and charset
-		   (mm-charset-to-coding-system (intern (downcase charset)))))
-	(if (and ctl (not (string-match "/" (car ctl)))) 
-	    (setq ctl nil))
-	(goto-char (point-max))
-	(widen)
-	(forward-line 1)
-	(narrow-to-region (point) (point-max))
-	(when (and (or (not ctl)
-		       (equal (car ctl) "text/plain")))
-	  (mm-decode-body
-	   charset (and cte
-			(intern (downcase
-				 (while (string-match "[\r\n\t ]+" cte)
-				   (setq cte (replace-match "" t t cte))))))
-	   (car ctl))))
-      (widen))
+      (if encoding
+	  (mm-decode-content-transfer-encoding encoding type))
+      (when (and (featurep 'mule)
+		 (if (boundp 'default-enable-multibyte-characters)
+		     default-enable-multibyte-characters
+		   t)
+		 coding-system)
+	(mm-decode-coding-region (point-min) (point-max) coding-system))
+      (mm-enable-multibyte))
     coding-system))
 
 (defun w3-nasty-disgusting-http-equiv-handling (&optional buffer)
@@ -214,29 +203,29 @@ Return the coding system used for the decoding."
 (defun w3-fetch-callback (url)
   (w3-nasty-disgusting-http-equiv-handling)
   (let ((handle (mm-dissect-buffer t))
-	(buff nil)
-	mule-retrieval-coding-system)
+	(buff nil))
     (message "Downloading of `%s' complete." url)
-    (setq mule-retrieval-coding-system
-	  (mm-charset-to-coding-system (w3-decode-charset)))
-    (mm-enable-multibyte)
     (url-mark-buffer-as-dead (current-buffer))
+    ;; Fixme: can handle be null?
     (cond
-     ((equal (car-safe (mm-handle-type handle)) "text/html")
+     ((equal (mm-handle-media-type handle) "text/html")
       ;; Special case text/html if it comes through w3-fetch
-      (setq buff (generate-new-buffer " *w3-html*"))
-      (set-buffer buff)
-      (setq url-current-object (url-generic-parse-url url))
+      (set-buffer (generate-new-buffer " *w3-html*"))
+      (mm-disable-multibyte)
       (mm-insert-part handle)
+      (w3-decode-charset handle)
+      (setq url-current-object (url-generic-parse-url url))
       (w3-prepare-buffer)
       (w3-notify-when-ready (current-buffer)))
-     ((equal (car-safe (mm-handle-type handle)) "application/x-elisp-parsed-html")
-      ;; Also need to special-case pre-parsed representations of HTML
-      (w3-prepare-tree (read (set-marker (make-marker) 1 (mm-handle-buffer handle)))))
+     ((equal (car-safe (mm-handle-type handle))
+	     "application/x-elisp-parsed-html")
+      ;; Also need to special-case pre-parsed representations of HTML.
+      ;; Fixme: will this need decoding?
+      (w3-prepare-tree (read (set-marker (make-marker) 1
+					 (mm-handle-buffer handle)))))
      ((mm-inlinable-p handle)
       ;; We can view it inline!
-      (setq buff (generate-new-buffer url))
-      (set-buffer buff)
+      (set-buffer (generate-new-buffer url))
       (mm-display-part handle)
       (w3-notify-when-ready (current-buffer)))
      (t
@@ -858,51 +847,7 @@ even though the MIME type is nil or listed in `w3-mime-list-for-code-conversion'
 The global value is usually nil.  It will be bound locally if a user
 invokes some commands which read a coding system from the user.")
 
-(defun w3-convert-code-for-mule (mmtype mmcharset mmencoding)
-  "Decode current data by an appropriate coding system."
-  (and (or (not mmtype)
-	   (member mmtype w3-mime-list-for-code-conversion))
-       (not (member mmencoding w3-no-conversion-encodings))
-       (let (charset-symbol coding-system)
-	 (cond (;; explicit coding system ? (through C-u [w3-reload-document])
-		(and w3-explicit-coding-system
-		     (mule-coding-system-p w3-explicit-coding-system))
-		(setq coding-system w3-explicit-coding-system))
-	       (;; explicit charset ? (through MIME headers or META tag)
-		(and (stringp mmcharset)
-		     (setq coding-system (w3-coding-system-for-mime-charset mmcharset))))
-	       (;; recorded explicit coding system ? (in `w3-explicit-encodings-file')
-		(setq coding-system (w3-recall-explicit-coding-system url-current-object)))
-	       ;; forced conversion ? (through user option w3-force-conversion-alist)
-	       ((and (url-filename url-current-object)
-		     (let ((force-alist w3-force-conversion-alist)
-			   (url (concat (url-host url-current-object)
-					(url-filename url-current-object))))
-		       (while (and force-alist (not coding-system))
-			 (if (string-match (car (car force-alist)) url)
-			     (setq coding-system (cdr (car force-alist))))
-			 (setq force-alist (cdr force-alist)))
-		       coding-system))
-		coding-system)
-	       (t;; otherwise try to detect coding-system
-		(setq coding-system
-		      (mule-detect-coding-version (url-host url-current-object)
-						  (point-min) (point-max)))))
-	 (mule-code-convert-region coding-system)
-	 (if (mule-coding-system-with-invalid-chars coding-system)
-	     (w3-replace-invalid-chars)))))
-
-(defun w3-coding-system-for-mime-charset (mmcharset)
-  (let ((coding-system nil)
-	(l w3-mime-charset-coding-alist))
-    (while l
-      (if (string-match (car (car l)) mmcharset)
-	  (setq coding-system (if (mule-coding-system-p (cdr (car l)))
-				  (cdr (car l)))
-		l nil)
-	(setq l (cdr l))))
-    coding-system))
-
+;; Fixme: use skip-chars-forward.
 (defun w3-replace-invalid-chars ()
   (let ((invalid-char-alist w3-invalid-sgml-char-replacement))
     (while invalid-char-alist
@@ -953,7 +898,8 @@ invokes some commands which read a coding system from the user.")
 	(require 'ps-print)
 	(let ((ps-spool-buffer-name (buffer-name)))
 	  (ps-spool-buffer-with-faces))))
-      (mule-write-region-no-coding-system (point-min) (point-max) fname)
+      (let ((coding-system-for-write 'binary))
+	(write-region (point-min) (point-max) fname))
       (kill-buffer (current-buffer)))))
 
 
@@ -1744,7 +1690,8 @@ dumped with emacs."
     result))
 
 (defun w3-download-callback (fname)
-  (mule-write-region-no-coding-system (point-min) (point-max) fname)
+  (let ((coding-system-for-write 'binary))
+    (write-region (point-min) (point-max) fname))
   (url-mark-buffer-as-dead (current-buffer))
   (message "Download of %s complete." (url-view-url t))
   (sit-for 3))
@@ -1959,7 +1906,8 @@ Current keymap is:
     (let ((tmp (mapcar (function (lambda (x) (cons x (and (boundp x) (symbol-value x)))))
 		       w3-persistent-variables)))
       ;; Oh gross, this kills buffer-local faces in XEmacs
-      ;;(kill-all-local-variables)
+      (unless (featurep 'xemacs)
+	(kill-all-local-variables))
       (use-local-map w3-mode-map)
       (setq mode-name "WWW")
       (mapcar (function (lambda (x) (if (boundp (car x))
