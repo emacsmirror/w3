@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.33 $
+;; Version: $Revision: 1.34 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,6 +42,10 @@
 (autoload 'flatten "flame")
 (autoload 'append-suffixes-hack "flame") ; I guess... -- fx
 (autoload 'w3-java-run-applet "w3-java")
+(autoload 'w3-mode "w3")
+(autoload 'w3-add-delayed-graphic "w3")
+(autoload 'w3-find-specific-link "w3")
+(autoload 'w3-fix-spaces "w3")
 (autoload 'mm-inline-text "mm-view")	; may not be done by Gnus
 (defvar w3-cookie-cache nil)
 
