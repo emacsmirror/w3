@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:45:02 $
-;; Version: $Revision: 1.16 $
+;; Created: $Date: 2001/05/14 17:45:50 $
+;; Version: $Revision: 1.17 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,7 +35,6 @@
 
 (require 'w3-sysdp)
 (require 'w3-cfg)
-(require 'mule-sysdp)
 (require 'widget)
 
 (or (featurep 'efs)
@@ -146,39 +145,43 @@ hypertext document."
 		    (url-get-url-at-point))))
     url))
 
-(defun w3-decode-charset (&optional prompt)
-  "Decode charset-encoded text in the article.
-If PROMPT (the prefix), prompt for a coding system to use."
+(defun w3-decode-charset ()
+  "Decode charset-encoded text in the document.
+Return the coding system used for the decoding."
   (interactive "P")
-  (save-excursion
-    (mail-narrow-to-head)
-    (let* ((inhibit-point-motion-hooks t)
-	   (case-fold-search t)
-	   (ct (mail-fetch-field "Content-Type" t))
-	   (cte (mail-fetch-field "Content-Transfer-Encoding" t))
-	   (ctl (and ct (ignore-errors
-			  (mail-header-parse-content-type ct))))
-	   (charset (cond
-		     (prompt
-		      (mm-read-coding-system "Charset to decode: "))
-		     (ctl
-		      (mail-content-type-get ctl 'charset))))
-	   (mail-parse-charset 'iso-8859-1) ; Always true for HTTP, right?
-	   (mail-parse-ignored-charsets nil)
-	   buffer-read-only)
-      (if (and ctl (not (string-match "/" (car ctl)))) 
-	  (setq ctl nil))
-      (goto-char (point-max))
-      (widen)
-      (forward-line 1)
-      (narrow-to-region (point) (point-max))
-      (when (and (or (not ctl)
-		     (equal (car ctl) "text/plain")))
-	(mm-decode-body
-	 charset (and cte (intern (downcase
-				   (gnus-strip-whitespace cte))))
-	 (car ctl))))
-    (widen)))
+  (let (coding-system)
+    (save-excursion
+      (mail-narrow-to-head)
+      (let* ((inhibit-point-motion-hooks t)
+	     (case-fold-search t)
+	     (ct (mail-fetch-field "Content-Type" t))
+	     (cte (mail-fetch-field "Content-Transfer-Encoding" t))
+	     (ctl (and ct (ignore-errors
+			   (mail-header-parse-content-type ct))))
+	     (charset (if ctl
+			  (mail-content-type-get ctl 'charset)))
+	     (mail-parse-charset 'iso-8859-1) ; Always true for HTTP, right?
+	     (mail-parse-ignored-charsets nil)
+	     buffer-read-only)
+	(setq coding-system
+	      (and charset
+		   (mm-charset-to-coding-system (intern (downcase charset)))))
+	(if (and ctl (not (string-match "/" (car ctl)))) 
+	    (setq ctl nil))
+	(goto-char (point-max))
+	(widen)
+	(forward-line 1)
+	(narrow-to-region (point) (point-max))
+	(when (and (or (not ctl)
+		       (equal (car ctl) "text/plain")))
+	  (mm-decode-body
+	   charset (and cte
+			(intern (downcase
+				 (while (string-match "[\r\n\t ]+" cte)
+				   (setq cte (replace-match "" t t cte))))))
+	   (car ctl))))
+      (widen))
+    coding-system))
 
 (defun w3-nasty-disgusting-http-equiv-handling (&optional buffer)
   (let ((content-type nil)
@@ -211,9 +214,12 @@ If PROMPT (the prefix), prompt for a coding system to use."
 (defun w3-fetch-callback (url)
   (w3-nasty-disgusting-http-equiv-handling)
   (let ((handle (mm-dissect-buffer t))
-	(buff nil))
+	(buff nil)
+	mule-retrieval-coding-system)
     (message "Downloading of `%s' complete." url)
-    (w3-decode-charset)
+    (setq mule-retrieval-coding-system
+	  (mm-charset-to-coding-system (w3-decode-charset)))
+    (mm-enable-multibyte)
     (url-mark-buffer-as-dead (current-buffer))
     (cond
      ((equal (car-safe (mm-handle-type handle)) "text/html")
@@ -524,14 +530,19 @@ under point."
 
 (defun w3-widget-button-click (e)
   (interactive "@e")
-  (cond
-   ((and (event-point e)
-	 (widget-at (event-point e)))
-    (widget-button-click e))
-   ((and (fboundp 'event-glyph)
-	 (event-glyph e)
-	 (glyph-property (event-glyph e) 'widget))
-    (widget-button-click e))))
+  (if (featurep 'xemacs)
+      (cond
+       ((and (event-point e)
+	     (widget-at (event-point e)))
+	(widget-button-click e))
+       ((and (fboundp 'event-glyph)
+	     (event-glyph e)
+	     (glyph-property (event-glyph e) 'widget))
+	(widget-button-click e)))
+    (save-excursion
+      (mouse-set-point e)
+      (if (widget-at (point))
+	  (widget-button-click e)))))
    
 ;;;###autoload
 (defun w3-maybe-follow-link-mouse (e)
@@ -639,6 +650,7 @@ and convert newlines into spaces."
 	     ((and (equal "HTML Source" format) under)
 	      (setq content-type (concat "text/html; charset=" content-charset))
 	      (let ((url-source t))
+		;; Fixme: this needs a callback -- which?
 		(url-retrieve url)))
 	     ((equal "HTML Source" format)
 	      (setq content-type (concat "text/html; charset=" content-charset))
@@ -647,6 +659,7 @@ and convert newlines into spaces."
 		    (set-buffer (get-buffer-create url-working-buffer))
 		    (erase-buffer)
 		    (insert x))
+		;; Fixme: this needs a callback -- which?
 		(url-retrieve url)))
 	     ((and under (equal "PostScript" format))
 	      (setq content-type "application/postscript")
@@ -690,6 +703,7 @@ and convert newlines into spaces."
 		   (search-forward "<html>" nil t))
 	       (insert "\n"))
            (insert (format "<base href=\"%s\">" url))))
+    ;; Fixme: not defined.
     (mail-to)))
 
 (defun w3-internal-use-history (hist-item)
@@ -719,6 +733,7 @@ and convert newlines into spaces."
 	  (progn
 	    (goto-char (point-min))
 	    (w3-find-specific-link (substring url 1 nil)))))
+     ;; Fixme: url-maybe-relative not defined.
      (url (url-maybe-relative url))		; Get the link
      (t (message "Couldn't understand whats in the history.")))))
 
@@ -1498,26 +1513,27 @@ No arg means whole window full.  Arg is number of lines to scroll."
       (setq x (cdr x))))
   (message "Cleaning up w3 storage... done."))
 
-(cond
- ((fboundp 'display-warning)
-  (fset 'w3-warn 'display-warning))
- ((fboundp 'warn)
-  (defun w3-warn (class message &optional level)
-    (if (and (eq class 'html)
-	     (not w3-debug-html))
-	nil
-      (warn "(%s/%s) %s" class (or level 'warning) message))))
- (t
-  (defun w3-warn (class message &optional level)
-    (if (and (eq class 'html)
-	     (not w3-debug-html))
-	nil
-      (save-excursion
-	(set-buffer (get-buffer-create "*W3-WARNINGS*"))
-	(goto-char (point-max))
+(eval-and-compile
+  (cond
+   ((fboundp 'display-warning)
+    (fset 'w3-warn 'display-warning))
+   ((fboundp 'warn)
+    (defun w3-warn (class message &optional level)
+      (if (and (eq class 'html)
+	       (not w3-debug-html))
+	  nil
+	(warn "(%s/%s) %s" class (or level 'warning) message))))
+   (t
+    (defun w3-warn (class message &optional level)
+      (if (and (eq class 'html)
+	       (not w3-debug-html))
+	  nil
 	(save-excursion
-	  (insert (format "(%s/%s) %s\n" class (or level 'warning) message)))
-	(display-buffer (current-buffer)))))))
+	  (set-buffer (get-buffer-create "*W3-WARNINGS*"))
+	  (goto-char (point-max))
+	  (save-excursion
+	    (insert (format "(%s/%s) %s\n" class (or level 'warning) message)))
+	  (display-buffer (current-buffer))))))))
 
 (defun w3-map-links (function &optional buffer from to maparg)
   "Map FUNCTION over the hypertext links which overlap region in BUFFER,
