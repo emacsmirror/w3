@@ -1,7 +1,7 @@
 ;;; w3-e21.el --- Emacs 21.xx specific functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2000/10/16 15:25:47 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 2000/10/16 15:36:56 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces, help, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -48,6 +48,12 @@
 	(tooltip-show help))))
 
 (add-hook 'tooltip-hook 'w3-tooltip-get-tips)
+
+(defvar toolbar-file-icon "new"
+  "Lame definition to look a little like XEmacs' toolbar for Emacs/W3")
+
+(defvar toolbar-printer-icon "print"
+  "Lame definition to look a little like XEmacs' toolbar for Emacs/W3")
 
 (provide 'w3-e21)
 (require 'w3-toolbar)
