@@ -12,7 +12,7 @@
 @c site: http://www.cs.indiana.edu/elisp/w3/docs.html
 @c
 @setfilename w3.info
-@settitle Emacs/W3 $State: Exp $ User's Manual
+@settitle Emacs/W3 $State: v4.0pre.47 $ User's Manual
 @iftex
 @c @finalout
 @end iftex
@@ -89,7 +89,7 @@ cannot be modified to your satisfaction, please send mail to the
 @t{w3-beta@@xemacs.org} mailing list with any suggestions.
 @xref{Reporting Bugs}.
 
-This manual corresponds to Emacs/W3 $State: Exp $
+This manual corresponds to Emacs/W3 $State: v4.0pre.47 $
 
 @menu
 * Getting Started::             Getting up and running with Emacs/W3
@@ -364,7 +364,6 @@ By default, hypertext links are surrounded by '[[' and ']]' on
 non-graphic terminals (VT100, DOS window, etc.).  On a graphics
 terminal, the links are in shown in different colors.
 For information on how to change this, @xref{Stylesheets}.
-
 
 There are approximately 50 keys bound to special Emacs/W3 functions.
 The basic rule of thumb regarding keybindings in Emacs/W3 is that a
@@ -787,7 +786,6 @@ netscape emulation.  lynx emulation is handled by the
 @code{w3-lynx-emulation-minor-mode} minor mode.  For more information
 about lynx style hotlists, @xref{Hotlist Handling}.
 
-
 :: work :: Document lynx emulation@*
 @table @kbd
 @kindex down
@@ -965,7 +963,6 @@ Invoke the Cookie Jar Page (ignored)
 off lynx emulation.  netscape emulation is handled by the
 @code{w3-netscape-emulation-minor-mode} minor mode.  For more
 information about netscape style hotlists, @xref{Hotlist Handling}.
-
 
 
 @table @kbd
@@ -1231,7 +1228,7 @@ automatically written to disk every
 @code{url-global-history-save-interval} seconds and when exiting emacs.
 The list is added to those already in the file specified by
 @code{url-global-history-file}, which defaults to @file{~/mosaic.hst}
-for MS operating systems, @file{~/mosaic.global-history} for @sc{VMS} and
+for MS operating systems, @file{~/mosaic.global-history} for @sc{vms} and
 @file{~/.w3/history} for everything else.
 
 If any @sc{url} in the list is found in the file, it is not saved, but new
@@ -1487,12 +1484,12 @@ W3C proposals.  Wherever Emacs/W3 diverges from the specification, it
 will be clearly documented, and will be changed once a full standard is
 available.
 
-Support for @sc{DSSSL} is progressing, but spare time is at an all-time
+Support for @sc{dsssl} is progressing, but spare time is at an all-time
 low.  If anyone would like to help, please contact the author.
 
-The following sections closely parallel the @sc{CSS1} specification so
+The following sections closely parallel the @sc{css1} specification so
 it should be very easy to look up what Emacs/W3 supports when browsing
-through the @sc{CSS1} specification.  Please note that a lot of the text
+through the @sc{css1} specification.  Please note that a lot of the text
 in the following sections comes directly from the specification as
 well.
 
@@ -1514,7 +1511,7 @@ HTML attribute, ie: @samp{align=center} --- align is the attribute.
 @item author
 The author of an HTML document.
 @item block-level element
-An element which has a line break before and after (e.g. 'H1' in @sc{HTML}).
+An element which has a line break before and after (e.g.@: 'H1' in @sc{html}).
 @item canvas
 The part of the UA's drawing surface onto which documents are rendered.
 @item child element
