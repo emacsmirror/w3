@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/26 02:40:13 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1998/12/27 02:01:52 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/26 02:40:13 $|$Revision: 1.4 $|Location Undetermined
+;;; $Date: 1998/12/27 02:01:52 $|$Revision: 1.5 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1137,32 +1137,33 @@ path components followed by `..' are removed, along with the `..' itself."
 					 (char-to-string x))))
 			   (url-strip-leading-spaces
 			    (url-eat-trailing-space url)) "")))
+  (setq default (cond
+		 ((vectorp default) default)
+		 (default (url-generic-parse-url default))
+		 (url-current-object url-current-object)
+		 (t (url-generic-parse-url (url-view-url t)))))
+
   (cond
    ((= (length url) 0)			; nil or empty string
-    default)
+    (url-recreate-url default))
    ((string-match "^#" url)		; Offset link, use it raw
     url)
    (t
     (let* ((urlobj (url-generic-parse-url url))
 	   (inhibit-file-name-handlers t)
-	   (defobj (cond
-		    ((vectorp default) default)
-		    (default (url-generic-parse-url default))
-		    (url-current-object url-current-object)
-		    (t (url-generic-parse-url (url-view-url t)))))
 	   (expander (cdr-safe
 		      (cdr-safe
 		       (assoc (or (url-type urlobj)
-				  (url-type defobj))
+				  (url-type default))
 			      url-registered-protocols)))))
       (if (string-match "^//" url)
-	  (setq urlobj (url-generic-parse-url (concat (url-type defobj) ":"
+	  (setq urlobj (url-generic-parse-url (concat (url-type default) ":"
 						      url))))
       (if (fboundp expander)
-	  (funcall expander urlobj defobj)
+	  (funcall expander urlobj default)
 	(message "Unknown URL scheme: %s" (or (url-type urlobj)
-					     (url-type defobj)))
-	(url-identity-expander urlobj defobj))
+					     (url-type default)))
+	(url-identity-expander urlobj default))
       (url-recreate-url urlobj)))))
 
 (defun url-default-expander (urlobj defobj)
