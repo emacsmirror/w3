@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/21 16:26:41 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1998/12/22 20:45:31 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1222,7 +1222,7 @@ invokes some commands which read a coding system from the user.")
 	  (let ((str (char-to-string (caar invalid-char-alist)))
 		(repl (cdar invalid-char-alist)))
 	    (while (search-forward str nil t)
-	      (replace-match repl))))
+	      (replace-match repl nil t))))
       (setq invalid-char-alist (cdr invalid-char-alist)))))
 
 (defun w3-sentinel (&optional proc string)
@@ -1768,7 +1768,9 @@ cached and in local mode."
 (defun w3-reload-document (&optional explicit-coding-system)
   "Reload the current document.
 With prefix argument, it reads a coding system to decode the document."
-  (interactive "ZCoding system: ")
+  (interactive
+   (list (if (and (featurep 'mule) current-prefix-arg)
+	     (read-coding-system "Coding system: "))))
   (let ((tmp (url-view-url t))
 	(pnt (point))
 	(window-start (progn
