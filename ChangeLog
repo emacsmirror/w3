@@ -1,3 +1,15 @@
+2001-10-11  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-style.el (cl): Require only when compiling.
+
+	* lisp/w3-cus.el: Doc fixes.
+	(w3-delay-image-loads): Fix default for Emacs 21.
+	(w3-mule-charset-to-coding-alist): Remove.
+
+	* lisp/w3.el (w3-parse-hotlist, w3-menu-install-menus): Autoload.
+	(w3-explicit-coding-system): Move definition.
+	(w3-decode-charset, w3-fetch-callback): Use it.
+
 2001-10-01  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-vars.el: Doc fixes.
