@@ -1,14 +1,14 @@
 ;;; css.el -- Cascading Style Sheet parser
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:07 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/22 20:40:13 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -808,6 +808,8 @@ For a terminal frame, the value is always 1."
 (defun css-active-device-types (&optional device)
   (let ((types (list 'all
 		     (if css-running-xemacs 'xemacs 'emacs)
+		     (if (or css-running-xemacs font-running-emacs-new-redisplay)
+			 'multifont 'unifont)
 		     (if (css-color-light-p 'default) 'light 'dark)))
 	(type (device-type device)))
     ;; For reasons I don't really want to get into, emacspeak and TTY
@@ -954,11 +956,15 @@ For a terminal frame, the value is always 1."
 	    (cond
 	     ((looking-at "[^{]*\\({\\)")
 	      (goto-char (match-beginning 1))
-	      (forward-sexp 1)
+	      (condition-case ()
+		  (forward-sexp 1)
+		(error (goto-char (point-max))))
 	      (setq data (buffer-substring save-pos (1- (point)))))
 	     ((looking-at "[\"']+")
 	      (setq save-pos (1+ save-pos))
-	      (forward-sexp 1)
+	      (condition-case ()
+		  (forward-sexp 1)
+		(error (goto-char (point-max))))
 	      (setq data (buffer-substring save-pos (1- (point)))))
 	     (t
 	      (skip-chars-forward "^;")))
