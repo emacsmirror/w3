@@ -1,3 +1,22 @@
+2001-10-01  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-vars.el: Doc fixes.
+	(w3-meta-content-type-charset-regexp) 
+	(w3-meta-charset-content-type-regexp): Removed.
+	(w3-persistent-variables): Add url-current-mime-headers.
+
+	* lisp/w3.el (w3-setup-reload-timer, w3-handle-refresh-header):
+	New function.
+	(w3-fetch-callback): Handle refresh and cookies.  Set
+	url-current-object.  Don't destroy external parts immediately.
+	For inlines, use w3-mode, require mm-view, lose cursor for images.
+
+	(w3-document-information): Fix for current url stuff.
+	(w3-replace-invalid-chars): Remove.
+
+	* lisp/w3-display.el (w3-display-node): Fix <meta> and <link>
+	handling.
+
 2001-09-24  Dave Love  <fx@gnu.org>
 
 	* lisp/w3.el (w3-http-equiv-headers): New function.
