@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.30 $
+;; Version: $Revision: 1.31 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -25,8 +25,8 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'cl)
 (eval-when-compile
+  (require 'cl)
   (require 'w3-props))
 (require 'css)
 (require 'font)
@@ -160,14 +160,6 @@
       (aset prefix-vector len (make-string len ? ))
       (setq len (1+ len)))
     prefix-vector))
-
-(defconst w3-line-breaks-vector
-  (let ((len 0)
-	(breaks-vector (make-vector 10 nil)))
-    (while (< len 10)
-      (aset breaks-vector len (make-string len ?\n))
-      (setq len (1+ len)))
-    breaks-vector))
 
 (defvar w3-pause-keystroke nil)
 
@@ -455,37 +447,24 @@ If the face already exists, it is unmodified."
 	  width)
       (case (car w3-display-alignment-stack)
 	(center
-	 (fill-region-as-paragraph w3-last-fill-pos (point))
-	 (center-region w3-last-fill-pos (point-max)))
+	 (fill-region-as-paragraph w3-last-fill-pos (point) 'center))
 	((justify full)
 	 (fill-region-as-paragraph w3-last-fill-pos (point) 'full))
 	(right
-	 (fill-region-as-paragraph w3-last-fill-pos (point))
-	 (goto-char w3-last-fill-pos)
-	 (catch 'fill-exit
-	   (while (re-search-forward ".$" nil t)
-	     (if (>= (setq width (current-column)) fill-column)
-		 nil			; already justified, or error
-	       (beginning-of-line)
-	       (insert-char ?  (- fill-column width) t)
-	       (end-of-line)
-	       (if (eobp)
-		   (throw 'fill-exit t))
-	       (condition-case ()
-		   (forward-char 1)
-		 (error (throw 'fill-exit t))))))
-	 )
+	 (fill-region-as-paragraph w3-last-fill-pos (point) 'right))
 	(otherwise			; Default is left justification
 	 (fill-region-as-paragraph w3-last-fill-pos (point)))
 	))
     (setq n (1- n)))
   (setq w3-last-fill-pos (point-max))
-  (insert (cond
-	   ((<= n 0) "")
-	   ((< n 10)
-	    (aref w3-line-breaks-vector n))
-	   (t
-	    (make-string n ?\n)))))
+  (insert-char ?\n n)
+  (cond
+   ((<= n 0) nil)
+   ((< n 10)
+    (insert (aref w3-line-breaks-vector n)))
+   (t
+    (dotimes (i n)
+      (insert ?\n)))))
 
 (defsubst w3-munge-line-breaks-p ()
   (eq (car w3-display-whitespace-stack) 'pre))
