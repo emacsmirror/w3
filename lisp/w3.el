@@ -1,12 +1,12 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/05/29 16:07:02 $
-;; Version: $Revision: 1.19 $
+;; Created: $Date: 2001/06/01 18:46:30 $
+;; Version: $Revision: 1.20 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -157,7 +157,12 @@ Return the coding system used for the decoding."
 	 (coding-system (mm-charset-to-coding-system charset)))
     (if (and (not coding-system)
 	     (not (equal charset "ascii")))
-	;; Does this work for XEmacs?  Should we guess anyhow?
+	;; Does this work for XEmacs?  Should we guess anyhow (which
+	;; is what `undecided' involves)?  In Emacs 20 we'll get
+	;; byte-combination anyhow when switching to multibyte below,
+	;; but we can't leave the buffer as unibyte, or we can't deal
+	;; properly with non-ASCII entities inserted by the parsing
+	;; stage.
 	(setq coding-system 'undecided))
     (save-excursion
       (if encoding
@@ -167,7 +172,10 @@ Return the coding system used for the decoding."
 		     default-enable-multibyte-characters
 		   t)
 		 coding-system)
-	(mm-decode-coding-region (point-min) (point-max) coding-system))
+	(mm-decode-coding-region (point-min) (point-max) coding-system)
+	;; Potentially useful is the buffer's going to be saved, and
+	;; for the mode-line indication.
+	(set-buffer-file-coding-system coding-system))
       (mm-enable-multibyte))
     coding-system))
 
