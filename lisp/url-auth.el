@@ -1,14 +1,14 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:08 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/30 11:14:35 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ instead of the pathname inheritance method."
 	    (cons (list server
 			(cons path
 			      (setq retval
-				    (base64-encode
+				    (base64-encode-string
 				     (format "%s:%s" user pass)))))
 		  url-basic-auth-storage)))
      (byserv
@@ -102,7 +102,7 @@ instead of the pathname inheritance method."
 	    (setq user (read-string (url-auth-user-prompt url realm)
 				    (user-real-login-name))
 		  pass (funcall url-passwd-entry-func "Password: ")
-		  retval (base64-encode (format "%s:%s" user pass))
+		  retval (base64-encode-string (format "%s:%s" user pass))
 		  byserv (assoc server url-basic-auth-storage))
 	    (setcdr byserv
 		    (cons (cons path retval) (cdr byserv))))))
