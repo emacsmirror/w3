@@ -1,7 +1,7 @@
 ;;; w3-style.el --- Emacs/W3 binding style sheet mechanism
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/07/10 14:43:36 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/10/11 13:04:58 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,7 +33,7 @@
 ;;; experimental W3C mechanism
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'font)
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'css)
 
 ;;;###autoload
