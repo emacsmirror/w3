@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 16:28:37 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 1998/12/28 16:33:58 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2661,6 +2661,8 @@ Format: (((image-alt row column) . offset) ...)")
 
 ;;;###autoload
 (defun w3-region (st nd)
+  "Parse and display the region of this buffer between ST and ND."
+  (interactive "r")
   (if (not w3-setup-done) (w3-do-setup))
   (let* ((source (buffer-substring st nd))
 	 (w3-display-same-buffer t)
