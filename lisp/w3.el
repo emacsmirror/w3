@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
-;; Author: $Author: fx $
-;; Created: $Date: 2001/10/31 16:17:21 $
-;; Version: $Revision: 1.25 $
+;; Author: $Author: wmperry $
+;; Created: $Date: 2001/11/22 00:34:31 $
+;; Version: $Revision: 1.26 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2028,22 +2028,35 @@ Current keymap is:
   (w3-do-setup)
   (if (interactive-p)
       (w3-preview-this-buffer)
-    (let ((tmp (mapcar (lambda (x) (cons x (and (boundp x) (symbol-value x))))
-		       w3-persistent-variables)))
-      ;; Oh gross, this kills buffer-local faces in XEmacs
-      (unless (featurep 'xemacs)
-	(kill-all-local-variables))
-      (use-local-map w3-mode-map)
-      (setq mode-name "WWW")
-      (mapcar (lambda (x) (if (boundp (car x))
-			      (set-variable (car x) (cdr x)))) tmp)
-      (setq major-mode 'w3-mode)
-      (w3-mode-version-specifics)
-      (w3-menu-install-menus)
-      (setq truncate-lines t
-	    mode-line-format w3-modeline-format)
-      (run-hooks 'w3-mode-hook)
-      (widget-setup))))
+    ;; This code used to keep a few buffer-local variables around so
+    ;; that we could be a nice major mode and kill all the local
+    ;; variables like we are supposed to, but still save some of them
+    ;; that were set up in the URL and parsing libraries.
+    ;;
+    ;: Two problems with this approach:
+    ;;
+    ;; 1) It kills buffer-local faces in XEmacs, which we use extensively.
+    ;; 2) With Emacspeak it causes all the personality properties on
+    ;;    the text to mysteriously disappear.
+    ;;
+    ;; So screw it... I'm leaving the code in here commented out so
+    ;; that I don't forget and try to 'fix' this later in life.
+    ;;
+    ;; - Bill Perry Nov 21, 2001
+    ;; (let ((tmp (mapcar (lambda (x) (cons x (and (boundp x) (symbol-value x))))
+    ;;                    w3-persistent-variables)))
+    ;;    (kill-all-local-variables))
+    ;;    (mapcar (lambda (x) (if (boundp (car x))
+    ;;                            (set-variable (car x) (cdr x)))) tmp))
+    (use-local-map w3-mode-map)
+    (setq mode-name "WWW")
+    (setq major-mode 'w3-mode)
+    (w3-mode-version-specifics)
+    (w3-menu-install-menus)
+    (setq truncate-lines t
+	  mode-line-format w3-modeline-format)
+    (run-hooks 'w3-mode-hook)
+    (widget-setup)))
 
 (put 'w3-mode 'mode-class 'special)
 
