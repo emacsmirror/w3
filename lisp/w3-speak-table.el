@@ -1,8 +1,11 @@
-;;;$Id: w3-speak-table.el,v 1.3 1999/12/24 12:16:41 wmperry Exp $
+;;;$Id: w3-speak-table.el,v 1.4 2001/05/25 14:05:05 wmperry Exp $
 ;;;Authors: Thierry Emery <Thierry.Emery@nmu.alcatel.fr>, T.V. Raman <raman@Adobe.COM>
 ;;;Description: Speak W3 tables
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl)
+  (load "cl-extra"))
+
 ;;{{{  inline functions
 
 (defsubst w3-table-inside-table-display-p ()

@@ -1,3 +1,9 @@
+2001-05-25  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3-speak-table.el: Make sure to load cl-extra at load time
+	to work around a byte-optimizer bug in Emacs 21 that caused this
+	module to fail to byte-compile.
+
 2001-05-24  Pavel Janík <Pavel@janik.cz>
 
 	* lisp/w3-display.el (w3-resurrect-hyperlinks): Look for next
