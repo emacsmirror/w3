@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/29 18:15:22 $
-;; Version: $Revision: 1.8 $
+;; Created: $Date: 1998/12/30 11:26:49 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/29 18:15:22 $|$Revision: 1.8 $|Location Undetermined
+;;; $Date: 1998/12/30 11:26:49 $|$Revision: 1.9 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -662,7 +662,7 @@ accessible."
 		       (concat "/"
 			       (if (url-user urlobj)
 				   (concat (url-user urlobj) "@")
-				 "")
+				 "anonymous@")
 			       (url-host urlobj) ":"
 			       (url-filename urlobj))
 		     (url-filename urlobj))))
@@ -722,7 +722,7 @@ numbers, etc."
 		       (concat "/"
 			       (if (url-user urlobj)
 				   (concat (url-user urlobj) "@")
-				 "")
+				 "anonymous@")
 			       (url-host urlobj) ":"
 			       (url-filename urlobj))
 		     (url-filename urlobj))))

@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/22 20:45:31 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 1998/12/30 11:26:51 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1064,8 +1064,9 @@ ftp: reference"
       (find-file (url-filename url-current-object)))
      ((equal type "ftp")
       (find-file
-       (format "/%s@%s:%s"
-	       (url-user url-current-object)
+       (format "/%s%s:%s"
+	       (if (url-user url-current-object)
+		   (concat (url-user url-current-object) "@"))
 	       (url-host url-current-object)
 	       (url-filename url-current-object))))
      (t (message "Sorry, I can't get that file so you can alter it.")))))
