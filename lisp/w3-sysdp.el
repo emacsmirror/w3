@@ -367,7 +367,6 @@ Example:  (add-minor-mode 'view-minor-mode \" View\" view-mode-map)"
 (sysdep-defun find-face (face)
   (car-safe (memq face (face-list))))
 
-
 (sysdep-defun copy-tree (tree &optional vecp)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
@@ -385,6 +384,15 @@ argument VECP, this copies vectors as well as conses."
 	  (while (>= (setq i (1- i)) 0)
 	    (aset tree i (copy-tree (aref tree i) vecp))))))
   tree)
+
+(sysdep-defun truncate-string-to-width (str len &optional start-column pad)
+  "Truncate string STR so that string-width of STR is not greater than LEN.
+If width of the truncated string is less than LEN, and if a character PAD is
+defined, add padding end of it."
+  (concat (if (> (length str) len) (substring str 0 len) str)
+	  (if (or (null pad) (> (length str) len))
+	      ""
+	    (make-string (- len (length str)) pad))))
 
 (provide 'w3-sysdp)
 ;;; sysdep.el ends here
