@@ -1,7 +1,7 @@
 ;;; w3-widget.el --- An image widget
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2001/05/18 23:42:43 $
-;; Version: $Revision: 1.7 $
+;; Created: $Date: 2002/02/01 17:42:49 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: faces, images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -268,32 +268,37 @@
 	  (if real-widget
 	      (widget-put widget :children (list real-widget))))
       ;;; Actually use the image
-      (if (featurep 'xemacs)
-	  (let ((extent (or (widget-get widget 'extent)
-			    (make-extent where where))))
-	    (set-extent-endpoints extent where where)
-	    (widget-put widget 'extent extent)
-	    (widget-put widget :children nil)
-	    (set-extent-property extent 'keymap widget-image-keymap)
-	    (set-extent-property extent 'begin-glyph glyph)
-	    (set-extent-property extent 'detachable t)
-	    (set-extent-property extent 'help-echo
-				 (cond
-				  ((and href (or client-map
-						 server-map))
-				   (format "%s [map]" href))
-				  (href href)
-				  (t nil)))
-	    (set-glyph-property glyph 'widget widget))
-	
-      (insert-image glyph
-		    (propertize " "
-				'keymap widget-image-keymap
-				'help-echo (cond
-					    ((and href (or client-map
-							   server-map))
-					     (format "%s [map]" href))
-					    (href href))))))))
+      (cond
+       ((featurep 'xemacs)
+	(let ((extent (or (widget-get widget 'extent)
+			  (make-extent where where))))
+	  (set-extent-endpoints extent where where)
+	  (widget-put widget 'extent extent)
+	  (widget-put widget :children nil)
+	  (set-extent-property extent 'keymap widget-image-keymap)
+	  (set-extent-property extent 'begin-glyph glyph)
+	  (set-extent-property extent 'detachable t)
+	  (set-extent-property extent 'help-echo
+			       (cond
+				((and href (or client-map
+					       server-map))
+				 (format "%s [map]" href))
+				(href href)
+				(t nil)))
+	  (set-glyph-property glyph 'widget widget)))
+       ((fboundp 'insert-image)
+	;; Emacs 21!
+	(let ((buffer-read-only nil)
+	      (after-change-functions nil)
+	      (before-change-functions nil))
+	  (insert-image glyph
+			(propertize " "
+				    'keymap widget-image-keymap
+				    'help-echo (cond
+						((and href (or client-map
+							       server-map))
+						 (format "%s [map]" href))
+						(href href))))))))))
 
 (defun widget-image-delete (widget)
   "Remove WIDGET from the buffer."

@@ -1,8 +1,8 @@
 ;;; font.el --- New font model
-;; Author: $Author: fx $
-;; Created: $Date: 2002/01/22 18:55:35 $
-;; Version: $Revision: 1.10 $
-;; Keywords: faces
+
+;; Author: wmperry
+;; Maintainer: Bill Perry <wmperry@gnu.org>
+;; Created: $Date: 2002/02/01 17:42:48 $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
@@ -26,45 +26,28 @@
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; The emacsen compatibility package - load it up before anything else
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (eval-when-compile (require 'cl))
 (require 'devices)
-
-;; Needed for XEmacs 19.13, noop on all others, since it is always loaded.
 (require 'disp-table)
 
-(eval-and-compile
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args)
-      nil)
-    (defmacro defcustom (var value doc &rest args)
-      (` (defvar (, var) (, value) (, doc))))))
+(when (featurep 'xemacs)
+  (globally-declare-fboundp
+   '(x-list-fonts
+     mswindows-list-fonts fontsetp get-font-info
+     get-fontset-info mswindows-define-rgb-color cancel-function-timers
+     ;; #### perhaps we should rewrite font-warn to avoid the warning
+     font-warn))
+
+  (globally-declare-boundp
+   '(global-face-data
+     x-font-regexp x-font-regexp-foundry-and-family)))
 
 (if (not (fboundp 'try-font-name))
     (defun try-font-name (fontname &rest args)
       (case window-system
-	((x win32 w32 pm) (car-safe (x-list-fonts fontname)))
+	((x pm) (car-safe (x-list-fonts fontname)))
 	(mswindows (car-safe (mswindows-list-fonts fontname)))
 	(otherwise nil))))
-
-(if (not (fboundp 'facep))
-    (defun facep (face)
-      "Return t if X is a face name or an internal face vector."
-      (declare (special global-face-data))
-      (if (not window-system)
-	  ;; FIXME if FSF ever does TTY faces
-	  ;; Well, they fixed it for us by finally defining facep! 12/5/1999
-	  nil
-	(and (or (internal-facep face)
-		 (and (symbolp face) (assq face global-face-data)))
-	     t))))
 
 (if (not (fboundp 'set-face-property))
     (defun set-face-property (face property value &optional locale
@@ -84,29 +67,15 @@
   (if (not (fboundp '|))    (defalias '| 'logior))
   (if (not (fboundp '~))    (defalias '~ 'lognot))
   (if (not (fboundp '>>))   (defun >> (value count) (<< value (- count)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Lots of variables / keywords for use later in the program
 ;;; Not much should need to be modified
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defconst font-running-xemacs (string-match "XEmacs" (emacs-version))
-  "Whether we are running in XEmacs or not.")
-
-(defconst font-running-emacs-new-redisplay (and (fboundp 'set-face-attribute)
-						(fboundp 'set-face-background-pixmap))
-  "Whether we are running in Emacs with the new redisplay engine.")
-
-(defmacro define-font-keywords (&rest keys)
-  (`
-   (eval-and-compile
-     (let ((keywords (quote (, keys))))
-       (while keywords
-	 (or (boundp (car keywords))
-	     (set (car keywords) (car keywords)))
-	 (setq keywords (cdr keywords)))))))
-
 (defconst font-window-system-mappings
-  '((x        . (x-font-create-name x-font-create-object))
+  '((x         . (x-font-create-name x-font-create-object))
+    (gtk       . (x-font-create-name x-font-create-object))
     (mswindows . (mswindows-font-create-name mswindows-font-create-object))
     (win32    . (x-font-create-name x-font-create-object))
     (w32      . (x-font-create-name x-font-create-object))
@@ -115,16 +84,19 @@
   "Alist mapping device types to functions.
 The functions are used to create a font name from a font structure.")
 
-(defconst ns-font-weight-mappings
-  '((:extra-light . "extralight")
-    (:light       . "light")
-    (:demi-light  . "demilight")
-    (:medium      . "medium")
-    (:normal      . "medium")
-    (:demi-bold   . "demibold")
-    (:bold        . "bold")
-    (:extra-bold  . "extrabold"))
-  "Alist mapping keywords to actual NeXTstep specific information to use.")
+(defconst font-emacs21-weight-mappings
+  '((:extra-light . extra-light)
+    (:light       . light)
+    (:demi-light  . semi-light)
+    (:demi        . semi-light)
+    (:book        . normal)
+    (:medium      . normal)
+    (:normal      . normal)
+    (:demi-bold   . semi-bold)
+    (:bold        . bold)
+    (:extra-bold  . extra-bold))
+  "An assoc list mapping font weights to the actual symbols used by
+the Emacs21 redisplay engine.")
 
 (defconst x-font-weight-mappings
   '((:extra-light . "extralight")
@@ -140,19 +112,6 @@ The functions are used to create a font name from a font structure.")
   "Alist mapping keywords to actual X-specific strings.
 These are for use in the `weight' field of an X font string.")
 
-(defconst font-new-redisplay-weight-mappings
-  '((:extra-light . extra-light)
-    (:light       . light)
-    (:demi-light  . semi-light)
-    (:demi        . semi-light)
-    (:book        . normal)
-    (:medium      . normal)
-    (:normal      . normal)
-    (:demi-bold   . semi-bold)
-    (:bold        . bold)
-    (:extra-bold  . extra-bold))
-  "Alist mapping font weights to symbols used by the new redisplay engine.")
-
 (defconst font-possible-weights
   (mapcar 'car x-font-weight-mappings))
 
@@ -162,98 +121,90 @@ These are for use in the `weight' field of an X font string.")
 (defvar font-maximum-slippage "1pt"
   "How much a font is allowed to vary from the desired size.")
 
-(define-font-keywords :family :style :size :registry :encoding)
-
-(define-font-keywords
-  :weight :extra-light :light :demi-light :medium :normal :regular
-  :demi-bold :bold :extra-bold)
-
 (defvar font-style-keywords nil)
 
-(defsubst set-font-family (fontobj family)
+(defun set-font-family (fontobj family)
   (aset fontobj 1 family))
 
-(defsubst set-font-weight (fontobj weight)
+(defun set-font-weight (fontobj weight)
   (aset fontobj 3 weight))
 
-(defsubst set-font-style (fontobj style)
+(defun set-font-style (fontobj style)
   (aset fontobj 5 style))
 
-(defsubst set-font-size (fontobj size)
+(defun set-font-size (fontobj size)
   (aset fontobj 7 size))
 
-(defsubst set-font-registry (fontobj reg)
+(defun set-font-registry (fontobj reg)
   (aset fontobj 9 reg))
 
 (defsubst font-set-font-encoding (fontobj enc)
   (aset fontobj 11 enc))
 
-(defsubst font-family (fontobj)
+(defun font-family (fontobj)
   (aref fontobj 1))
 
-(defsubst font-weight (fontobj)
+(defun font-weight (fontobj)
   (aref fontobj 3))
 
-(defsubst font-style (fontobj)
+(defun font-style (fontobj)
   (aref fontobj 5))
 
-(defsubst font-size (fontobj)
+(defun font-size (fontobj)
   (aref fontobj 7))
 
-(defsubst font-registry (fontobj)
+(defun font-registry (fontobj)
   (aref fontobj 9))
 
-(defsubst font-encoding (fontobj)
+(defun font-encoding (fontobj)
   (aref fontobj 11))
 
 (eval-when-compile
   (defmacro define-new-mask (attr mask)
-    (`
-     (progn
+    `(progn
        (setq font-style-keywords
-	     (cons (cons (quote (, attr))
+	     (cons (cons (quote ,attr)
 			 (cons
-			  (quote (, (intern (format "set-font-%s-p" attr))))
-			  (quote (, (intern (format "font-%s-p" attr))))))
+			  (quote ,(intern (format "set-font-%s-p" attr)))
+			  (quote ,(intern (format "font-%s-p" attr)))))
 		   font-style-keywords))
-       (defconst (, (intern (format "font-%s-mask" attr))) (<< 1 (, mask))
-	 (, (format
-	     "Bitmask for whether a font is to be rendered in %s or not."
-	     attr)))
-       (defun (, (intern (format "font-%s-p" attr))) (fontobj)
-	 (, (format "Whether FONTOBJ will be renderd in `%s' or not." attr))
-	 (if (/= 0 (& (font-style fontobj)
-		      (, (intern (format "font-%s-mask" attr)))))
+       (defconst ,(intern (format "font-%s-mask" attr)) (lsh 1 ,mask)
+	 ,(format
+	   "Bitmask for whether a font is to be rendered in %s or not."
+	   attr))
+       (defun ,(intern (format "font-%s-p" attr)) (fontobj)
+	 ,(format "Whether FONTOBJ will be renderd in `%s' or not." attr)
+	 (if (/= 0 (logand (font-style fontobj)
+		      ,(intern (format "font-%s-mask" attr))))
 	     t
 	   nil))
-       (defun (, (intern (format "set-font-%s-p" attr))) (fontobj val)
-	 (, (format "Set whether FONTOBJ will be renderd in `%s' or not."
-		    attr))
+       (defun ,(intern (format "set-font-%s-p" attr)) (fontobj val)
+	 ,(format "Set whether FONTOBJ will be renderd in `%s' or not."
+		  attr)
 	 (cond
 	  (val
-	   (set-font-style fontobj (| (font-style fontobj)
-				      (, (intern
-					  (format "font-%s-mask" attr))))))
-	  (((, (intern (format "font-%s-p" attr))) fontobj)
+	   (set-font-style fontobj (logior (font-style fontobj)
+					   ,(intern
+					     (format "font-%s-mask" attr)))))
+	  ((,(intern (format "font-%s-p" attr)) fontobj)
 	   (set-font-style fontobj (- (font-style fontobj)
-				      (, (intern
-					  (format "font-%s-mask" attr))))))))
-       ))))
+				      ,(intern
+					(format "font-%s-mask" attr)))))))
+       )))
 
-(let ((mask 0))
-  (define-new-mask bold        (setq mask (1+ mask)))
-  (define-new-mask italic      (setq mask (1+ mask)))
-  (define-new-mask oblique     (setq mask (1+ mask)))
-  (define-new-mask dim         (setq mask (1+ mask)))
-  (define-new-mask underline   (setq mask (1+ mask)))
-  (define-new-mask overline    (setq mask (1+ mask)))
-  (define-new-mask linethrough (setq mask (1+ mask)))
-  (define-new-mask strikethru  (setq mask (1+ mask)))
-  (define-new-mask reverse     (setq mask (1+ mask)))
-  (define-new-mask blink       (setq mask (1+ mask)))
-  (define-new-mask smallcaps   (setq mask (1+ mask)))
-  (define-new-mask bigcaps     (setq mask (1+ mask)))
-  (define-new-mask dropcaps    (setq mask (1+ mask))))
+(define-new-mask bold        1)
+(define-new-mask italic      2)
+(define-new-mask oblique     3)
+(define-new-mask dim         4)
+(define-new-mask underline   5)
+(define-new-mask overline    6)
+(define-new-mask linethrough 7)
+(define-new-mask strikethru  8)
+(define-new-mask reverse     9)
+(define-new-mask blink       10)
+(define-new-mask smallcaps   11)
+(define-new-mask bigcaps     12)
+(define-new-mask dropcaps    13)
 
 (defvar font-caps-display-table
   (let ((table (make-display-table))
@@ -276,7 +227,7 @@ These are for use in the `weight' field of an X font string.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Utility functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defsubst set-font-style-by-keywords (fontobj styles)
+(defun set-font-style-by-keywords (fontobj styles)
   (make-local-variable 'font-func)
   (declare (special font-func))
   (if (listp styles)
@@ -287,7 +238,7 @@ These are for use in the `weight' field of an X font string.")
     (setq font-func (car-safe (cdr-safe (assq styles font-style-keywords))))
     (and (fboundp font-func) (funcall font-func fontobj t))))
 
-(defsubst font-properties-from-style (fontobj)
+(defun font-properties-from-style (fontobj)
   (let ((todo font-style-keywords)
 	type func retval)
     (while todo
@@ -415,7 +366,8 @@ These are for use in the `weight' field of an X font string.")
 						(font-weight fontobj-2)))
     (set-font-family retval (font-unique (append (font-family fontobj-1)
 						 (font-family fontobj-2))))
-    (set-font-style retval (| (font-style fontobj-1) (font-style fontobj-2)))
+    (set-font-style retval (logior (font-style fontobj-1)
+				   (font-style fontobj-2)))
     (set-font-registry retval (or (font-registry fontobj-1)
 				  (font-registry fontobj-2)))
     (font-set-font-encoding retval (or (font-encoding fontobj-1)
@@ -468,7 +420,7 @@ These are for use in the `weight' field of an X font string.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; The window-system dependent code (X-style)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar font-x-font-regexp (or (and font-running-xemacs
+(defvar font-x-font-regexp (or (and (featurep 'xemacs)
 				    (boundp 'x-font-regexp)
 				    x-font-regexp)
  (let
@@ -493,11 +445,11 @@ These are for use in the `weight' field of an X font string.")
    (concat "\\`\\*?[-?*]"
 	   foundry - family - weight\? - slant\? - swidth - adstyle -
 	   pixelsize - pointsize - resx - resy - spacing - avgwidth -
-	   registry - encoding - "*" "\\'"
+	   registry - encoding "\\'"
 	   ))))
 
 (defvar font-x-registry-and-encoding-regexp
-  (or (and font-running-xemacs
+  (or (and (featurep 'xemacs)
 	   (boundp 'x-font-regexp-registry-and-encoding)
 	   (symbol-value 'x-font-regexp-registry-and-encoding))
       (let ((- "[-?]")
@@ -508,36 +460,36 @@ These are for use in the `weight' field of an X font string.")
 (defvar font-x-family-mappings
   '(
     ("serif"        . ("new century schoolbook"
- 		       "utopia"
- 		       "charter"
- 		       "times"
- 		       "lucidabright"
- 		       "garamond"
- 		       "palatino"
- 		       "times new roman"
- 		       "baskerville"
- 		       "bookman"
- 		       "bodoni"
- 		       "computer modern"
- 		       "rockwell"
- 		       ))
+		       "utopia"
+		       "charter"
+		       "times"
+		       "lucidabright"
+		       "garamond"
+		       "palatino"
+		       "times new roman"
+		       "baskerville"
+		       "bookman"
+		       "bodoni"
+		       "computer modern"
+		       "rockwell"
+		       ))
     ("sans-serif"   . ("lucida"
- 		       "helvetica"
- 		       "gills-sans"
- 		       "avant-garde"
- 		       "univers"
- 		       "optima"))
+		       "helvetica"
+		       "gills-sans"
+		       "avant-garde"
+		       "univers"
+		       "optima"))
     ("elfin"        . ("tymes"))
     ("monospace"    . ("courier"
- 		       "fixed"
- 		       "lucidatypewriter"
- 		       "clean"
- 		       "terminal"))
+		       "fixed"
+		       "lucidatypewriter"
+		       "clean"
+		       "terminal"))
     ("cursive"      . ("sirene"
- 		       "zapf chancery"))
+		       "zapf chancery"))
     )
   "A list of font family mappings on X devices.")
- 
+
 (defun x-font-create-object (fontname &optional device)
   (let ((case-fold-search t))
     (if (or (not (stringp fontname))
@@ -585,18 +537,17 @@ These are for use in the `weight' field of an X font string.")
 
 (defun x-font-families-for-device (&optional device no-resetp)
   (ignore-errors (require 'x-font-menu))
+  (declare (special device-fonts-cache))
   (or device (setq device (selected-device)))
   (if (boundp 'device-fonts-cache)
-      (let ((menu nil))
-	(declare (special device-fonts-cache))
-	(setq menu (cdr-safe (assq device device-fonts-cache)))
+      (let ((menu (or (cdr-safe (assq device device-fonts-cache)))))
 	(if (and (not menu) (not no-resetp))
 	    (progn
 	      (reset-device-font-menus device)
 	      (x-font-families-for-device device t))
-	  (let ((scaled (mapcar (lambda (x) (if x (aref x 0)))
+	  (let ((scaled (mapcar #'(lambda (x) (if x (aref x 0)))
 				(aref menu 0)))
-		(normal (mapcar (lambda (x) (if x (aref x 0)))
+		(normal (mapcar #'(lambda (x) (if x (aref x 0)))
 				(aref menu 1))))
 	    (sort (font-unique (nconc scaled normal)) 'string-lessp))))
     (cons "monospace" (mapcar 'car font-x-family-mappings))))
@@ -606,7 +557,7 @@ These are for use in the `weight' field of an X font string.")
 ;;;###autoload
 (defun font-default-font-for-device (&optional device)
   (or device (setq device (selected-device)))
-  (if font-running-xemacs
+  (if (featurep 'xemacs)
       (font-truename
        (make-font-specifier
 	(face-font-name 'default device)))
@@ -614,14 +565,14 @@ These are for use in the `weight' field of an X font string.")
       (if (and (fboundp 'fontsetp) (fontsetp font))
 	  (aref (get-font-info (aref (cdr (get-fontset-info font)) 0)) 2)
 	font))))
-	  
+
 ;;;###autoload
 (defun font-default-object-for-device (&optional device)
   (let ((font (font-default-font-for-device device)))
     (or (cdr-safe (assoc font font-default-cache))
- 	(let ((object (font-create-object font)))
- 	  (push (cons font object) font-default-cache)
- 	  object))))
+	(let ((object (font-create-object font)))
+	  (push (cons font object) font-default-cache)
+	  object))))
 
 ;;;###autoload
 (defun font-default-family-for-device (&optional device)
@@ -638,7 +589,7 @@ These are for use in the `weight' field of an X font string.")
 ;;;###autoload
 (defun font-default-size-for-device (&optional device)
   ;; face-height isn't the right thing (always 1 pixel too high?)
-  ;; (if font-running-xemacs
+  ;; (if (featurep 'xemacs)
   ;;    (format "%dpx" (face-height 'default device))
   (font-size (font-default-object-for-device device)))
 
@@ -656,7 +607,7 @@ These are for use in the `weight' field of an X font string.")
 		       (font-family default)
 		       (x-font-families-for-device device)))
 	   (weight (or (font-weight fontobj) :medium))
-	   (size (or (if font-running-xemacs
+	   (size (or (if (featurep 'xemacs)
 			 (font-size fontobj))
 		     (font-size default)))
 	   (registry (or (font-registry fontobj)
@@ -824,7 +775,7 @@ These are for use in the `weight' field of an MS-Windows font string.")
 	   (family (or (font-family fontobj)
 		       (font-family default)))
 	   (weight (or (font-weight fontobj) :regular))
-	   (size (or (if font-running-xemacs
+	   (size (or (if (featurep 'xemacs)
 			 (font-size fontobj))
 		     (font-size default)))
 	   (underline-p (font-underline-p fontobj))
@@ -878,7 +829,7 @@ These are for use in the `weight' field of an MS-Windows font string.")
 (defun x-font-build-cache (&optional device)
   (let ((hash-table (make-hash-table :test 'equal :size 15))
 	(fonts (mapcar 'x-font-create-object
-		       (list-fonts "-*-*-*-*-*-*-*-*-*-*-*-*-*-*")))
+		       (x-list-fonts "-*-*-*-*-*-*-*-*-*-*-*-*-*-*")))
 	(plist nil)
 	(cur nil))
     (while fonts
@@ -905,7 +856,7 @@ These are for use in the `weight' field of an MS-Windows font string.")
 ;;; Now overwrite the original copy of set-face-font with our own copy that
 ;;; can deal with either syntax.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;###autoload
+;;; ###autoload
 (defun font-set-face-font (&optional face font &rest args)
   (cond
    ((and (vectorp font) (= (length font) 12))
@@ -920,7 +871,7 @@ These are for use in the `weight' field of an MS-Windows font string.")
 	    (setq cur (car font-name)
 		  font-name (cdr font-name))
 	    (apply 'set-face-property face (car cur) (cdr cur) args))))
-       (font-running-xemacs
+       ((featurep 'xemacs)
 	(apply 'set-face-font face font-name args)
 	(apply 'set-face-underline-p face (font-underline-p font) args)
 	(if (and (or (font-smallcaps-p font) (font-bigcaps-p font))
@@ -946,6 +897,10 @@ These are for use in the `weight' field of an MS-Windows font string.")
     (set-face-property face 'font-specification nil)
     (apply 'set-face-font face font args))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Emacs 21 Redisplay
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun font-find-available-family (fontobj &optional device)
   (let* ((default (font-default-object-for-device device))
 	 (family (or (font-family fontobj)
@@ -977,7 +932,7 @@ These are for use in the `weight' field of an MS-Windows font string.")
 	      done (try-font-name font-name device))))
     (and done cur-family)))
 
-(defun font-set-face-font-new-redisplay (&optional face font &rest args)
+(defun font-set-face-font-emacs21 (&optional face font &rest args)
   (cond
    ((and (vectorp font) (= (length font) 12))
     (set-face-property face 'font-specification font)
@@ -985,7 +940,7 @@ These are for use in the `weight' field of an MS-Windows font string.")
      face nil
      :underline (font-underline-p font)
      :weight (or (cdr-safe (assoc (font-weight font)
-				  font-new-redisplay-weight-mappings))
+				  font-emacs21-weight-mappings))
 		 'normal))
     (if (font-find-available-family font)
 	(set-face-attribute :family (font-find-available-family font)))
@@ -997,8 +952,10 @@ These are for use in the `weight' field of an MS-Windows font string.")
     (set-face-property face 'font-specification nil)
     (apply 'set-face-font face font args))))
 
-(if font-running-emacs-new-redisplay
-(defalias 'font-set-face-font 'font-set-face-font-new-redisplay))
+(if (and (not (featurep 'xemacs))
+	 (>= emacs-major-version 21))
+    (defalias 'font-set-face-font 'font-set-face-font-emacs21))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Now for emacsen specific stuff
@@ -1043,14 +1000,18 @@ DEVICE_LIST defaults to a list of all active devices."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (cond
  ((fboundp 'display-warning)
-  (defalias 'font-warn 'display-warning))
+  (fset 'font-warn 'display-warning))
+ ((fboundp 'w3-warn)
+  (fset 'font-warn 'w3-warn))
+ ((fboundp 'url-warn)
+  (fset 'font-warn 'url-warn))
  ((fboundp 'warn)
   (defun font-warn (class message &optional level)
     (warn "(%s/%s) %s" class (or level 'warning) message)))
  (t
   (defun font-warn (class message &optional level)
     (save-excursion
-      (set-buffer (get-buffer-create "*FONT-WARNINGS*"))
+      (set-buffer (get-buffer-create "*W3-WARNINGS*"))
       (goto-char (point-max))
       (save-excursion
 	(insert (format "(%s/%s) %s\n" class (or level 'warning) message)))
@@ -1196,14 +1157,14 @@ The list (R G B) is returned, or an error is signaled if the lookup fails."
 	       b 0)))
   (list r g b) ))
 
-(defsubst font-rgb-color-p (obj)
+(defun font-rgb-color-p (obj)
   (or (and (vectorp obj)
 	   (= (length obj) 4)
 	   (eq (aref obj 0) 'rgb))))
 
-(defsubst font-rgb-color-red (obj) (aref obj 1))
-(defsubst font-rgb-color-green (obj) (aref obj 2))
-(defsubst font-rgb-color-blue (obj) (aref obj 3))
+(defun font-rgb-color-red (obj) (aref obj 1))
+(defun font-rgb-color-green (obj) (aref obj 2))
+(defun font-rgb-color-blue (obj) (aref obj 3))
 
 (defun font-color-rgb-components (color)
   "Return the RGB components of COLOR as a list of integers (R G B).
@@ -1225,7 +1186,7 @@ The variable x-library-search-path is use to locate the rgb.txt file."
      ((and (vectorp color) (= 3 (length color)))
       (list (aref color 0) (aref color 1) (aref color 2)))
      ((and (listp color) (= 3 (length color)) (floatp (car color)))
-      (mapcar (lambda (x) (* x 65535)) color))
+      (mapcar #'(lambda (x) (* x 65535)) color))
      ((and (listp color) (= 3 (length color)))
       color)
      ((or (string-match "^#" color)
@@ -1294,16 +1255,6 @@ If an error occurs, return black."
   (case (device-type device)
    ((x pm)
     (apply 'format "#%02x%02x%02x" (font-color-rgb-components color)))
-   (win32
-    (let* ((rgb (font-color-rgb-components color))
-	   (color (apply 'format "#%02x%02x%02x" rgb)))
-      (win32-define-rgb-color (nth 0 rgb) (nth 1 rgb) (nth 2 rgb) color)
-      color))
-   (w32
-    (let* ((rgb (font-color-rgb-components color))
-	   (color (apply 'format "#%02x%02x%02x" rgb)))
-      (w32-define-rgb-color (nth 0 rgb) (nth 1 rgb) (nth 2 rgb) color)
-      color))
    (mswindows
     (let* ((rgb (font-color-rgb-components color))
 	   (color (apply 'format "#%02x%02x%02x" rgb)))
@@ -1312,7 +1263,7 @@ If an error occurs, return black."
    (tty
     (apply 'font-tty-find-closest-color (font-color-rgb-components color)))
    (ns
-    (let ((vals (mapcar (lambda (x) (>> x 8))
+    (let ((vals (mapcar #'(lambda (x) (lsh x -8))
 			(font-color-rgb-components color))))
       (apply 'format "RGB%02x%02x%02xff" vals)))
    (otherwise
@@ -1370,11 +1321,11 @@ If an error occurs, return black."
       (if (or (eq face face-at) (and (listp face-at) (memq face face-at)))
 	  (setq found t)))
     found))
-  
+
 (defun font-blink-callback ()
   ;; Optimized to never invert the face unless one of the visible windows
   ;; is showing it.
-  (let ((faces (if font-running-xemacs (face-list t) (face-list)))
+  (let ((faces (if (featurep 'xemacs) (face-list t) (face-list)))
 	(obj nil))
     (while faces
       (if (and (setq obj (face-property (car faces) 'font-specification))
@@ -1388,7 +1339,7 @@ If an error occurs, return black."
   "How often to blink faces."
   :type 'number
   :group 'faces)
-  
+
 (defun font-blink-initialize ()
   (cond
    ((featurep 'itimer)
@@ -1403,5 +1354,5 @@ If an error occurs, return black."
 		 font-blink-interval
 		 'font-blink-callback))
    (t nil)))
-  
+
 (provide 'font)

@@ -1,3 +1,25 @@
+2002-02-01  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3.el (w3-fetch-callback): Fiddling with how to display XML
+	by default.
+
+	* lisp/w3-widget.el: Attempt to make images work with Emacs 21.
+
+	* lisp/w3-display.el (w3-display-node): Revert change for <hr>
+	handling.
+
+	* lisp/images.el: Use (featurep 'xemacs) instead of
+	string-matching on emacs-version.
+
+2001-12-11  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/devices.el: Remove ancient NextStep support.
+
+	* lisp/font.el: Merge with the version from XEmacs 21.5.  This
+	pulls in lots of GTK fixes that I made ages ago.  Also removes
+	ancient, unworking NextStep support.  Use new backquote syntax
+	(emacs 19 can go away now).
+
 2002-01-22  Dave Love  <fx@gnu.org>
 
 	* lisp/css.el (css-color-values): Maybe use `color-values'.
@@ -252,7 +274,7 @@
 2001-05-31  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-menu.el (w3-menu-file-menu): Fix
-	"---:shadowDoubleEtchedIn".  From Pavel Jan,Bm(Bk.
+	"---:shadowDoubleEtchedIn".  From Pavel Jan-Bík.-A
 
 	* lisp/w3-parse.el (decode-char): Define with older Mule-UCS.
 	(w3-expand-entity-at-point-maybe): Sanitize regexp for numeric
@@ -302,7 +324,7 @@
 	to work around a byte-optimizer bug in Emacs 21 that caused this
 	module to fail to byte-compile.
 
-2001-05-24  Pavel Jan,Bm(Bk <Pavel@janik.cz>
+2001-05-24  Pavel Jan-Bík <Pavel@janik.cz>-A
 
 	* lisp/w3-display.el (w3-resurrect-hyperlinks): Look for next
 	single property change from `st' instead of `nd' to avoid

@@ -1,7 +1,7 @@
 ;;; images.el --- Automatic image converters
-;; Author: $Author: fx $
-;; Created: $Date: 2001/06/07 16:36:27 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: wmperry $
+;; Created: $Date: 2002/02/01 17:42:48 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,7 +31,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (eval-and-compile
-  (if (not (and (string-match "XEmacs" emacs-version)
+  (if (not (and (featurep 'xemacs)
 		(or (> emacs-major-version 19)
 		    (>= emacs-minor-version 14))))
       (require 'w3-sysdp)))
@@ -40,7 +40,7 @@
 (defvar image-converters nil "Storage for the image converters.")
 (defvar image-native-formats
   (cond
-   ((string-match "XEmacs" emacs-version)
+   ((featurep 'xemacs)
     (delq nil (cons (if (featurep 'x) 'xbm)
 		    (mapcar (function (lambda (x) (if (featurep x) x)))
 			    '(xpm gif jpeg tiff png imagick)))))

@@ -42,9 +42,9 @@
       (setq tree (cdr tree))
       (if (stringp node)
 	  nil 				; Do nothing
-	(setq tag (nth 0 node)
-	      attrs (nth 1 node)
-	      content (nth 2 node))
+	(setq tag (xml-node-name node)
+	      attrs (xml-node-attributes node)
+	      content (xml-node-children node))
 	(cond
 	 ((eq tag 'base)
 	  (setq base-object (cdr-safe (or (assq 'src attrs) (assq 'href attrs)))))

@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.41 $
+;; Version: $Revision: 1.42 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -368,12 +368,6 @@
     (if (> white black)
 	"white"
       "black")))
-
-;; Test function for XEmacs and the color inference code.
-;; (defun w3-display-test-inference (color)
-;;  (interactive "sColor: ")
-;;  (set-face-background 'default color (current-buffer))
-;;  (set-face-foreground 'default (w3-display-infer-contrasting-color color) (current-buffer)))
 
 (defun w3-make-face-emacs19 (name &optional doc-string temporary)
   "Defines and returns a new FACE described by DOC-STRING.
@@ -2325,9 +2319,7 @@ Format: (((image-alt row column) . offset) ...)")
 		   (setq perc (/ (min (string-to-int perc) 100) 100.0)
 			 width (truncate (* fill-column perc)))
 		 (setq width perc))
-	       (w3-display-handle-break)
 	       (w3-insert-terminal-char (w3-horizontal-rule-char) width)
-	       (w3-display-handle-break)
 	       (w3-handle-empty-tag)))
 	    (map			; Client side imagemaps
 	     (let ((name (or (w3-get-attribute 'name)
