@@ -2,7 +2,7 @@
 
 ;; Author: wmperry
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2002/02/01 17:42:48 $
+;; Created: $Date: 2002/10/23 03:33:41 $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
@@ -30,7 +30,7 @@
 (require 'devices)
 (require 'disp-table)
 
-(when (featurep 'xemacs)
+(when (fboundp 'globally-declare-fboundp)
   (globally-declare-fboundp
    '(x-list-fonts
      mswindows-list-fonts fontsetp get-font-info

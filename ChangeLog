@@ -1,3 +1,17 @@
+2002-10-22  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3-forms.el (w3-form-create-option-list): Invalid call to
+	truncate-string-to-width caused all reasonably sized <option>
+	elements in a <select> to be invisible.
+	(w3-form-default-button-update): Similar problem for buttons.
+
+2002-09-17  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3.el (w3-fetch-callback): Removed set-cookie handling.
+	This needs to be handled in the HTTP protocol loader so that
+	cookies that get set on redirects are honored.  This seems to be
+	why my.yahoo.com has stopped working.
+
 2002-09-15  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3.el (w3-nasty-disgusting-http-equiv-handling): Need to

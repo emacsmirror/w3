@@ -1,7 +1,7 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
-;; Author: $Author: fx $
-;; Created: $Date: 2001/09/09 15:30:49 $
-;; Version: $Revision: 1.10 $
+;; Author: $Author: wmperry $
+;; Created: $Date: 2002/10/23 03:33:41 $
+;; Version: $Revision: 1.11 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -404,11 +404,12 @@
 		       (mapcar
 			(function
 			 (lambda (x)
-			   (list 'choice-item :format "%[%t%]"
+			   (list 'choice-item
+				 :format "%[%t%]"
 				 :emacspeak-help 'w3-form-summarize-field
 				 :menu-tag-get (` (lambda (zed) (, (car x))))
 				 :tag (truncate-string-to-width (car x)
-								size ? )
+								size nil ? )
 				 :button-face face
 				 :value-face face
 				 :value (car x))))
@@ -491,7 +492,7 @@
 		     (if (eq 'password (w3-form-element-type info))
 			 (make-string (length v) ?*)
 		       v)
-		     (w3-form-element-size info) ? )))
+		     (w3-form-element-size info) nil ? )))
     v))
 
 (defun w3-form-default-button-callback (widget &rest ignore)

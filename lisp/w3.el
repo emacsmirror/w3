@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2002/09/16 01:43:42 $
-;; Version: $Revision: 1.29 $
+;; Created: $Date: 2002/10/23 03:33:41 $
+;; Version: $Revision: 1.30 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -296,22 +296,20 @@ MUST-BE-VIEWING is the current URL when the timer expires."
   ;; Process any cookie and refresh headers.
   (let (headers)
     (ignore-errors
-     (save-restriction
-       (mail-narrow-to-head)
-       (goto-char (point-min))
-       (unless (search-forward ":" (line-end-position) t)
-	 (forward-line))
-       (setq headers (mail-header-extract))
-       (let (refreshed)
-	 (dolist (header headers)
-	   ;; Act on multiple cookies if necessary, but only on a
-	   ;; single refresh request in case there's more than one.
-	   (case (car header)
-		 (set-cookie (url-cookie-handle-set-cookie (cdr header)))
-		 ;(set-cookie2 (url-cookie-handle-set-cookie2 (cdr header)))
-		 (refresh (unless refreshed
-			    (w3-handle-refresh-header (cdr header))
-			    (setq refreshed t))))))))
+      (save-restriction
+	(mail-narrow-to-head)
+	(goto-char (point-min))
+	(unless (search-forward ":" (line-end-position) t)
+	  (forward-line))
+	(setq headers (mail-header-extract))
+	(let (refreshed)
+	  (dolist (header headers)
+	    ;; Act on multiple cookies if necessary, but only on a
+	    ;; single refresh request in case there's more than one.
+	    (case (car header)
+	      (refresh (unless refreshed
+			 (w3-handle-refresh-header (cdr header))
+			 (setq refreshed t))))))))
     (let ((handle (mm-dissect-buffer t))
 	  (w3-explicit-coding-system
 	   (or w3-explicit-coding-system
@@ -335,18 +333,18 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 	(setq url-current-mime-headers headers)
 	(w3-notify-when-ready (current-buffer))
 	(mm-destroy-parts handle))
-;;        ((equal (mm-handle-media-type handle) "text/xml")
-;; 	;; Special case text/xml if it comes through w3-fetch
-;; 	(set-buffer (generate-new-buffer " *w3-xml*"))
-;; 	(mm-disable-multibyte)
-;; 	(mm-insert-part handle)
-;; 	(w3-decode-charset handle)
-;;      !!! Need some function to view XML nicely... maybe the
-;;      !!! customize tree control?
-;; 	(setq url-current-object (url-generic-parse-url url)
-;; 	      url-current-mime-headers headers)
-;; 	(mm-destroy-parts handle)
-;; 	(w3-notify-when-ready (current-buffer)))
+       ;;        ((equal (mm-handle-media-type handle) "text/xml")
+       ;; 	;; Special case text/xml if it comes through w3-fetch
+       ;; 	(set-buffer (generate-new-buffer " *w3-xml*"))
+       ;; 	(mm-disable-multibyte)
+       ;; 	(mm-insert-part handle)
+       ;; 	(w3-decode-charset handle)
+       ;;      !!! Need some function to view XML nicely... maybe the
+       ;;      !!! customize tree control?
+       ;; 	(setq url-current-object (url-generic-parse-url url)
+       ;; 	      url-current-mime-headers headers)
+       ;; 	(mm-destroy-parts handle)
+       ;; 	(w3-notify-when-ready (current-buffer)))
        ((equal (car-safe (mm-handle-type handle))
 	       "application/x-elisp-parsed-html")
 	;; Also need to special-case pre-parsed representations of HTML.
@@ -356,7 +354,7 @@ MUST-BE-VIEWING is the current URL when the timer expires."
        ((mm-inlinable-p handle)
 	;; We can view it inline!
 	(set-buffer (generate-new-buffer url))
-	(require 'mm-view)		; make sure methods are defined
+	(require 'mm-view)	       ; make sure methods are defined
 	(mm-display-part handle)
 	(set-buffer-modified-p nil)
 	(w3-mode)
