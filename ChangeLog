@@ -1,5 +1,8 @@
 1998-12-18  William M. Perry  <wmperry@aventail.com>
 
+* lisp/Makefile.in: No longer include auto-autoloads.el and custom-load in 
+  the distribution.  We can rebuild it anywhere now.
+
 * aclocal.m4 (AC_CHECK_CUSTOMLOADS): Use the new functions in the
   appropriate place.
   (EMACS_REBUILD_AUTOLOADS): Ditto.

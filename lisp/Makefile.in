@@ -69,10 +69,10 @@ w3-auto.el: auto-autoloads.el
 	cat $(srcdir)/auto-autoloads.el | sed 's/w3-autoloads/w3-auto/g' > $@
 
 auto-autoloads.el: $(SOURCES) $(URLSOURCES)
-	( cd $(srcdir) ; GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) @REBUILD_AUTOLOADS@ )
+	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) @REBUILD_AUTOLOADS@
 
 custom-load.el: $(SOURCES) $(URLSOURCES)
-	( cd $(srcdir) ; GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) @REBUILD_CUSTOMLOADS@ )
+	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) @REBUILD_CUSTOMLOADS@
 
 w3-cfg.el: $(srcdir)/w3-cfg.el.in ../config.status
 	( cd ../ ; CONFIG_FILES=lisp/w3-cfg.el CONFIG_HEADERS= ./config.status)
@@ -127,3 +127,4 @@ $(top_srcdir)/configure: $(top_srcdir)/configure.in $(top_srcdir)/aclocal.m4
 version: $(ALLSOURCES) $(EXTRAS) descrip.mms
 	test -d $(DIRNAME)/lisp || mkdir -p $(DIRNAME)/lisp
 	for x in descrip.mms $(ALLSOURCES) $(EXTRAS) w3-cfg.el.in w3-cfg.nt Makefile.in; do $(INSTALL) -m 644 $$x $(DIRNAME)/lisp; done
+	cd $(DIRNAME)/lisp && $(RM) $(AUTOSOURCES)

@@ -1,5 +1,6 @@
 (setq load-path (append (list (expand-file-name 
 			       (or (getenv "W3SRCDIR") "./"))
+			      "."
 			      (or (getenv "WIDGETDIR")
 				  (expand-file-name "../widget"))
 			      (or (getenv "GNUSDIR")
@@ -110,11 +111,13 @@
 
 (defun emacs-build-autoloads (dir autofile)
   (require 'autoload)
-  (let ((files (directory-files "." t ".*.el$" nil)))
+  (let ((files (directory-files dir t ".*.el$" nil)))
     (save-excursion
       (find-file autofile)
       (erase-buffer)
       (mapcar 'generate-file-autoloads files)
+      (goto-char (point-max))
+      (insert "\n(provide 'w3-autoloads)\n")
       (save-buffer)
       (kill-buffer (current-buffer)))))
 
@@ -133,6 +136,7 @@
 (defun emacs-batch-build-custom-load ()
   (emacs-build-custom-load (car command-line-args-left)))
 
+(provide 'w3-auto)
 (autoload 'w3-load-flavors "w3")
 
 (w3-load-flavors)

@@ -192,9 +192,9 @@ AC_EMACS_CHECK_LIB(autoload,batch-update-directory,"noecho")
 EMACS_cv_REBUILD_AUTOLOADS=${HAVE_autoload}
 ])
 if test "${EMACS_cv_REBUILD_AUTOLOADS}" != "no"; then
-   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -eval "(setq autoload-package-name \"w3\")" -l autoload -f batch-update-directory .'
+   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -eval "(setq autoload-package-name \"w3\")" -l autoload -f batch-update-directory $(srcdir)'
 else
-   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) $(DEPS) -f emacs-batch-build-autoloads $(srcdir) auto-autoloads.el'
+   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -l $(srcdir)/docomp.el -f emacs-batch-build-autoloads $(srcdir) auto-autoloads.el'
 fi
 AC_MSG_RESULT("${REBUILD_AUTOLOADS}")
 AC_SUBST(REBUILD_AUTOLOADS)
@@ -210,9 +210,9 @@ AC_EMACS_CHECK_LIB(cus_dep,Custom-make-dependencies,"noecho")
 EMACS_cv_REBUILD_CUSTOMLOADS=${HAVE_cus_dep}
 ])
 if test "${EMACS_cv_REBUILD_CUSTOMLOADS}" != "no"; then
-   REBUILD_CUSTOMLOADS='$(EMACS) $(BATCHFLAGS) -l cus-dep -f Custom-make-dependencies .'
+   REBUILD_CUSTOMLOADS='$(EMACS) $(BATCHFLAGS) -l cus-dep -f Custom-make-dependencies $(srcdir)'
 else
-   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) $(DEPS) -f emacs-batch-build-custom-load $(srcdir)'
+   REBUILD_CUSTOMLOADS='$(EMACS) $(BATCHFLAGS) $(DEPS) -f emacs-batch-build-custom-load $(srcdir)'
 fi
 AC_MSG_RESULT("${REBUILD_CUSTOMLOADS}")
 AC_SUBST(REBUILD_CUSTOMLOADS)
