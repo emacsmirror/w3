@@ -73,7 +73,7 @@ auto-autoloads.el: $(SOURCES) $(URLSOURCES)
 
 custom-load.el: $(SOURCES) $(URLSOURCES)
 	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) @REBUILD_CUSTOMLOADS@
-	test -f cus-load.el && mv cus-load.el custom-load.el
+	if [ -f cus-load.el ]; then mv cus-load.el custom-load.el; fi
 
 w3-cfg.el: $(srcdir)/w3-cfg.el.in ../config.status
 	( cd ../ ; CONFIG_FILES=lisp/w3-cfg.el CONFIG_HEADERS= ./config.status)
