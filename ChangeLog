@@ -1,5 +1,9 @@
 1999-12-05  William M. Perry  <wmperry@aventail.com>
 
+	* lisp/w3.el (w3-fetch): Urk, call w3-notify-when-ready if we
+	  found a buffer visiting the URL, otherwise nothing happens.
+	  User just silently gets no feedback about the operation.
+
 	* w3.el: Lots of changes to work with the new URL package.
 
 	* w3-vars.el: Removed lots of old varialbes.  Updated to use new

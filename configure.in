@@ -38,6 +38,14 @@ AC_CHECK_GNUS
 AC_CHECK_URL
 AC_CHECK_CUSTOMLOADS
 
+if test "${URL}" = "no"; then
+   AC_MSG_ERROR("Could not find URL package.  Please use the --with-url=DIRECTORY flag.")
+fi
+
+if test "${GNUS}" = "no"; then
+   AC_MSG_ERROR("Could not find Gnus package.  Please use the --with-gnus=DIRECTORY flag.")
+fi
+
 if test "${MAKEINFO}" = "no"; then
    MAKEINFO='$(EMACS) -batch -q -l texinfmt -f batch-texinfo-format'
 fi

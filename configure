@@ -1131,6 +1131,14 @@ echo "$ac_t"""${REBUILD_CUSTOMLOADS}"" 1>&6
 
 
 
+if test "${URL}" = "no"; then
+   { echo "configure: error: "Could not find URL package.  Please use the --with-url=DIRECTORY flag."" 1>&2; exit 1; }
+fi
+
+if test "${GNUS}" = "no"; then
+   { echo "configure: error: "Could not find Gnus package.  Please use the --with-gnus=DIRECTORY flag."" 1>&2; exit 1; }
+fi
+
 if test "${MAKEINFO}" = "no"; then
    MAKEINFO='$(EMACS) -batch -q -l texinfmt -f batch-texinfo-format'
 fi
