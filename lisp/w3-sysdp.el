@@ -359,12 +359,12 @@ one of the properties on the list."
   (and plist (car (cdr plist))))
 
 ;; Extent stuff
-(sysdep-fset 'delete-extent 'delete-overlay)
-(sysdep-fset 'extent-end-position 'overlay-end)
-(sysdep-fset 'extent-start-position 'overlay-start)
-(sysdep-fset 'set-extent-endpoints 'move-overlay)
-(sysdep-fset 'set-extent-property 'overlay-put)
-(sysdep-fset 'make-extent 'make-overlay)
+(sysdep-defalias 'delete-extent 'delete-overlay)
+(sysdep-defalias 'extent-end-position 'overlay-end)
+(sysdep-defalias 'extent-start-position 'overlay-start)
+(sysdep-defalias 'set-extent-endpoints 'move-overlay)
+(sysdep-defalias 'set-extent-property 'overlay-put)
+(sysdep-defalias 'make-extent 'make-overlay)
 
 (sysdep-defun extent-property (extent property &optional default)
   (or (overlay-get extent property) default))
@@ -429,7 +429,7 @@ or between BEG and END."
 	    (throw 'done tmp))))))
 
 ;; misc
-(sysdep-fset 'make-local-hook 'make-local-variable)
+(sysdep-defalias 'make-local-hook 'make-local-variable)
 
 (sysdep-defun buffer-substring-no-properties (beg end)
   "Return the text from BEG to END, without text properties, as a string."
