@@ -1,3 +1,7 @@
+2000-07-28  Sam Steingold  <sds@gnu.org>
+
+	* lisp/Makefile.in: added w3-e21.el to W3_SOURCES
+
 2000-07-10  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/w3-parse.el (w3-expand-entity-at-point-maybe): Wrap
@@ -28,7 +32,7 @@
 
 	* lisp/w3.el (w3-fetch-callback): Added in special case for
 	handling content-type of application/x-elisp-parsed-html, for when
-	we want to 
+	we want to
 
 	* lisp/css.el (css-handle-import): Protect against
 	url-insert-file-contents signalling an error.

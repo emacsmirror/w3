@@ -31,6 +31,7 @@ W3_SOURCES =								\
 	w3-display.el							\
 	w3-e19.el							\
 	w3-e20.el							\
+	w3-e21.el							\
 	w3-emulate.el							\
 	w3-forms.el							\
 	w3-hot.el							\
