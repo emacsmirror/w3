@@ -1,12 +1,12 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:12 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/22 20:43:22 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; This file is part of GNU Emacs.
@@ -250,6 +250,64 @@
 						:richness (or richness 5))))
 	  (setq voice nil))
 	(or voice (car w3-active-voices)))))
+
+(defun w3-display-colors-too-close-p (foreground background)
+  ;; This algorithm could be _MUCH_ better. :)
+  ;;
+  ;; Perhaps doing something along the lines of converting them both
+  ;; to grayscale values, then considering them worthless if they are
+  ;; within some user-configurable delta?
+  (equal foreground background))
+
+(defun w3-display-background-useless-p (color)
+  (let ((foreground-color (font-color-rgb-components
+			   (if (fboundp 'face-foreground-name)
+			       (face-foreground-name 'default)
+			     (face-foreground 'default))))
+	(background-color (font-color-rgb-components color)))
+    (w3-display-colors-too-close-p foreground-color background-color)))
+
+(defun w3-display-foreground-useless-p (color)
+  (let ((background-color (font-color-rgb-components
+			   (if (fboundp 'face-background-name)
+			       (face-background-name 'default)
+			     (face-background 'default))))
+	(foreground-color (font-color-rgb-components color)))
+    (w3-display-colors-too-close-p foreground-color background-color)))
+
+(defun w3-display-infer-contrasting-color (color)
+  ;; Simple little algorithm suggested by Adam Hammer
+  ;; <hammer@math.purdue.edu>
+  ;; 
+  ;; Extremes are black and white, so make those the two
+  ;; choices. Convert the color to grayscale (0.299R + 0.587G +
+  ;; 0.114B) and then choose either black or white depending upon
+  ;; which one is furthest away from the grayscale color calculated.
+  ;;
+  ;; Found via research? Tested?  Haha.
+  (let* ((rgb (font-color-rgb-components color))
+	 (r (nth 0 rgb))
+	 (g (nth 1 rgb))
+	 (b (nth 2 rgb))
+	 (grayscale nil)
+	 (white nil)
+	 (max nil)
+	 (black nil))
+    (if (and (<= r 255) (<= g 255) (<= b 255))
+	(setq max 255)
+      (setq max 65535))
+    (setq grayscale (+ (* 0.299 r) (* 0.587 g) (* 0.114 b))
+	  black grayscale
+	  white (- max grayscale))
+    (if (> white black)
+	"white"
+      "black")))
+
+;; Test function for XEmacs and the color inference code.
+;; (defun w3-display-test-inference (color)
+;;  (interactive "sColor: ")
+;;  (set-face-background 'default color (current-buffer))
+;;  (set-face-foreground 'default (w3-display-infer-contrasting-color color) (current-buffer)))
 
 (defun w3-make-face-emacs19 (name &optional doc-string temporary)
   "Defines and returns a new FACE described by DOC-STRING.
@@ -866,9 +924,7 @@ If the face already exists, it is unmodified."
 (defmacro w3-image-alt (src)
   (`
    (let* ((doc-alt (w3-get-attribute 'alt))
-	  (alt (or (and doc-alt
-			(not (string-equal doc-alt ""))
-			doc-alt)
+	  (alt (or doc-alt
 		   (cond
 		    ((null w3-auto-image-alt) "")
 		    ((eq t w3-auto-image-alt)
@@ -1654,10 +1710,14 @@ Can sometimes make the structure of a document clearer")
 		 (cond
 		  ((= (aref prev-rowspans i) 0)
 		   ;; First row, insert the top horizontal divider
-		   (if border
+;;; Everything in this functino commented out with ;;; is done so to
+;;; borderless tables work better.  This was an attempt to not show
+;;; the 'spaces' border around the table, to save screen real estate,
+;;; but it messes up indentation on cell columns.
+;;;		   (if border
 		       (w3-insert-terminal-char
 			(w3-table-lookup-char t nil t nil border-char) 
-			(aref column-dimensions i)))
+			(aref column-dimensions i));;;)
 		   (setq i (1+ i)))
 		  ((car (aref formatted-cols i))
 		   ;; Slap in the rows
@@ -1671,11 +1731,11 @@ Can sometimes make the structure of a document clearer")
 		   (setq lflag nil)
 		   (setq i (+ i (max (aref table-colspans i)
 				     (aref prev-colspans  i) 1))))))
-	       (if (not border)
-		   nil
+;;;	       (if (not border)
+;;;		   nil
 		 (w3-insert-terminal-char
 		  (w3-table-lookup-char lflag (/= row 1) nil t border-char))
-		 (insert "\n")))
+		 (insert "\n"));;;)
 	     
 	     ;; recalculate height (in case we've shortened a rowspanning cell)
 	     (setq height 0 
@@ -2282,6 +2342,32 @@ Format: (((image-alt row column) . offset) ...)")
 		     (progn
 		       (setq fore (w3-fix-color (w3-get-attribute 'text)))
 		       (setf (car w3-face-color) fore)))
+
+		 ;; Here we do some sanity checking of the colors
+		 ;; selected by the author.
+
+		 ;; If they specify the foreground and not the
+		 ;; background, _AND_ we determine the contrast is not
+		 ;; enough, then don't honor the foreground at all.
+		 (if (and fore (not back) (not pixm) (w3-display-foreground-useless-p fore))
+		     (setq fore nil))
+
+		 ;; If we wanted to be really weird, we could infer
+		 ;; the background for them instead of just ignoring
+		 ;; the foreground.  But I think this might be too
+		 ;; shocking for the average user. :)
+		 ;; 
+		 ;; (setq back (w3-display-infer-contrasting-color fore)))
+
+		 ;; If they specify the background and not the
+		 ;; foreground, _AND_ we determine the contrast is not
+		 ;; enough, then infer a new foreground color.
+		 (if (and back (not pixm) (not fore) (w3-display-background-useless-p back))
+		     (setq fore (w3-display-infer-contrasting-color back)))
+
+		 (setf (car w3-face-color) fore)
+		 (setf (car w3-face-background-color) back)
+
 		 (if (not font-running-xemacs)
 		     (setq w3-display-background-properties (cons fore back))
 		   (if pixm
