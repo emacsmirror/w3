@@ -1,5 +1,12 @@
 2001-11-21  William M. Perry  <wmperry@gnu.org>
 
+	* lisp/w3.el (w3-mode): Don't bother calling
+	kill-all-local-variables.  It screws up too many things, namely
+	emacspeak personality properties and XEmacs' buffer-local faces.
+
+	* lisp/w3-display.el (w3-handle-string-content): Just go ahead an
+	always put the personality (aural properties) on text.
+
 	* lisp/w3-parse.el (w3-parse-buffer): Patch from Joe Wells to
 	handle XHTML a little bit better.  Still a hack, but it will now
 	work at all.
