@@ -1,4 +1,33 @@
+1998-12-25  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url.el (url-default-expander): Make sure that we remove any query
+  strings from the URL before we remove relative links.
+  (url-remove-relative-links): Tack on a trailing '/' if necessary so that 
+  we don't fail any URL parsing tests on things like 'g/.', which should
+  be normalized to just 'g/'
+
+1998-12-24  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url-cookie.el (url-cookie-host-can-set-p): Fixed cookie
+  vulnerability as described in
+  http://www.paradise.net.nz/~glineham/cookiemonster.html
+
+1998-12-23  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
+
+* w3-menu.el (w3-menu-initialize-w3-mode-menu-map): Block also
+  the global menubar entry [menubar mule].
+
+1998-12-23  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-cus.el (w3-force-conversion-alist): Mixed mismatched custom type
+  (w3-default-stylesheet): Ditto.
+  (w3-html-errors-font-lock-keywords): Ditto.
+  (w3-default-configuration-file): Ditto.
+  (w3-modeline-format): Ditto.
+
 1998-12-22  William M. Perry  <wmperry@aventail.com>
+
+* Emacs/W3 4.0pre35 released
 
 * lisp/w3-display.el (w3-get-default-color): Function to get the default
   foreground or background color, even if face-(fore|back)ground returns

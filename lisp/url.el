@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/22 20:42:34 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1998/12/25 21:54:57 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/22 20:42:34 $|$Revision: 1.2 $|Location Undetermined
+;;; $Date: 1998/12/25 21:54:57 $|$Revision: 1.3 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1133,7 +1133,8 @@ path components followed by `..' are removed, along with the `..' itself."
 			   (url-strip-leading-spaces
 			    (url-eat-trailing-space url)) "")))
   (cond
-   ((null url) nil)			; Something hosed!  Be graceful
+   ((= (length url) 0)			; nil or empty string
+    default)
    ((string-match "^#" url)		; Offset link, use it raw
     url)
    (t
@@ -1161,23 +1162,33 @@ path components followed by `..' are removed, along with the `..' itself."
 
 (defun url-default-expander (urlobj defobj)
   ;; The default expansion routine - urlobj is modified by side effect!
-  (url-set-type urlobj (or (url-type urlobj) (url-type defobj)))
-  (url-set-port urlobj (or (url-port urlobj)
-			   (and (string= (url-type urlobj)
-					 (url-type defobj))
-				(url-port defobj))))
-  (if (not (string= "file" (url-type urlobj)))
-      (url-set-host urlobj (or (url-host urlobj) (url-host defobj))))
-  (if (string= "ftp"  (url-type urlobj))
-      (url-set-user urlobj (or (url-user urlobj) (url-user defobj))))
-  (if (string= (url-filename urlobj) "")
-      (url-set-filename urlobj "/"))
-  (if (string-match "^/" (url-filename urlobj))
+  (if (url-type urlobj)
+      ;; Well, they told us the scheme, let's just go with it.
       nil
-    (url-set-filename urlobj
-		      (url-remove-relative-links
-		       (concat (url-basepath (url-filename defobj))
-			       (url-filename urlobj))))))
+    (url-set-type urlobj (or (url-type urlobj) (url-type defobj)))
+    (url-set-port urlobj (or (url-port urlobj)
+			     (and (string= (url-type urlobj)
+					   (url-type defobj))
+				  (url-port defobj))))
+    (if (not (string= "file" (url-type urlobj)))
+	(url-set-host urlobj (or (url-host urlobj) (url-host defobj))))
+    (if (string= "ftp"  (url-type urlobj))
+	(url-set-user urlobj (or (url-user urlobj) (url-user defobj))))
+    (if (string= (url-filename urlobj) "")
+	(url-set-filename urlobj "/"))
+    (if (string-match "^/" (url-filename urlobj))
+	nil
+      (let ((query nil)
+	    (file nil)
+	    (sepchar nil))
+	(if (string-match "[?#]" (url-filename urlobj))
+	    (setq query (substring (url-filename urlobj) (match-end 0))
+		  file (substring (url-filename urlobj) 0 (match-beginning 0))
+		  sepchar (substring (url-filename urlobj) (match-beginning 0) (match-end 0)))
+	  (setq file (url-filename urlobj)))
+	(setq file (url-remove-relative-links
+		    (concat (url-basepath (url-filename defobj)) file)))
+	(url-set-filename urlobj (if query (concat file sepchar query) file))))))
 
 (defun url-identity-expander (urlobj defobj)
   (url-set-type urlobj (or (url-type urlobj) (url-type defobj))))
@@ -1404,12 +1415,25 @@ forbidden in URL encoding."
   (let ((new (if (not (string-match "^/" name))
 		 (concat "/" name)
 	       name)))
+
+    ;; If it ends with a '/.' or '/..', tack on a trailing '/' sot hat
+    ;; the tests that follow are not too complicated in terms of
+    ;; looking for '..' or '../', etc.
+    (if (string-match "/\\.+$" new)
+	(setq new (concat new "/")))
+
+    ;; Remove '/./' first
     (while (string-match "/\\(\\./\\)" new)
       (setq new (concat (substring new 0 (match-beginning 1))
 			(substring new (match-end 1)))))
+
+    ;; Then remove '/../'
     (while (string-match "/\\([^/]*/\\.\\./\\)" new)
       (setq new (concat (substring new 0 (match-beginning 1))
 			(substring new (match-end 1)))))
+
+    ;; Remove cruft at the beginning of the string, so people that put
+    ;; in extraneous '..' because they are morons won't lose.
     (while (string-match "^/\\.\\.\\(/\\)" new)
       (setq new (substring new (match-beginning 1) nil)))
     new))
