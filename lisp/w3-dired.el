@@ -1,7 +1,7 @@
-;;; w3-dired.el --- Main functions for Emacs-W3 on all platforms/versions
+;;; w3-dired.el --- W3 Dired minor mode
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2001/05/14 15:51:07 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 2001/05/14 16:19:07 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -32,6 +32,8 @@
 ;;;
 ;;; (add-hook 'dired-mode-hook 'turn-on-w3-dired)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Fixme: should we have both this and url-dired?
 
 (autoload 'dired-get-filename "dired")
 
@@ -97,7 +99,7 @@ Example:  (add-minor-mode 'view-minor-mode \" View\" view-mode-map)"
 (add-minor-mode 'w3-dired-minor-mode " W3" w3-dired-minor-mode-map)
 
 ;;;###autoload
-(defun w3-dired-find-file (dir)
+(defun w3-dired-find-file-dired (dir)
   "\"Edit\" directory DIR, but with additional URL-friendly bindings."
   (interactive "DURL Dired (directory): ")
   (find-file dir)
