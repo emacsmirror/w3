@@ -1,20 +1,20 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:12 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/22 20:42:34 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/01 22:12:12 $|$Revision: 1.1 $|Location Undetermined
+;;; $Date: 1998/12/22 20:42:34 $|$Revision: 1.2 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@
 (autoload 'url-netrek "url-misc")
 (autoload 'url-news "url-news")
 (autoload 'url-nntp "url-news")
-(autoload 'url-cid "url-misc")
+(autoload 'url-cid "url-cid")
 
 (autoload 'url-open-stream "url-gw")
 (autoload 'url-mime-response-p "url-http")
@@ -1125,7 +1125,7 @@ Second arg DEFAULT is a URL to start with if URL is relative.
 If DEFAULT is nil or missing, the current buffer's URL is used.
 Path components that are `.' are removed, and 
 path components followed by `..' are removed, along with the `..' itself."
-  (if url
+  (if (and url (not (string-match "^#" url)))
       (setq url (mapconcat (function (lambda (x)
 				       (if (memq x '(?  ?\n ?\r))
 					   ""
