@@ -468,7 +468,7 @@ It has the same format as `mm-mime-data-default'.")
       (mm-replace-regexp "#.*" "")	         ; Remove all comments
       (mm-replace-regexp "\n+" "\n")         ; And blank lines
       (mm-replace-regexp "\\\\[ \t\n]+" " ") ; And collapse spaces
-      (mm-replace-regexp (regexp-quote "+") (regexp-quote (regexp-quote "+"))) ; and +s
+      (mm-replace-regexp "\\+" "\\\\+") ; and +s
       (mm-replace-regexp (concat (regexp-quote "\\") "[ \t]*\n") "")
       (goto-char (point-max))
       (skip-chars-backward " \t\n")

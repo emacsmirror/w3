@@ -1,3 +1,7 @@
+1999-11-10  William M. Perry  <wmperry@aventail.com>
+
+* lisp/mm.el (mm-parse-mailcap): Fix bad regexp for Emacs 21
+
 1999-11-09  William M. Perry  <wmperry@aventail.com>
 
 * build.bat: Make sure to build custom load files and info files.

@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/09 14:52:29 $
-;; Version: $Revision: 1.13 $
+;; Created: $Date: 1999/11/10 15:28:58 $
+;; Version: $Revision: 1.14 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -818,7 +818,6 @@ If the face already exists, it is unmodified."
 (defun w3-maybe-start-background-image-download (src face)
   (let* ((cached-glyph (w3-image-cached-p src))
 	 (buf (current-buffer)))
-    (debug)
     (cond
      ((and cached-glyph
 	   (widget-glyphp cached-glyph)

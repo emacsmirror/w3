@@ -1,7 +1,7 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/10/12 14:14:50 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 1999/11/10 15:29:01 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -134,12 +134,11 @@
 			 "Form-Image"))))
     (option
      (let ((options (copy-sequence (w3-form-element-options el))))
-       (or size
-	   (length (caar (sort options
-			       (function
-				(lambda (x y)
-				  (>= (length (car x))
-				      (length (car y)))))))))))
+       (length (caar (sort options
+			   (function
+			    (lambda (x y)
+			      (>= (length (car x))
+				  (length (car y))))))))))
     (keygen
      (+ (length "Key Length: ")
 	(apply 'max
