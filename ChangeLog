@@ -1,3 +1,14 @@
+2001-05-17  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3-parse.el w3-int-to-char: Deal with XEmacs more nicely.
+	int-to-char does error checking, so passing in ?~ tends to blow
+	things up.  Do better error checking for characters passed in, and
+	for integers that are not capable of being converted to
+	characters.
+
+	* lisp/w3-display.el (w3-dingbats): Deal with a mule-less XEmacs
+	in our conditions.
+
 2001-05-16  Dave Love  <fx@gnu.org>
 
 	* lisp/w3.el (w3-decode-charset): Re-write.

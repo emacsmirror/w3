@@ -82,7 +82,7 @@ base64-encoder-program.")
 	(coding-system-for-read base64-binary-coding-system))
     (unwind-protect
 	(progn
-	  (setq tempfile (make-temp-name "base64"))
+	  (setq tempfile (make-temp-name "/tmp/base64"))
 	  (setq status
 		(apply 'call-process-region
 		       start end command nil

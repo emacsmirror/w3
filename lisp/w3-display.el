@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.27 $
+;; Version: $Revision: 1.28 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1045,28 +1045,28 @@ If the face already exists, it is unmodified."
 
 ;; The table handling
 (eval-and-compile
-  (if (and (featurep 'xemacs)
-	   (featurep 'mule)
-	   (not (find-charset 'w3-dingbats)))
-      (make-charset 'w3-dingbats "Dingbats character set for Emacs/W3"
-		    '(registry "" dimension 1 chars 96 final ?:))
-    (if (not (charsetp 'w3-dingbats))
-	(define-charset nil 'w3-dingbats
-	  (vector
-	   1				; dimension
-	   96				; chars
-	   1				; width
-	   1				; direction
-	   ?:				; iso-final-char
-	   0			     ; iso-graphic-plane (whats this?)
-	   "dingbats" "emacs/w3-dingbats"
-	   "Dingbats character set for Emacs/W3")))))
+  (when (featurep 'mule)
+    (if (and (featurep 'xemacs)
+	     (not (find-charset 'w3-dingbats)))
+	(make-charset 'w3-dingbats "Dingbats character set for Emacs/W3"
+		      '(registry "" dimension 1 chars 96 final ?:))
+      (if (not (charsetp 'w3-dingbats))
+	  (define-charset nil 'w3-dingbats
+	    (vector
+	     1				; dimension
+	     96				; chars
+	     1				; width
+	     1				; direction
+	     ?:				; iso-final-char
+	     0				; iso-graphic-plane (whats this?)
+	     "dingbats" "emacs/w3-dingbats"
+	     "Dingbats character set for Emacs/W3"))))))
 
 (defun w3-make-char (oct)
-  (if (and (featurep 'xemacs)
-	   (featurep 'mule))
-      (make-char 'w3-dingbats (if (characterp oct) (char-int oct) oct))
-    (make-char 'w3-dingbats oct)))
+  (when (featurep 'mule)
+    (if (featurep 'xemacs)
+	(make-char 'w3-dingbats (if (characterp oct) (char-int oct) oct))
+      (make-char 'w3-dingbats oct))))
 
 (defvar w3-table-ascii-border-chars
   [nil  nil  nil  ?+ nil  ?- ?+ ?- nil ?+ ?| ?| ?+ ?- ?| ?+]

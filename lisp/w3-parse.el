@@ -297,7 +297,14 @@ an ASCII substitute and the Unicode for the cp1252 character.")
 
 (eval-and-compile
   (if (fboundp 'int-to-char)            ; XEmacs
-      (defalias 'w3-int-to-char 'int-to-char)
+      (defun w3-int-to-char (c)
+        (cond
+         ((characterp c)
+          c)
+         ((char-int-p c)
+          (int-to-char c))
+         (t
+          ?~)))
     (defalias 'w3-int-to-char 'identity)))
 
 (defun w3-resolve-numeric-entity (code)
