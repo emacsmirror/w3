@@ -1,7 +1,7 @@
 ;;; ssl.el,v --- ssl functions for emacsen without them builtin
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/10/14 12:44:18 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 2001/11/24 20:59:52 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -174,6 +174,24 @@ be in DER encoding"
 			 nil nil nil
 			 (expand-file-name ssl-certificate-directory))))))))
 
+(defvar ssl-exec-wrapper nil)
+
+(defun ssl-get-command ()
+  (if (memq system-type '(ms-dos ms-windows axp-vms vax-vms))
+      ;; Nothing to do on DOS, Windows, or VMS!
+      (cons ssl-program-name ssl-program-arguments)
+    (if (not ssl-exec-wrapper)
+	(let ((script
+	       (expand-file-name "exec_ssl_quietly" url-configuration-directory)))
+	  (if (not (file-executable-p script))
+	      ;; Need to create our handy-dandy utility script to shut OpenSSL
+	      ;; up completely.
+	      (progn
+		(write-region "#!/bin/sh\n\nexec \"$@\" 2> /dev/null\n" nil script nil 5)
+		(set-file-modes script 493))) ; (rwxr-xr-x)
+	  (setq ssl-exec-wrapper script)))
+    (cons ssl-exec-wrapper (cons ssl-program-name ssl-program-arguments))))
+
 (defun open-ssl-stream (name buffer host service)
   "Open a SSL connection for a service to a host.
 Returns a subprocess-object to represent the connection.
@@ -193,8 +211,8 @@ specifying a port number to connect to."
 	 (port service)
 	 (proc (eval
 		(`
-		 (start-process name buffer ssl-program-name
-				(,@ ssl-program-arguments))))))
+		 (start-process name buffer
+				(,@ (ssl-get-command)))))))
     (process-kill-without-query proc)
     proc))
 

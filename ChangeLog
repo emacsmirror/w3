@@ -1,3 +1,15 @@
+2001-11-24  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/ssl.el (ssl-get-command): New routine to handle wrapping
+	the ssl program inside something that will redirect stderr to
+	/dev/null.  Do this only on non-dos, non-windows, and non-vms
+	system types.  This is necessary because the -quiet switch to
+	openssl's s_client program doesn't do what it is supposed to do.
+	*sigh*
+
+	* lisp/font.el (font-set-face-font-new-redisplay): Check font-size
+	for == 0, not just non-nil.
+
 2001-11-21  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3.el (w3-mode): Don't bother calling
