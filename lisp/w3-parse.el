@@ -2189,7 +2189,7 @@ Returns a data structure containing the parsed information."
                   (eval-when-compile
                     (concat
                      ;; Leading whitespace.
-                     "[ \n\r\t]*"
+                     "[ \n\r\t,]*"
                      ;; The attribute name, possibly with a bad syntax
                      ;; component.
                      "\\([a-z_][-a-z0-9.]*\\(\\([_][-a-z0-9._]*\\)?\\)\\)"
