@@ -1,7 +1,6 @@
-;;; w3-display.el --- display engine
-;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:51:28 $
-;; Version: $Revision: 1.25 $
+;;; w3-display.el --- W3 display engine
+;; Author: William M. Perry <wmperry@cs.indiana.edu>
+;; Version: $Revision: 1.26 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,7 +42,7 @@
 (defvar w3-cookie-cache nil)
 
 (defmacro w3-d-s-var-def (var)
-  (` (make-variable-buffer-local (defvar (, var) nil))))
+  `(make-variable-buffer-local (defvar ,var nil)))
 
 (w3-d-s-var-def w3-display-label-marker)
 (w3-d-s-var-def w3-display-open-element-stack)
@@ -78,24 +77,23 @@
 
 (eval-when-compile
   (defmacro w3-get-attribute (attr)
-    (` (cdr-safe (assq (, attr) args))))
+    `(cdr-safe (assq ,attr args)))
   
   (defmacro w3-get-face-info (info &optional other)
     (let ((var (intern (format "w3-face-%s" info))))
-      (` (push (w3-get-style-info (quote (, info)) node
-				  (or (and (not w3-user-colors-take-precedence)
-					   (cdr-safe (assq (quote (, other))
-							   (nth 1 node))))
-				      (car (, var))))
-	       (, var)))))
+      `(push (w3-get-style-info (quote ,info) node
+				(or (and (not w3-user-colors-take-precedence)
+					 (cdr-safe (assq (quote ,other)
+							 (nth 1 node))))
+				    (car ,var)))
+	     ,var)))
 
   (defmacro w3-pop-face-info (info)
     (let ((var (intern (format "w3-face-%s" info))))
-      (` (pop (, var)))))
+      `(pop ,var)))
 
   (defmacro w3-get-all-face-info ()
-    (`
-     (progn
+    `(progn
        (w3-get-face-info font-family)
        ;; This is to handle the 'face' attribute on arbitrary elements
        (if (cdr-safe (assq 'face (nth 1 node)))
@@ -116,11 +114,10 @@
 				:weight (car w3-face-font-weight)
 				:family  (if (not w3-user-fonts-take-precedence)
 					     (car w3-face-font-family))
-				:size (car w3-face-font-size))))))
+				:size (car w3-face-font-size)))))
 
   (defmacro w3-pop-all-face-info ()
-    (`
-     (progn
+    `(progn
        (w3-pop-face-info font-family)
        (w3-pop-face-info font-weight)
        (w3-pop-face-info font-variant)
@@ -129,7 +126,7 @@
        (w3-pop-face-info text-decoration)
        (w3-pop-face-info background-image)
        (w3-pop-face-info color)
-       (w3-pop-face-info background-color))))
+       (w3-pop-face-info background-color)))
 
   )
 
@@ -174,7 +171,7 @@
   (save-excursion
     (goto-char (or cur-viewing-pos (point-min)))
     (cond
-     (w3-running-xemacs
+     ((featurep 'xemacs)
       (if (and (not (sit-for 0)) (input-pending-p))
 	  (condition-case ()
 	      (let ((buffer-read-only t))
@@ -194,12 +191,12 @@
     (setq cur-viewing-pos (point))))
 
 (defmacro w3-get-pad-string (len)
-  (` (cond
-      ((< (, len) 0)
+  `(cond
+      ((< ,len 0)
        "")
-      ((< (, len) 80)
-       (aref w3-fill-prefixes-vector (, len)))
-      (t (make-string (, len) ? )))))
+      ((< ,len 80)
+       (aref w3-fill-prefixes-vector ,len))
+      (t (make-string ,len ? ))))
 
 (defsubst w3-set-fill-prefix-length (len)
   (setq fill-prefix (if (< len (- (or w3-strict-width (window-width)) 4))
@@ -310,7 +307,7 @@
   (equal foreground background))
 
 (defun w3-get-default-color (backgroundp)
-  (if w3-running-xemacs
+  (if (featurep 'xemacs)
       (or (if backgroundp
 	      (face-background-name 'default)
 	    (face-foreground-name 'default))
@@ -376,7 +373,7 @@ If the face already exists, it is unmodified."
 (cond
  ((not (fboundp 'make-face))
   (defalias 'w3-make-face 'ignore))
- (w3-running-xemacs
+ ((featurep 'xemacs)
   (defalias 'w3-make-face 'make-face))
  (t
   (defalias 'w3-make-face 'w3-make-face-emacs19)))
@@ -826,7 +823,9 @@ If the face already exists, it is unmodified."
       (setq w3-image-widgets-waiting (cons widget w3-image-widgets-waiting)))
      ((or w3-delay-image-loads		; Delaying images
 	  (and (not (fboundp 'valid-specifier-domain-p)) ; Can't do images (XEmacs)
-	       (not (boundp 'image-types))) ; Can't do images (Emacs)
+	       (if (fboundp 'display-graphic-p)
+		   (not (display-graphic-p))
+		 t))			; Can't do images (Emacs))
 	  (eq (device-type) 'tty))	; Why bother?
       (w3-add-delayed-graphic widget))
      ((not (w3-image-loadable-p src nil)) ; Hey, we can't load it!
@@ -838,15 +837,16 @@ If the face already exists, it is unmodified."
 	    (url-request-extra-headers nil)
 	    (url-mime-accept-string (substring
 				     (mapconcat
-				      (function
-				       (lambda (x)
-					 (if x
-					     (concat (car x) ",")
-					   "")))
+				      (lambda (x)
+					(if x
+					    (concat (car x) ",")
+					  ""))
 				      w3-allowed-image-types "")
 				     0 -1)))
-	(setq w3-graphics-list (cons (cons src (make-glyph))
+	(if (featurep 'xemacs)
+	    (setq w3-graphics-list (cons (cons src (make-glyph))
 				     w3-graphics-list))
+	  (add-to-list 'w3-graphics-list (cons src (list 'image))))
 	(url-retrieve src 'w3-finalize-image-download
 		      (list src (widget-get widget 'buffer) widget)))))))
 
@@ -865,7 +865,7 @@ If the face already exists, it is unmodified."
 	  (eq (device-type) 'tty))	; Why bother?
       nil)
      ((not (w3-image-loadable-p src nil)) ; Hey, we can't load it!
-      (mesage "Skipping image %s" (url-basepath src t))
+      (message "Skipping image %s" (url-basepath src t))
       nil)
      (t					; Grab the images
       (let ((url-request-method "GET")
@@ -880,27 +880,40 @@ If the face already exists, it is unmodified."
 					   "")))
 				      w3-allowed-image-types "")
 				     0 -1)))
-	(setq w3-graphics-list (cons (cons src (make-glyph))
+	(if (featurep 'xemacs)
+	    (setq w3-graphics-list (cons (cons src (make-glyph))
 				     w3-graphics-list))
+	  (add-to-list 'w3-graphics-list (cons src (list 'image))))
 	(url-retrieve src 'w3-finalize-image-download (list src buf 'background face)))))))
 
 (defun w3-finalize-image-download (url buffer &optional widget face)
   (let ((glyph nil)
 	(node nil)
-	(handle (mm-dissect-buffer t)))
+	(handle (mm-dissect-buffer t))
+	(align (ignore-errors
+		 (widget-get widget 'align))))
     (url-mark-buffer-as-dead (current-buffer))
-    (message "Enhancing image...")
-    (with-temp-buffer
-      (mm-insert-part handle)
-      (setq glyph (image-normalize (cdr-safe (assoc (car (mm-handle-type handle))
-						    w3-image-mappings))
-				   (buffer-string))))
-    (message "Enhancing image... done")
+    ;;(message "Enhancing image...")
+    (let ((default-enable-multibyte-characters nil))
+      (with-temp-buffer
+	(mm-insert-part handle)
+	(setq glyph 
+	      (let ((type (cdr-safe (assoc (car (mm-handle-type handle))
+					   w3-image-mappings))))
+		(if (fboundp 'image-normalize)
+		    (image-normalize type (buffer-string))
+		  (create-image (buffer-string) type 'data
+				:ascent (case align
+					  ((bottom nil) 100)
+					  (center 'center)
+					  (top 0))))))))
+    ;;(message "Enhancing image... done")
     (cond
      ((w3-image-invalid-glyph-p glyph)
       (setq glyph nil)
       (message "Reading of %s failed." url))
-     ((eq (aref glyph 0) 'xbm)
+     ((and (featurep 'xemacs)
+	   (eq (aref glyph 0) 'xbm))
       (let ((temp-fname (url-generate-unique-filename "%s.xbm")))
 	(save-excursion
 	  (set-buffer (generate-new-buffer " *xbm-garbage*"))
@@ -912,13 +925,13 @@ If the face already exists, it is unmodified."
 	(setq glyph (make-glyph (list (cons 'x glyph))))
 	(condition-case ()
 	    (delete-file temp-fname)
-	  (error nil))))
-     (t
-      (setq glyph (make-glyph glyph))))
+	  (error nil)))))
     (setq node (assoc url w3-graphics-list))
     (cond
      ((and node glyph)
-      (set-glyph-image (cdr node) (glyph-image glyph)))
+      (if (fboundp 'set-glyph-image)
+	  (set-glyph-image (cdr node) (glyph-image glyph))
+	(setcdr (cdr node) (cdr glyph))))
      (glyph
       (setq w3-graphics-list (cons (cons url glyph) w3-graphics-list)))
      (t nil))
@@ -929,7 +942,7 @@ If the face already exists, it is unmodified."
 	  (not (buffer-name buffer)))
       nil)
      ((and (eq widget 'background)
-	   w3-running-xemacs)
+	   (featurep 'xemacs))
       (set-face-background-pixmap face
 				  (glyph-image-instance glyph)
 				  buffer))
@@ -988,16 +1001,18 @@ If the face already exists, it is unmodified."
      alt)))
 
 (defmacro w3-handle-image ()
-  (`
-   (let* ((height (w3-get-attribute 'height))
+  `(let* ((height (w3-get-attribute 'height))
 	  (width (w3-get-attribute 'width))
 	  (src (or (w3-get-attribute 'src) "Error Image"))
 	  (alt (w3-image-alt src))
 	  (ismap (and (assq 'ismap args) 'ismap))
 	  (usemap (w3-get-attribute 'usemap))
 	  (base (w3-get-attribute 'base))
-	  (href (and hyperlink-info (cadr (widget-plist-member (cadr hyperlink-info) :href))))
-	  (target (and hyperlink-info (cadr (widget-plist-member (cadr hyperlink-info) :target))))
+	  (href (and hyperlink-info
+		     (cadr (widget-plist-member (cadr hyperlink-info) :href))))
+	  (target (and hyperlink-info
+		       (cadr (widget-plist-member (cadr hyperlink-info)
+						  :target))))
 	  (widget nil)
 	  (align (or (w3-get-attribute 'align)
 		     (w3-get-style-info 'vertical-align node)))
@@ -1007,15 +1022,16 @@ If the face already exists, it is unmodified."
        (setq hyperimage-info
 	     (list (point)
 		   (list 'image
-			 :src src	   ; Where to load the image from
-			 'alt alt	   ; Textual replacement
-			 'ismap ismap	   ; Is it a server-side map?
-			 'usemap usemap	   ; Is it a client-side map?
-			 :href href	   ; Hyperlink destination
-			 :target target	   ; target frame
+			 :src src	; Where to load the image from
+			 'alt alt	; Textual replacement
+			 'ismap ismap	; Is it a server-side map?
+			 'usemap usemap	; Is it a client-side map?
+			 :href href	; Hyperlink destination
+			 :target target	; target frame
 			 :button-face face ; img:link or img:visited entry in stylesheet
 			 'row w3-display-current-row
 			 'column w3-display-current-col
+			 'align align
 			 )))
        (setq widget (apply (function widget-create) (cadr hyperimage-info)))
        (widget-put widget 'buffer (current-buffer))
@@ -1024,38 +1040,32 @@ If the face already exists, it is unmodified."
 	   (add-text-properties (widget-get widget :from)
 				(widget-get widget :to)
 				(list 'html-stack w3-display-open-element-stack)))
-       (goto-char (point-max))))))
+       (goto-char (point-max)))))
 
 ;; The table handling
 (eval-and-compile
-  (case mule-sysdep-version
-    (xemacs
-     (if (not (find-charset 'w3-dingbats))
-	 (make-charset 'w3-dingbats "Dingbats character set for Emacs/W3"
-		       '(registry "" dimension 1 chars 96 final ?:))))
-    ((4.0 3.0 3.1)
-     (if (not (charsetp 'w3-dingbats))
-	 (define-charset nil 'w3-dingbats
-	   (vector
-	    1				; dimension
-	    96				; chars
-	    1				; width
-	    1				; direction
-	    ?:				; iso-final-char
-	    0				; iso-graphic-plane (whats this?)
-	    "dingbats" "emacs/w3-dingbats"
-	    "Dingbats character set for Emacs/W3"))))
-    (t
-     nil)))
+  (if (and (featurep 'xemacs)
+	   (featurep 'mule)
+	   (not (find-charset 'w3-dingbats)))
+      (make-charset 'w3-dingbats "Dingbats character set for Emacs/W3"
+		    '(registry "" dimension 1 chars 96 final ?:))
+    (if (not (charsetp 'w3-dingbats))
+	(define-charset nil 'w3-dingbats
+	  (vector
+	   1				; dimension
+	   96				; chars
+	   1				; width
+	   1				; direction
+	   ?:				; iso-final-char
+	   0			     ; iso-graphic-plane (whats this?)
+	   "dingbats" "emacs/w3-dingbats"
+	   "Dingbats character set for Emacs/W3")))))
 
 (defun w3-make-char (oct)
-  (case mule-sysdep-version
-    (xemacs 
-     (make-char 'w3-dingbats (if (characterp oct) (char-int oct) oct)))
-    ((4.0 3.0 3.1)
-     (make-char 'w3-dingbats oct))
-    (t
-     oct)))
+  (if (and (featurep 'xemacs)
+	   (featurep 'mule))
+      (make-char 'w3-dingbats (if (characterp oct) (char-int oct) oct))
+    (make-char 'w3-dingbats oct)))
 
 (defvar w3-table-ascii-border-chars
   [nil  nil  nil  ?+ nil  ?- ?+ ?- nil ?+ ?| ?| ?+ ?- ?| ?+]
@@ -2012,7 +2022,7 @@ Format: (((image-alt row column) . offset) ...)")
 (defvar w3-display-hackmap nil "Keymap used for hyperlink widgets")
   
 (defun w3-resurrect-hyperlinks ()
-  (if (and (not w3-display-hackmap) w3-running-xemacs)
+  (if (and (not w3-display-hackmap) (featurep 'xemacs))
       (progn
 	(setq w3-display-hackmap (make-sparse-keymap))
 	(set-keymap-parent w3-display-hackmap widget-button-keymap)
@@ -2104,15 +2114,14 @@ Format: (((image-alt row column) . offset) ...)")
 				 'w3-hyperlink-info (cadr hyperlink-info))))
 	 (setq hyperlink-info nil))
 	(img
-	 (if (not hyperimage-info)
-	     nil
-	   (add-text-properties (car hyperimage-info) (point)
-				(list
-				 'duplicable t
-				 'start-open t
-				 'end-open t
-				 'rear-nonsticky t
-				 'w3-hyperimage-info (cadr hyperimage-info))))
+	 (if hyperimage-info
+	     (add-text-properties (car hyperimage-info) (point)
+				  (list
+				   'duplicable t
+				   'start-open t
+				   'end-open t
+				   'rear-nonsticky t
+				   'w3-hyperimage-info (cadr hyperimage-info))))
 	 (setq hyperimage-info nil))
 	((ol ul dl dir menu)
 	 (pop w3-display-list-stack))
@@ -2744,7 +2753,7 @@ Format: (((image-alt row column) . offset) ...)")
 	(push-mark (point) t)
 	(w3-find-specific-link (url-target url-current-object)))
     (goto-char (point-min)))
-  (and (not w3-running-xemacs)
+  (and (not (featurep 'xemacs))
        (not (eq (device-type) 'tty))
        (w3-fixup-eol-faces))
   (message "Drawing... done"))
