@@ -1,3 +1,35 @@
+1998-12-29  William M. Perry  <wmperry@aventail.com>
+
+* lisp/socks.el (socks-find-route): Fixed bug where we would not honor the
+  '!' at the front of the regexp to mean _do_ redirect the connection.  I
+  need to finish the socks-redirection-rules stuff sometime soon.
+
+* lisp/mule-sysdp.el (mule-detect-coding-version): Put back in the
+  ultra-anal checks to make sure that what detect-coding-region and
+  friends find is actually a coding system.  Apparently the bug where
+  bizarre combinations of CRLF and LF separators in a file make Emacs 20.3
+  return a number as a coding system is back.  Bug reported to the Emacs
+  maintainers.
+
+1998-12-28  Milan Zamazal <pdm@freesoft.cz>
+
+* lisp/mm.el (mm-possible-viewers): Don't reverse exact & wildcard when
+  concatenating them.  Reason: `mm-mime-data' contains mailcap entries in
+  the opposite order than they are in the mailcap file.  The function
+  `mm-possible-viewers' should return found items in the opposite order
+  again, so that the first viewer from the mailcap was invoked.  The patch
+  ensures this.
+
+* lisp/mm.el (mm-mime-data-default): New variable that holds all the
+  defaults.  mm-mime-data now holds _only_ the user supplied viewers.
+
+* lisp/mm.el (mm-mime-info): Give preference to things found in
+  mm-mime-data (the user stuff) and then fall back onto
+  mm-mime-data-default.
+
+* lisp/url-http.el (url-parse-viewer-types): Apply both mm-mime-data and
+  mm-mime-data-default when building the acceptable viewer list.
+
 1998-12-28  William M. Perry  <wmperry@aventail.com>
 
 * lisp/w3-display.el (w3-prepare-buffer): Use an unwind-protect form
@@ -7,6 +39,10 @@
   (w3-pause): Mark the buffer as temporarily read-only, so that
   self-inserting keystrokes will signal an error, which will be caught and 
   ignored by the condition-case.
+  (w3-widget-buffer): New function to get the buffer a widget is in.
+  (w3-widget-echo): Use it, since with Gnus, it is very likely that you
+  will be in a different buffer when you are mousing around the rendered
+  HTML.
 
 * lisp/url-file.el (url-file): Modify the filename in the URL if we are
   actually visiting a directory without a trailing '/' or '\', and we do

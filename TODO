@@ -1,6 +1,4 @@
 BUGS (4.0):
-- /etc/mailcap cannot overide builtin mm-mime-data stuff?
-- try to protect people from using '~' in file URLs
 - border-color can have multiple color specifications, but we
   currently choke with 'args out of range' when we see this.
 - widget appears to be stealing button3 to mean 'activate' - this is
