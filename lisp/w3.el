@@ -1,12 +1,12 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:07 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/19 03:57:16 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -1178,6 +1178,7 @@ invokes some commands which read a coding system from the user.")
        (let (charset-symbol coding-system)
 	 (cond (;; explicit coding system ? (through C-u [w3-reload-document])
 		(and w3-explicit-coding-system
+		     (fboundp 'coding-system-p)
 		     (coding-system-p w3-explicit-coding-system))
 		(setq coding-system w3-explicit-coding-system))
 	       (;; explicit charset ? (through MIME headers or META tag)
@@ -1199,7 +1200,7 @@ invokes some commands which read a coding system from the user.")
 		      (mule-detect-coding-version (url-host url-current-object)
 						  (point-min) (point-max)))))
 	 (mule-code-convert-region coding-system)
-	 (if (w3-coding-system-with-invalid-chars coding-system)
+	 (if (mule-coding-system-with-invalid-chars coding-system)
 	     (w3-replace-invalid-chars)))))
 
 (defun w3-coding-system-for-mime-charset (mmcharset)
@@ -1207,17 +1208,12 @@ invokes some commands which read a coding system from the user.")
 	(l w3-mime-charset-coding-alist))
     (while l
       (if (string-match (car (car l)) mmcharset)
-	  (setq coding-system (if (coding-system-p (cdr (car l)))
+	  (setq coding-system (if (and (fboundp 'coding-system-p)
+				       (coding-system-p (cdr (car l))))
 				  (cdr (car l)))
 		l nil)
 	(setq l (cdr l))))
     coding-system))
-
-(defun w3-coding-system-with-invalid-chars (coding-system)
-  (or (null coding-system)
-      (let* ((coding-system (if (listp coding-system) (car coding-system) coding-system))
-	     (base (coding-system-base coding-system)))
-	(memq base '(raw-text iso-latin-1)))))
 
 (defun w3-replace-invalid-chars ()
   (let ((invalid-char-alist w3-invalid-sgml-char-replacement))

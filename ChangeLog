@@ -1,3 +1,117 @@
+1998-12-18  William M. Perry  <wmperry@aventail.com>
+
+* aclocal.m4 (AC_CHECK_CUSTOMLOADS): Use the new functions in the
+  appropriate place.
+  (EMACS_REBUILD_AUTOLOADS): Ditto.
+
+* lisp/docomp.el (emacs-build-custom-load): New function to build
+  custom-load.el under Emacs.
+  (emacs-build-autoloads): Ditto for the auto-autoloads.el file.
+
+1998-12-15  Kenichi Handa  <handa@etl.go.jp>
+
+* lisp/Makefile.in (.el.elc): Set shell variable W3SRCDIR to $(srcdir).
+
+* lisp/docomp.el (load-path): Check shell variable W3SRCDIR.
+
+* lisp/w3.el (w3-convert-code-for-mule): Call
+  mule-coding-system-with-invalid-chars.
+ (w3-coding-system-with-invalid-chars): This function deleted.
+
+* lisp/mule-sysdp.el (w3-mime-charset-coding-alist): Fix coding
+  system for Mule.
+  (mule-invalid-char-coding-systems): New variable.
+  (mule-coding-system-with-invalid-chars): New function.
+  (mule-write-region-no-coding-system): Fix argument of write-region for
+  Mule 2.3.
+ 
+1998-12-17  William M. Perry  <wmperry@aventail.com>
+
+* Emacs/W3 4.0pre32 released
+
+* lisp/font.el (font-x-font-regexp): Add a trailing dash to the
+  font-regexp.  For some reason Emacs 19.xx under 95/NT sticks a trailing
+  slash on the end.  This was the cause of the odd errors in
+  font-spatial-to-canonical since it was getting an empty font object
+  because the regexp failed to match.
+
+1998-12-16  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3.el (w3-coding-system-for-mime-charset): Make sure the
+  coding-system-p is defined before we use it.
+  (w3-convert-code-for-mule): Ditto.
+
+* Makefile.in (SUPPORTFILES): Now include 'BUGS' support file in the
+  distributions.
+
+1998-12-16  Simon Josefsson <jas@pdc.kth.se>
+
+* lisp/mm.el (mm-parse-mailcaps): More protection against badly formed
+  MAILCAPS variable.
+
+1998-12-16  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-cus.el (w3-bullets): Fixed customization type for this option.
+  Would lead to mismatches in customize buffers.  Ick!
+  (w3-maximum-line-length): Ditto.
+
+1998-12-08  Ken'ichi HANDA <handa@etl.go.jp>
+
+* lisp/mule-sysdp.el (mule-detect-coding-version): Check that
+  mule-sysdep-version is a number before comparing it to one.  Under
+  XEmacs it is a symbol `xemacs'.
+
+1998-12-03  William M. Perry  <wmperry@aventail.com>
+
+* Updated all copyright dates and now specify that this _is_ a
+  part of Emacs, since it soon will be.  Maybe.  If I get ambitious.  what 
+  are the odds posted in vegas?
+
+* lisp/w3-display.el (w3-display-infer-contrasting-color): New function to 
+  chooise black or white as an appropriate color if the author of an HTML
+  page was stupid enough to do something like: <body bgcolor="white"> (ie: 
+  not specifying the foreground color as well).  If this conflicts with
+  the users foreground, the text used to be invisible.  Now it will be
+  whichever contrasts best (black on mint cream, white on dark red, etc)
+  (w3-display-node): If the foreground specified conflicts with the users' 
+  background, ignore it.
+  (w3-display-node): If the background specified conflicts with the users' 
+  foreground, infer an appropriate foreground.
+
+* Emacs/W3 4.0pre31 released
+
+* configure.in (CIDFILE): Stop spitting out a warning about
+  multipart/related stuff if we can't find Gnus at configure time.  We're
+  hacking around it in a different way now.
+
+* lisp/Makefile.in (URLSOURCES): Add url-cid.el into the definition via
+  configure substitutions ONLY.  It will still get installed because we
+  stick it in EXTRAS.  This means 1 extra file copy at install time, but
+  who cares?  The file isn't that large.
+
+* lisp/url-cid.el: New file to contain the content-id handling stuff,
+  because we cannot compile this file unless we can find a very recent
+  version of Gnus at compile time (without .emacs).
+
+* etc/default.css: Use the newer @media tags instead of @x*emacs so that
+  everything will work right with the new Emacs redisplay.
+
+* lisp/css.el (css-active-device-types): Added new @media tags.
+  multifont is now defined if the Emacsen we are running in can display
+  multiple font families and sizes correctly (new emacs redisplay or
+  XEmacs), and unifont if it cannot.
+
+* lisp/font.el (font-set-face-font-new-redisplay): New function for
+  dealing with the new Emacs redisplay font abstraction.  You can now beat 
+  the crap out of the new redisplay engine with Emacs/W3.  Ahh, feels like 
+  the heady old days of Lucid Emacs 19.10 and XEmacs 19.12.
+
+1998-12-02  Simon Josefsson <jas@pdc.kth.se>
+
+* lisp/mm.el (mm-parse-mailcaps): Deal gracefully with bad entries in the
+  MAILCAP list, or it would bug out with things like 'file:' where it
+  would try to open the current directory.
+
 1998-11-29  William M. Perry  <wmperry@aventail.com>
 
 * lisp/docomp.el (load-path): Append the GNUSDIR environment variable to

@@ -1,6 +1,6 @@
 ;;; mule-sysdp.el --- consolidate MULE-version dependencies in one file.
 
-;; Copyright (c) 1996 - 1998 William Perry
+;; Copyright (c) 1996 - 1999 William Perry
 
 ;; Author: William Perry <wmperry@cs.indiana.edu>
 ;; Keywords: lisp, tools
@@ -46,7 +46,7 @@
 
 (defconst w3-mime-charset-coding-alist
   `(("big5" . ,(mule-coding-system-version 'cn-big5 '*big5*))
-    ("euc-jp" . ,(mule-coding-system-version 'euc-jp '*euc-jp*))
+    ("euc-jp" . ,(mule-coding-system-version 'euc-jp '*euc-japan*))
     ("euc-kr" . ,(mule-coding-system-version 'euc-kr '*euc-korea*))
     ("gb" . ,(mule-coding-system-version 'cn-gb-2312 '*euc-china*))
     ("iso-2022-jp" . ,(mule-coding-system-version 'iso-2022-jp '*iso-2022-jp*))
@@ -115,12 +115,33 @@ find-file-hooks, etc.
 	    (input-coding-system mule-no-coding-system))
 	(insert-file-contents file visit beg end replace))))
 
+;; List of coding systems that require calling
+;; w3-replace-invalid-chars after decoding a text by them.
+(defconst mule-invalid-char-coding-systems
+  (list (mule-coding-system-version 'raw-text '*noconv*)
+	(mule-coding-system-version 'iso-latin-1 '*ctext*)))
+
+;; Return non-nil if CODING-SYSTEM requires calling
+;; w3-replace-invalid-chars after decoding a text.
+(defun mule-coding-system-with-invalid-chars (coding-system)
+  (or (null coding-system)
+      (let (base)
+	(if (listp coding-system)
+	    (setq coding-system (car coding-system)))
+	(if (fboundp 'coding-system-base)
+	    (setq base (coding-system-base coding-system))
+	  (while (not (vectorp (get coding-system 'coding-system)))
+	    (setq coding-system (get coding-system 'coding-system)))
+	  (setq base coding-system))
+	(memq base mule-invalid-char-coding-systems))))
+
 (defun mule-detect-coding-version (host st nd)
   "Return a coding system of the current data."
   (let ((coding-system nil))
     ;; The facility of detecting a coding system by language
     ;; environment is provided only in Emacs 20.3 (Mule 4.0) or later.
     (if (and host
+	     (numberp mule-sysdep-version)
 	     (>= mule-sysdep-version 4.0))
 	(let ((l w3-url-domain-language-environment-alist))
 	  (while l
@@ -235,7 +256,7 @@ find-file-hooks, etc.
 	(file-coding-system-alist nil))
     (case mule-sysdep-version
       (2.3
-       (write-region st nd file append visit *noconv*))
+       (write-region st nd file append visit lockname mule-no-coding-system))
       (3.0
        (let ((enable-multibyte-characters t))
 	 (write-region st nd file append visit lockname)))

@@ -26,7 +26,7 @@ URLSOURCES = \
 	url-nfs.el url-file.el url-cookie.el url-parse.el url-irc.el	\
 	url-gopher.el url-http.el url-mail.el url-misc.el url-news.el	\
 	url-vars.el url-auth.el mm.el md5.el url-gw.el ssl.el base64.el	\
-	url.el socks.el url-cache.el url-ns.el
+	url.el socks.el url-cache.el url-ns.el @CIDFILE@
 
 URLOBJECTS    = $(URLSOURCES:.el=.elc)
 
@@ -52,7 +52,7 @@ ALLSOURCES = $(SOURCES) $(URLSOURCES) $(AUTOSOURCES)
 ALLOBJECTS = $(OBJECTS) $(URLOBJECTS) $(AUTOOBJECTS)
 
 # Warning!  Currently, the following file can _NOT_ be bytecompiled.
-EXTRAS = w3-sysdp.el docomp.el
+EXTRAS = w3-sysdp.el docomp.el url-cid.el
 
 .SUFFIXES: .elc .el
 
@@ -60,7 +60,7 @@ EXTRAS = w3-sysdp.el docomp.el
 	co -q $<
 
 .el.elc:
-	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) $(EMACS) $(BATCHFLAGS) $(DEPS) -f batch-byte-compile $<
+	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) $(EMACS) $(BATCHFLAGS) $(DEPS) -f batch-byte-compile $<
 
 all:	$(AUTOSOURCES) w3
 
@@ -84,7 +84,7 @@ xemacs-w3: $(ALLSOURCES) $(ALLOBJECTS)
 	@echo Build of w3 complete...
 
 fast:	$(ALLSOURCES) $(EXTRAS)
-	$(EMACS) $(BATCHFLAGS) $(DEPS) -f batch-byte-compile $^
+	$(EMACS) $(BATCHFLAGS) $(DEPS) -f batch-byte-compile $(ALLSOURCES)
 	@echo Build of w3 complete...
 
 autoloads:
@@ -102,10 +102,10 @@ install: all
 	done;
 
 distclean: clean
-	$(RM) config.* Makefile w3-cfg.el
+	$(RM) config.* Makefile w3-cfg.el w3-auto.el
 
 clean:
-	$(RM) $(ALLOBJECTS)
+	$(RM) *.elc *~
 
 w3-vars.elc: w3-cus.elc w3-vars.el
 w3-display.elc: w3-display.el css.elc font.elc w3-imap.elc
