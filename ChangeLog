@@ -1,5 +1,18 @@
-1999-12-10  William M. Perry  <wmperry@aventail.com>
+1999-12-23  William M. Perry  <wmperry@aventail.com>
 
+	* lisp/w3-speak-table.el (w3-table-focus-on-this-cell): Synch'd up
+	with Thierry & Raman.  Provide default value for at-depth.
+	Resurrect hyperlinks and images when focusing on a cell.
+	(w3-table-setup-keys): New bindings for `,' and `.' to focus on
+	and speak table cells.
+
+1999-12-22  William M. Perry  <wmperry@aventail.com>
+
+	* lisp/w3-parse.el (w3-parse-buffer): Allow ':' in attribute
+	names, to deal with stupid quasi-HTML/XML data output by MS Word
+	9.x
+	(w3-parse-buffer): Removed progress bar stuff, since it is causing
+	XEmacs 21.2 betas to crash.
 
 1999-12-06  William M. Perry  <wmperry@aventail.com>
 

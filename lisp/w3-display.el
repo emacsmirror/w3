@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/11 00:54:44 $
-;; Version: $Revision: 1.21 $
+;; Created: $Date: 1999/12/24 12:16:35 $
+;; Version: $Revision: 1.22 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2475,27 +2475,27 @@ Format: (((image-alt row column) . offset) ...)")
 	     (w3-handle-empty-tag))
 	    (meta
 	     ;; FIXME!!! This is broken for the new URL package.
-	     (let* ((equiv (cdr-safe (assq 'http-equiv args)))
-		    (value (w3-get-attribute 'content))
-		    (name  (w3-get-attribute 'name))
-		    (node  (and equiv (assoc (setq equiv (downcase equiv))
-					     url-current-mime-headers))))
-	       (if equiv
-		   (setq url-current-mime-headers (cons
-						   (cons equiv value)
-						   url-current-mime-headers)))
-	       (if name
-		   (setq w3-current-metainfo (cons
-					      (cons name value)
-					      w3-current-metainfo)))
+	     '(let* ((equiv (cdr-safe (assq 'http-equiv args)))
+		     (value (w3-get-attribute 'content))
+		     (name  (w3-get-attribute 'name))
+		     (node  (and equiv (assoc (setq equiv (downcase equiv))
+					      url-current-mime-headers))))
+		(if equiv
+		    (setq url-current-mime-headers (cons
+						    (cons equiv value)
+						    url-current-mime-headers)))
+		(if name
+		    (setq w3-current-metainfo (cons
+					       (cons name value)
+					       w3-current-metainfo)))
 
-	       ;; Special-case the Set-Cookie header
-	       (if (and equiv (string= (downcase equiv) "set-cookie"))
-		   (url-cookie-handle-set-cookie value))
-	       ;; Special-case the refresh header
-	       (if (and equiv (string= (downcase equiv) "refresh"))
-		   ;; FIXME!!!
-		   (url-handle-refresh-header value)))
+		;; Special-case the Set-Cookie header
+		(if (and equiv (string= (downcase equiv) "set-cookie"))
+		    (url-cookie-handle-set-cookie value))
+		;; Special-case the refresh header
+		(if (and equiv (string= (downcase equiv) "refresh"))
+		    ;; FIXME!!!
+		    (url-handle-refresh-header value)))
 	     (w3-handle-empty-tag)
 	     )
 	    (link

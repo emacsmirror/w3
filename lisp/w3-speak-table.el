@@ -1,4 +1,4 @@
-;;;$Id: w3-speak-table.el,v 1.2 1999/01/05 12:42:03 wmperry Exp $
+;;;$Id: w3-speak-table.el,v 1.3 1999/12/24 12:16:41 wmperry Exp $
 ;;;Authors: Thierry Emery <Thierry.Emery@nmu.alcatel.fr>, T.V. Raman <raman@Adobe.COM>
 ;;;Description: Speak W3 tables
 
@@ -395,6 +395,7 @@ contents being displayed in a separate buffer in W3 mode.
 This is useful to navigate pages that use a single table
 cell for a newspaper style column"
   (interactive "p")
+  (setq at-depth (or at-depth 1))
   (let ((contents (w3-table-this-cell-contents at-depth))
         (buffer (get-buffer-create
                  (format "Cell-%s" (buffer-name))))
@@ -404,7 +405,9 @@ cell for a newspaper style column"
       (erase-buffer)
       (w3-mode)
       (insert contents)
-      (goto-char (point-min)))
+      (goto-char (point-min))
+      (w3-resurrect-hyperlinks)
+      (w3-resurrect-images))
     (switch-to-buffer buffer)))
 
 
@@ -661,6 +664,9 @@ Prefix arg can be used to specify the desired table nesting."
   "Setup emacspeak table browsing keys in w3 mode"
   (declare (special emacspeak-prefix w3-mode-map))
   (let ((key (make-vector 1 (aref emacspeak-prefix 0))))
+    (define-key w3-mode-map ","
+      'w3-table-focus-on-this-cell)
+    (define-key w3-mode-map "." 'w3-table-speak-this-cell)
     (define-key w3-mode-map
       (concat emacspeak-prefix "=")
       'w3-table-move-to-top-of-table-column)
