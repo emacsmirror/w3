@@ -1,0 +1,468 @@
+Fri Jul 26 05:57:21 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-display.el, w3-texinfo.el: Initial revision
+
+	* w3-parse.el: *** empty log message ***
+
+	* w3-hot.el: Should now be able to handle XMosaic style hotlist files
+
+	* w3-parse.el:
+	Added some HTML 3.2 stuff, reorged some of the content-models, et. c
+
+	* w3-draw.el: few fixes to the title handling.
+	don't display any text outside the <html></html> area
+
+	* w3-style.el:
+	Changes to w3-style-parse-css to gracefully ignore <!-- and --> in a
+	stylesheet, for those losers who insist on using SGML comments to hide
+	the <style> tag from stupid browsers.
+
+	* w3-parse.el:
+	Changed the content model of the <style> tag to CDATA so that idiots
+	who want to hide the style information from stupid old browsers by the absolutely braindead use of comments (<!-- ... -->) can.  *sigh*
+
+Thu Jul 25 05:00:55 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-style.el: Fixed stupid bug in :device: handling
+
+Tue Jul 23 00:40:54 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-keyword.el: more keywords for speech stuff
+
+	* docomp.el: *** empty log message ***
+
+	* w3-draw.el:
+	Beginnings of support for the new and improved fucked up netscapism
+	<spacer> tag
+
+	* url.el: fix for no_proxy checking for local files
+
+Mon Jul 22 03:22:52 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-sysdp.el:
+	added stub for make-local-hook - more Emacs 19.2x lossage.
+
+	* w3-forms.el:
+	always encode hex strigs into uppercase for stupid broken fucking
+	braindead forms decoders!!!
+
+Sun Jul 21 20:10:42 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* url-vars.el: Created version 1.0.40
+
+	* w3-vars.el: Created version 3.0.8
+
+	* w3.txi: fixed a few compilation errors in w3.txi
+
+	* w3.txi:
+	Revamped a few nodes, removed the downloading/compiling notes, and
+	documented url-proxy-services and improved the proxy section in
+	general.
+
+	* w3-hot.el: Should now auto-recognize HTML bookmark files
+
+	* font.el: Allow a font to have a size like "+12pt"
+
+	* w3-draw.el:
+	Now handles <font face="xxxx"> ala Internet Exploiter and Nutscrape
+
+	* w3.el: Added function for reloading all stylesheets
+
+	* w3-menu.el:
+	Added option to the 'style' menu for reloading stylesheets
+
+	* w3-forms.el:
+	fixed problem with dropwon menus with the same 'value' would show the first item with that value, not necessarily the one the user selected.
+
+	* w3-widget.el: w3-follow-inlined-image works again
+
+	* w3-draw.el, w3-keyword.el, w3-menu.el, w3-vars.el, w3-xemac.el, w3.el:
+	You can now load delayed images
+
+	* url.el:
+	In url-after-change-function, don't change buffers if its been killed.
+
+Sat Jul 20 05:15:06 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3.txi: Removed 16-bit windows section.
+	removed programming interface chapter.
+	fixed Gnus accessing function docs.
+	added pointer to browse-url-browser-function.
+	removed docs of w3-delimit-emphasis / w3-delimit-links.
+
+	* w3-forms.el:
+	If a form has an invalid encoding type, issue a warning about the bad
+	html and the fall back on application/x-www-form-urlencoded
+
+	* w3-style.el:
+	@import no longer causes a 'buffer-modified, kill it anyway?' question.
+	newer CSS font shorthand supported.
+	split the font-family on commas, not spaces, ala newer CSS.
+
+	* font.el: A few changes to the default font-family-mappings
+
+	* w3-draw.el:
+	Allow global document stuff to be specified on the 'body' tag as well
+	as the 'html' tag.
+
+Fri Jul 19 04:39:08 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* url-vars.el: Created version 1.0.39
+
+	* w3-vars.el: Created version 3.0.7
+
+Thu Jul 18 14:20:20 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* default.css:
+	moved monospaced font declaration for pre/xmp into the :xemacs: section
+
+	* url-vars.el: duh - make url-current-server buffer local.
+
+Tue Jul 16 02:49:55 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-latex.el: Lots of patches from stephen peters.
+	* Fix to backslash handling code so that it works.
+
+	* Fix to ~ (very important, that) so that it generates a
+	  `\textasciitilde', since in a <tt> environment the previous call
+	  would work incorrectly.  Similar fix for ^ characters.
+
+	* For carriage returns in a verbatim environment, use `\newline'
+	  instead of `\ '.  Also adds a \nullspace command for use in <pre>
+	  environments, since the existing code for <pre> tended to eat
+	  leading whitespace without it.
+
+	* Use `\newline' instead of `\linebreak', since \linebreak tries to
+	  justify the line out to the text width.
+
+	* Added `\batchmode' call at the beginning of the generated LaTeX, to
+	  force attempted recovery of any errors.
+
+	* Added calls to not indent paragraphs and skip lines between
+	  paragraphs.  I'm not sure whether I like this better or not, but I
+	  figured that most HTML browsers currently use that formatting.  This
+	  should be changed once stylesheets are working nicely, to use
+	  whatever's specified in the stylesheet for LaTeX.
+
+Mon Jul 15 17:33:19 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-draw.el:
+	tty-closest-color-matching now works for netscape-style color crap as
+	well as stylesheet stuff
+
+	* w3-parse.el, w3-xemac.el:
+	anal retentive patch for mispelling in comments
+
+Sat Jul 13 22:47:21 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3.el:
+	w3-echo-link stuff is now handled in the new widget-motion-hook variable.
+
+	* w3-draw.el:
+	w3-echo-link stuff is now handled in the new widget-motion-hook variable.
+	when following a link, its color is changed correctly.
+
+Fri Jul 12 06:10:02 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* url.el:
+	Only match against the hostname in the URL for the no_proxy checking
+
+	* w3-style.el: fixed problem parsing class attributes in CSS
+
+	* url-hash.el: removed old aliases for w3-*hash functions
+
+	* w3-style.el: *** empty log message ***
+
+Thu Jul 11 18:00:20 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-style.el: deal gracefully with device-bitplanes returning nil
+
+	* w3-style.el:
+	You can now use a :speech: device section in a CSS stylesheet
+
+	* w3-sysdp.el:
+	version of valid-color-name-p and device-class for the OS/2
+	presentation manager.
+
+	* w3-e19.el: Some OS/2 hacks
+
+	* url.el, url-file.el: handle : in filenames gracefully
+
+	* w3-draw.el:
+	sanity check the fill-prefix before setting it, and issue a warning if
+	list indentation tries to overflow the right window margin.
+
+	* url-vars.el: Created version 1.0.38
+
+	* w3-vars.el: Created version 3.0.6
+
+Wed Jul 10 23:50:10 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-draw.el: fixed problem with emacspeak
+
+	* default.css: *** empty log message ***
+
+	* dist.Makefile: fixed install target - duh
+
+	* url-irc.el: fixed bad variable name
+
+	* mm.el: require cl to avoid stupid compiler errors
+
+	* w3.el: some more mule fixing
+
+	* url.el: new function url-remove-compressed-extensions
+
+	* w3.el: remove compression extensions from default save-as filenames
+
+	* url-vars.el: *** empty log message ***
+
+	* w3.el:
+	fixed w3-save-binary-file to set initial-contents on the call to
+	read-file-name
+
+	* mm.el: *** empty log message ***
+
+	* w3-hot.el: fixed problem with w3-hotlist-add-document-at-point
+
+	* w3-parse.el: Fix for mule and character entities > 127
+
+	* url-cookie.el, url-vars.el:
+	can now control when/how/if an HTTP cookie is accepted
+
+	* w3-draw.el:
+	fixed mysterious problem of stylesheet formatting info not working
+	correctly the first time a tag was seen.  *dumb* mistake on my part.
+
+Tue Jul  9 21:01:15 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-sysdp.el: added more overlay functions
+
+	* w3-vars.el: Created version 3.0.5
+
+	* url-vars.el: Created version 1.0.37
+
+	* url-vars.el, mm.el, w3.el: *** empty log message ***
+
+	* dist.Makefile:
+	Now uses 'install' to do the copying around, instead of trying to fake it.
+
+	* dist.Makefile: *** empty log message ***
+
+	* font.el:
+	Require disp-table so that display table stuff is loaded (apparently
+	XEmacs 19.13 didn't autoload or dump it - *sigh*)
+
+	* url.el: autoload url-nfs
+
+	* dist.Makefile: No longer mention THIS-IS-VERSION-XX in the makefile
+
+	* url-http.el, w3.el: *** empty log message ***
+
+	* mm.el: Fixed mm-save-binary-file
+
+	* w3.el: Fixed w3-save-binary-file
+
+	* w3.el, w3-speak.el, w3-style.el, w3-draw.el:
+	voices-via-stylesheet fixes
+
+	* dtk-css-speech.el: Initial revision
+
+	* url-vars.el: fix for mule stuff Emacs vs. XEmacs
+
+	* w3-forms.el: wais submissions work again
+
+	* url-wais.el: *** empty log message ***
+
+	* url.el: turn off url-download-minor-mode stuff
+
+	* w3-print.el:
+	fix problem with ps-print and forms printing (read-only text)
+
+Sun Jul  7 22:04:07 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-vars.el: Created version 3.0.4
+
+	* w3-forms.el: <input type=radio checked> works now
+
+	* w3-forms.el: Radio buttons work again.  *sigh*
+
+Thu Jul  4 16:32:06 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-draw.el: Let stylesheets handle the w3-delimit-links stuff
+
+Mon Jul  1 15:42:21 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-vars.el: Created version 3.0.3
+
+	* w3-sysdp.el: Added stub for buffer-substring-no-properties
+
+	* w3-menu.el:
+	Do not use menus under Emacs 19.28 - they are broken / incompatible
+	with that version of easymenu
+
+	* w3-sysdp.el: Fix to device-or-frame-type to work under Emacs 19.28
+
+	* w3.el: fix for set-auto-mode lossage on null buffer-file-name
+
+	* w3-sysdp.el:
+	Added in stubs for plist-put and plist-get, and an Emacs 19.2x
+	specific version of facep.  everything almost works in 19.28 now.
+
+Sun Jun 30 22:53:02 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-vars.el: Created version 3.0.2
+
+	* w3.txi: *** empty log message ***
+
+	* w3.el, w3-xemac.el, w3-widget.el, w3-toolbar.el, w3-sysdp.el, w3-style.el, w3-speak.el, w3-print.el, w3-prefs.el, w3-parse.el, w3-mule.el, w3-mouse.el, w3-menu.el, w3-latex.el, w3-keyword.el, w3-imap.el, w3-hot.el, w3-forms.el, w3-emulate.el, w3-e19.el, w3-draw.el, w3-annotat.el, w3-about.el, images.el, font.el, w3-vars.el:
+	Changed email address info
+
+	* dist.Makefile: Added w3-latex.el to the dist.Makefile
+
+	* w3-vars.el, default.css: *** empty log message ***
+
+	* font.el: final fix for font-height lossage
+
+	* docomp.el: added menubar-visible-p
+
+Fri Jun 28 16:08:08 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* mm.el: Fix for stupid problem in mm-copy-tree
+
+Wed Jun 26 16:38:12 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* font.el:
+	Use truncate instead of round for font sizes - usually gives better results
+
+	* w3-annotat.el, w3.el:
+	Patch from Darrell Kindred <dkindred+@cmu.edu> for news problems
+	1. nnheader-init-server-buffer isn't called, so the
+	     first call to nntp-open-server fails.  (Patch inserts
+	     a call to nnheader-init-server-buffer in url-news-open-host.)
+	  2. The `&', '<', and '>' characters don't get turned into
+	     entities in news from lines, subject, body, etc.  The result
+	     is that "William Perry <wmperry@monolith.spry.com>" shows up
+	     as "William Perry @monolith.spry.com>".  (The patch moves
+	     w3-insert-entities-in-string to url.el and renames it to
+	     url-insert-entities-in-string, then calls it from url-format-news.
+	  3. When displayed, news articles get an extra, empty
+	     "References" entry.  (Patch inserts a `(delete "" ...)'
+	     to remove the trailing empty reference from the list.)
+
+	* url-news.el, url.el:
+	Patch from Darrell Kindred <dkindred+@cmu.edu> for news problems
+	  1. nnheader-init-server-buffer isn't called, so the
+	     first call to nntp-open-server fails.  (Patch inserts
+	     a call to nnheader-init-server-buffer in url-news-open-host.)
+	  2. The `&', '<', and '>' characters don't get turned into
+	     entities in news from lines, subject, body, etc.  The result
+	     is that "William Perry <wmperry@monolith.spry.com>" shows up
+	     as "William Perry @monolith.spry.com>".  (The patch moves
+	     w3-insert-entities-in-string to url.el and renames it to
+	     url-insert-entities-in-string, then calls it from url-format-news.
+	  3. When displayed, news articles get an extra, empty
+	     "References" entry.  (Patch inserts a `(delete "" ...)'
+	     to remove the trailing empty reference from the list.)
+
+Tue Jun 25 19:00:48 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-menu.el:
+	Revamped the options menu - added the edit-preferences button.
+
+	* w3.el: Fix for window-splitting with the back button
+
+	* mm.el:
+	Potential fix for cl's version of copy-tree fucking things up in mm.el
+
+	* w3-sysdp.el: Added bogus definition of set-marker-insertion-type
+
+Mon Jun 24 14:51:18 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-about.el: changed pointers for xemacs.cs.uiuc.edu to xemacs.org
+
+Fri Jun 14 17:45:16 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* url-cookie.el: fixed bug in cookie support
+
+	* url-cookie.el: Require cl for the def. of assoc*
+
+	* w3-auto.el: *** empty log message ***
+
+	* w3-vars.el, w3.el, w3-forms.el:
+	Fixes for mule from MORIOKA Tomohiko <morioka@jaist.ac.jp>
+
+	* w3-xem20.el: Initial revision
+
+	* url-vars.el, url.el:
+	Fixes for mule from MORIOKA Tomohiko <morioka@jaist.ac.jp>
+
+	* w3-prefs.el: fixed problem under FSFmacs
+
+Thu Jun 13 14:31:38 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* w3-menu.el:
+	Extended w3-menu-save-options to save more info.  Different way of
+	turning menubar on/off in XEmacs 19.14 (menubar-visible-p specifier)
+
+	* w3-latex.el:
+	Applied hypertext link printing patches from Stephen Peters
+	<speters%samsun@us.oracle.com>
+
+	* w3.el: patch for imbalanced tags in w3-document-information
+
+	* url-misc.el, url.el: fixed asynch stuff through a proxy
+
+	* w3-prefs.el: All the panels work to some degree now
+
+Wed Jun 12 04:00:39 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* url-nfs.el: Initial revision
+
+	* url.el: Added 'nfs' url type as per the WebNFS specification
+
+	* w3-prefs.el: More panels work
+
+	* w3-forms.el: fix for radio button munging
+
+Tue Jun 11 17:28:53 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* url-vars.el: *** empty log message ***
+
+	* url-irc.el: Fixed bug when no channel was specified in the URL
+
+	* url.el: Added IRC loader
+
+	* url-irc.el: Initial revision
+
+	* w3.el: *** empty log message ***
+
+Mon Jun 10 18:58:03 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* md5.el: compilation warnings removed
+
+	* md5.el:
+	New version of md5.el that actually incorporates an md5 implementation
+	in lisp!  Whoah.
+
+Sun Jun  9 17:32:55 1996  William M. Perry  <wmperry@wmperry.in.aventail.com>
+
+	* url-http.el:
+	protect against malformed HTTP URLs getting passed in via url-retrieve
+
+	* w3-speak.el: more renamings that I forgot before
+
+	* url.el:
+	fixed problem with writing out a history file for the first time
+
+	* url-file.el: fixed problem with ftp links
+
+	* w3.el: w3-find-default-stylesheets is now a little smarter (looks for
+	stylesheets in the directory it is being loaded from).  Error messages
+	when no default stylesheet can be found is much better now as well.
+
+	* dist.Makefile, clean-cache, default.css, w3.txi, descrip.mms, font.el, images.el, w3-about.el, w3-annotat.el, w3-auto.el, w3-draw.el, w3-e19.el, w3-emulate.el, w3-forms.el, w3-hot.el, w3-imap.el, w3-keyword.el, w3-latex.el, w3-menu.el, w3-mouse.el, w3-mule.el, w3-parse.el, w3-prefs.el, w3-print.el, w3-speak.el, w3-style.el, w3-sysdp.el, w3-toolbar.el, w3-vars.el, w3-widget.el, w3-xemac.el, w3.el, xbm-button.el, xpm-button.el, docomp.el:
+	Initial revision
+
+	* base64.el, md5.el, mm.el, ssl.el, url-cookie.el, url-file.el, url-gopher.el, url-hash.el, url-http.el, url-mail.el, url-misc.el, url-news.el, url-parse.el, url-pgp.el, url-vars.el, url-wais.el, url.el, urlauth.el:
+	Initial rev
+
