@@ -1,4 +1,5 @@
 BUGS (4.0):
+- trim down w3-sysdp.el to be just the stuff it really needs
 - border-color can have multiple color specifications, but we
   currently choke with 'args out of range' when we see this.
 - widget appears to be stealing button3 to mean 'activate' - this is

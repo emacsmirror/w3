@@ -1,5 +1,15 @@
+1998-12-29  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
+
+* url.el (url-file-attributes): If url-user is nil use anonymous ftp.
+
 1998-12-29  William M. Perry  <wmperry@aventail.com>
 
+* lisp/mule-sysdp.el (mule-detect-coding-version): Doh - make sure we
+  don't blow up in XEmacs w/Mule when making sure we have a valid coding
+  system.
+
+* Emacs/W3 4.0pre37 released
+	
 * lisp/socks.el (socks-find-route): Fixed bug where we would not honor the
   '!' at the front of the regexp to mean _do_ redirect the connection.  I
   need to finish the socks-redirection-rules stuff sometime soon.
