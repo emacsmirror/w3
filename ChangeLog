@@ -1,5 +1,7 @@
 1999-11-09  William M. Perry  <wmperry@aventail.com>
 
+* build.bat: Make sure to build custom load files and info files.
+
 * lisp/url-auth.el (url-register-auth-scheme): removed warning when
   replacing auth methods.
 

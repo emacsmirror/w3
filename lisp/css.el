@@ -1,7 +1,7 @@
 ;;; css.el -- Cascading Style Sheet parser
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/22 20:40:13 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/11/09 19:56:30 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -719,7 +719,8 @@ For a terminal frame, the value is always 1."
 	  (insert data)))))
 
 (defun css-handle-import (data)
-  (let (url)
+  (let (url purl)
+    (setq purl url-current-object)
     (setq url (css-expand-value 'url data))
     (and url
 	 (let ((url-working-buffer (generate-new-buffer-name " *styleimport*"))

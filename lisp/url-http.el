@@ -1,7 +1,7 @@
 ;;; url-http.el --- HTTP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/09 14:52:23 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1999/11/09 19:56:32 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -172,7 +172,7 @@
 	    "%s %s HTTP/1.0\r\n"	; The request
 	    "MIME-Version: 1.0\r\n"	; Version of MIME we speaketh
 	    "Extension: %s\r\n"		; HTTP extensions we support
-	    "Host: %s:%d\r\n"		; Who we want to talk to
+	    "Host: %s:%s\r\n"		; Who we want to talk to
 	    "%s"			; Who its from
 	    "Accept-encoding: %s\r\n"	; Encodings we understand
 	    "%s"			; Languages we understand

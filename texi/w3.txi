@@ -12,9 +12,9 @@
 @c site: http://www.cs.indiana.edu/elisp/w3/docs.html
 @c
 @setfilename w3.info
-@settitle Emacs/W3 $State: Exp $ User's Manual
+@settitle Emacs/W3 $State: v4.0pre.45 $ User's Manual
 @iftex
-@finalout
+@c @finalout
 @end iftex
 @c @setchapternewpage odd
 @c @smallbook
@@ -70,7 +70,6 @@ are preserved on all copies.
 
 @end titlepage
 @page
-@ifinfo
 @node Top, Getting Started, (dir), (dir)
 @top W3
 
@@ -90,7 +89,7 @@ cannot be modified to your satisfaction, please send mail to the
 @t{w3-beta@@indiana.edu} mailing list with any suggestions.
 @xref{Reporting Bugs}.
 
-This manual corresponds to Emacs/W3 $State: Exp $
+This manual corresponds to Emacs/W3 $State: v4.0pre.45 $
 
 @menu
 * Getting Started::             Getting up and running with Emacs/W3
@@ -124,7 +123,6 @@ Indices:
 * General Index::               General Index.
 * Key Index::                   Menus of command keys and their references.
 @end menu
-@end ifinfo
 
 @node Getting Started, Basic Usage, Top, Top
 @chapter Getting Started
@@ -191,33 +189,34 @@ Emacs/W3 will work with Emacs 19.29 and later and XEmacs 19.14 and later,
 but if you're using a 19.x Emacs then you will need to get the
 latest custom and widget libraries.
 
-If you want to get hold of Emacs then the latest version will be
-available from the GNU archive @uref{ftp://prep.ai.mit.edu/pub/gnu} or
-one of it's many mirrors.  @uref{http://www.xemacs.org/} will tell you
-how to get hold of the latest version of XEmacs --- once again there are
-plenty of sites that have mirrors.
+@table @asis
+@item Emacs
+Available from the GNU archive @uref{ftp://prep.ai.mit.edu/pub/gnu} or
+one of it's many mirrors.
 
-@c info: find better url
-Emacs/W3 itself is available from
-@uref{ftp://ftp.cs.indiana.edu/pub/elisp/w3/.betas/w3.tar.gz} and up to
-date information can be found at
-@uref{http://www.cs.indiana.edu/elisp/w3/docs.html}.  The latest custom
-and widget libraries are available from
-@uref{ftp://ftp.cs.indiana.edu/pub/elisp/w3/custom.tar.gz}.
+@item XEmacs
+Available from the XEmacs archive @uref{http://www.xemacs.org/} or one
+of it's many mirrors.
 
-:: WORK :: Where to download related utilities (netpbm, xv, gimp, etc.)
-@c info: Why are these useful?
+@item Emacs/W3
+@uref{http://www.cs.indiana.edu/elisp/w3/docs.html} is the main
+distribution point for Emacs/W3.
 
-http://www.research.digital.com/CRL/personal/raman/emacspeak/emacspeak.html
+@item Emacspeak
+A speech synthesizer package for Emacs and XEmacs.  More information is
+available at
+@uref{http://www.cs.cornell.edu/Info/People/raman/emacspeak/}
+
+@end table
 
 @node Building and Installing, Startup Files, Downloading, Getting Started
 @section Building and Installing
 
-Emacs/W3 uses GNU @samp{configure} (@pxref{Top, , ,configure}) to control
-installation.  @samp{configure} will attempt to find what Emacsen you have and
-where they live.  If it finds both Emacs and XEmacs, then XEmacs is used
-(but see below for how to change this).  Apart from the usual options,
-the following options are accepted:
+Emacs/W3 uses GNU @samp{configure} (@pxref{Top, , ,configure}) to
+control installation.  configure will attempt to find what version of
+Emacs you have and where it is installed.  If it finds both Emacs and
+XEmacs, then XEmacs is used (but see below for how to change this).
+Apart from the usual options, the following options are accepted:
 
 @table @samp
 @item --with-xemacs
@@ -225,8 +224,8 @@ Use XEmacs.
 @item --with-emacs
 Use Emacs.
 @item --with-lispdir=@var{dir}
-Put lisp files (*.el and *.elc) in @var{dir}.  If this isn't specified,
-and nor is @samp{--with-package-dir}, then the lisp files go into
+Put lisp files (*.el and *.elc) in @var{dir}.  If this is not specified,
+and neither is @samp{--with-package-dir}, then the lisp files go into
 @file{@var{EMACS}/site-lisp}.
 @item --with-package-dir=@var{dir}
 If using XEmacs, install Emacs/W3 as a package in @var{dir}.  Please
@@ -255,8 +254,7 @@ This is the top level directory and by default everything is installed
 somewhere below this.  This is @file{/usr/local} by default.
 @item --infodir=@var{dir}
 Where to put the info files.  This is @file{@var{prefix}/info} by
-default unless @samp{--with-package-dir=@var{pack-dir}} was given in
-which case it is @file{@var{pack-dir}/info}.
+default.
 @item --data-dir=@var{dir}
 Where to put date files (default stylesheets).  This is @file{@var{prefix}/share} by
 default unless @samp{--with-package-dir=@var{pack-dir}} was given in
@@ -1361,16 +1359,9 @@ being the function.
 @code{w3-default-image-alt-func} returns @code{w3-dummy-img-alt-repl}
 (@samp{*} by default) if the image's height and width are both less than
 @code{w3-min-img-size} pixels (15 by default) and if the filename
-matches the @code{w3-dummy-img-re} regular expression
-(@samp{"\\b\\(boule\\|bullet\\|dot\\|pebble[0-9]*[a-z]?[0-9]*\\|pixel\\)\\b"}
-by default).  Otherwise, @code{w3-default-image-alt-func} returns the
-filename enclosed in a @samp{[]} pair.
-
-@item w3-icon-directory
-@vindex w3-icon-directory
-Emacs/W3 will look for standard icons in the directory specified by
-@code{w3-icon-directory}.  It must end in a slash and is
-@url{http://cs.indiana.edu/elisp/w3/icons/} by default.
+matches the @code{w3-dummy-img-re} regular expression.  Otherwise,
+@code{w3-default-image-alt-func} returns the filename enclosed in a
+@samp{[]} pair.
 
 @item w3-icon-format
 @vindex w3-icon-format
@@ -1894,7 +1885,7 @@ type, word or group is repeated at least A and at most B times.
 
 Other than the value the following information is also shown.
 
-@multitable @columnfractions .20 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab If this is present, it lists the parts of
 the specification that Emacs/W3 currently supports.
 @item Unsupported Values: @tab If this is present, it represents the
@@ -2066,7 +2057,7 @@ letters, etc. CSS1 has no properties that select those.
 @node font-weight, font-size, font-variant, Font Properties
 @subsubsection font-weight
 
-@multitable @columnfractions .2 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab normal | bold | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
 @item Unsupported Values: @tab bolder | lighter
 @item Initial: @tab normal
@@ -2105,7 +2096,7 @@ less dark than the faces of lighter values.
 @node font-size, font, font-weight, Font Properties
 @subsubsection font-size
 
-@multitable @columnfractions .2 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab <absolute-size> | <length>
 @item Unsupported Values: @tab <percentage> | <relative-size>
 @item Initial: @tab medium
@@ -2369,7 +2360,7 @@ properties have been specified.
 @node word-spacing, letter-spacing, Text Properties, Text Properties
 @subsubsection word-spacing
 
-@multitable @columnfractions .2 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab normal
 @item Unsupported Values: @tab <length>
 @item Initial: @tab normal
@@ -2397,7 +2388,7 @@ Emacs.  It may  be implemented in the future.
 @node letter-spacing, text-decoration, word-spacing, Text Properties
 @subsubsection letter-spacing
 
-@multitable @columnfractions .2 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab normal
 @item Unsupported Values: @tab <length>
 @item Initial: @tab normal
@@ -2425,7 +2416,7 @@ Emacs.  It may be implemented in the future.
 @node text-decoration, vertical-align, letter-spacing, Text Properties
 @subsubsection text-decoration
 
-@multitable @columnfractions .2 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab none | underline | line-through | blink
 @item Unsupported Values: @tab overline 
 @item Initial: @tab none
@@ -2467,7 +2458,7 @@ This is currently unsupported in Emacs/W3.
 @node text-transform, text-align, vertical-align, Text Properties
 @subsubsection text-transform
 
-@multitable @columnfractions .2 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab none
 @item Unsupported Values: @tab capitalize | uppercase | lowercase
 @item Initial: @tab none
@@ -2669,7 +2660,7 @@ NOTE: This is currently unimplemented in Emacs/W3.
 @node list-style-position, list-style, list-style-image, Classification
 @subsubsection list-style-position
 
-@multitable @columnfractions .2 .8
+@multitable @columnfractions .3 .7
 @item Supported Values: @tab outside
 @item Unsupported Values: @tab inside
 @item Initial: @tab outside
@@ -3350,8 +3341,8 @@ Email messages are defined in @sc{rfc}822.
 @cindex mailserver
 @cindex mailserver @sc{url}s
 A mailserver @sc{url} allows you to send an email to a person, but this
-@sc{url} optionly specifies a subject and a body; thus
-@samp{mailserver:[@var{mailbox}/@var{subject}[/@var{body}]}
+@sc{url} optionally specifies a subject and a body.  The basic format is
+@samp{mailserver:[@var{mailbox}/@var{subject}[/@var{body}]}.  Thus,
 @samp{mailserver:foo@@bar.com/wibble/flibble} will compose a message to
 foo@@bar.com with @var{subject} as the subject and @var{body} already in
 the body of the email.  Note that both the subject and the body are
@@ -3590,10 +3581,9 @@ archive@footnote{One is ftp://ds.internic.net/internet-drafts}.
 @cindex Gag Puke Retch
 @cindex Exportability
 @cindex Export Restrictions
-SSL is the @code{Secure Sockets Layer} interface developed by Netscape
-Communications @footnote{http://www.netscape.com/}.  Emacs/W3 supports
-@sc{http} transfers over an SSL encrypted channel, if the appropriate files
-have been installed.  @xref{Installing SSL}.
+SSL is the @code{Secure Sockets Layer} interface.  Emacs/W3 supports
+@sc{http} transfers over an SSL encrypted channel, if the appropriate
+files have been installed.  @xref{Installing SSL}.
 @end table
 
 @section Privacy
@@ -3648,13 +3638,12 @@ processed by the program (indeed the program may not even know
 what data they hold or what format it's in) but is passed to libraries or
 servers which do understand it.} are used to add state to @sc{http}
 sessions.  Cookies are defined in @sc{rfc2109}.
-@c gdj1: but does Emacs/W3 only support Netscape cookies?
 
 @vindex url-cookie-file
-Cookies are saved in a file in @code{url-cookie-file}, which is
-@code{@var{w3-configuration-directory}/cookies} by default.  Note that
-this file should probably not be world writable, and possibly not even
-world readable.
+Cookies are saved in the file specified in @code{url-cookie-file}, which
+is @code{@var{w3-configuration-directory}/cookies} by default.  Note
+that this file should probably not be world writable, and possibly not
+even world readable.
 
 @vindex url-cookie-untrusted-urls
 @vindex url-cookie-trusted-urls
@@ -3869,8 +3858,7 @@ will be used instead.
 @item w3-latex-docstyle
 @vindex w3-latex-docstyle
 The document style to use when printing or mailing converted @sc{html} files
-in LaTeX.  Good defaults are: @{article@}, [psfig,twocolumn]@{article@},
-etc.
+in LaTeX.
 @item w3-latex-packages
 @vindex w3-latex-packages
 List of LaTeX packages to include.  Currently this is only used if 
@@ -4108,9 +4096,8 @@ default to that, otherwise @file{/tmp}.
 
 @item w3-documentation-root
 @vindex w3-documentation-root
-This specifies the location of the Emacs/W3 documentation, it is
-@url{http://www.cs.indiana.edu/elisp/w3/} by default and @emph{must} end
-in a slash.
+This specifies the location of the Emacs/W3 documentation, it
+@emph{must} end in a slash.
 
 @item w3-popup-menu-on-mouse-3
 @vindex w3-popup-menu-on-mouse-3
@@ -4191,7 +4178,7 @@ interested in the internals of Emacs/W3, and doing active development work.
 Pretty dead right now, but I hope it will grow.
 @end itemize
 
-For more help on the World Wide Web in general, please refer to the
+For help on the World Wide Web in general, please refer to the
 comp.infosystems.www.* newsgroups.  There are also several discussion
 lists concerning the Web.  Send mail to @i{<listname>-request@@w3.org}
 with a subject line of 'subscribe <listname>'.  All mail should go to
@@ -4682,8 +4669,9 @@ the special "no_proxy" entry, it should be a regular expression that
 matches any hostnames that should be contacted directly.
 
 @example
-(setq url-proxy-services '(("http"     . "proxy.aventail.com:80")
-                           ("no_proxy" . "^.*\\(aventail\\|seanet\\)\.com")))
+(setq url-proxy-services
+       '(("http"     . "proxy.aventail.com:80")
+         ("no_proxy" . "^.*\\(aventail\\|seanet\\)\.com")))
 @end example
 
 @node Installing SSL, Mailcap Files, Proxy Gateways, Top
@@ -4724,7 +4712,9 @@ and will be replaced with the hostname and service/port that will be
 connected to.
 
 @example
-(setq ssl-program-arguments '("-host" host "-port" service "-verify" "4"
+(setq ssl-program-arguments '("-host" host
+                              "-port" service
+                              "-verify" "4"
                               "-CApath /usr/local/ssl/certs"))
 @end example
 @end table

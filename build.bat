@@ -20,5 +20,11 @@ set GNUSDIR=%EMACSDIR%\lisp
 cd lisp
 copy w3-cfg.nt w3-cfg.el
 %EMACS% -batch -q -l ./docomp.el -f emacs-batch-build-autoloads . auto-autoloads.el
+%EMACS% -batch -q -l ./docomp.el -f emacs-batch-build-custom-load .
 %EMACS% -batch -q -l ./docomp.el -f compile-it
+cd ..
+
+cd texi
+%EMACS% -batch -q -no-site-file w3-faq.txi -l texinfmt -f texinfo-format-buffer -f save-buffer
+%EMACS% -batch -q -no-site-file w3.txi -l texinfmt -f texinfo-format-buffer -f save-buffer
 cd ..
