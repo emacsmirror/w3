@@ -32,7 +32,7 @@
 	* lisp/w3-emacs.el: New file.
 
 	* lisp/w3-e19.el, lisp/w3-e20.el, lisp/w3-e21.el: Deleted in
-	favour of w3-emacs.
+	favour of w3-emacs.  (Avoid defadvice.)
 
 	* lisp/w3.el (w3-load-flavors): Remove Emacs version-specifics --
 	just require w3-emacs.
