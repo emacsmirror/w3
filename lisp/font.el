@@ -1,7 +1,7 @@
 ;;; font.el --- New font model
 ;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:52:16 $
-;; Version: $Revision: 1.6 $
+;; Created: $Date: 2001/08/24 09:23:33 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -345,7 +345,7 @@ the new redisplay engine.")
 	      (other (font-spatial-to-canonical
 		      (substring spec (match-end 0) nil)))
 	      (default (font-spatial-to-canonical
-			(font-default-size-for-device device))))
+			(or (font-default-size-for-device device) 0))))
 	  (if (fboundp math-func)
 	      (setq type "px"
 		    spec (int-to-string (funcall math-func default other)))
@@ -1000,7 +1000,7 @@ for use in the 'weight' field of an mswindows font string.")
     (apply 'set-face-font face font args))))
 
 (if font-running-emacs-new-redisplay
-    (defalias 'font-set-face-font 'font-set-face-font-new-redisplay))
+(defalias 'font-set-face-font 'font-set-face-font-new-redisplay))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Now for emacsen specific stuff
