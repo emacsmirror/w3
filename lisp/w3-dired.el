@@ -1,7 +1,7 @@
 ;;; w3-dired.el --- Main functions for Emacs-W3 on all platforms/versions
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/17 21:55:32 $
-;; Version: $Revision: 1.1 $
+;; Author: Bill Perry <wmperry@gnu.org>
+;; Created: $Date: 2001/05/14 15:51:07 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,6 +33,8 @@
 ;;; (add-hook 'dired-mode-hook 'turn-on-w3-dired)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(autoload 'dired-get-filename "dired")
+
 (defvar w3-dired-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "b" 'w3-dired-find-file)
@@ -56,10 +58,8 @@
 (defun w3-dired-find-file-mouse (event)
   "In dired, visit the file or directory name you click on, using Emacs-W3."
   (interactive "@e")
-    (if (event-point event)
-	(progn
-	  (goto-char (event-point event))
-	  (w3-dired-find-file))))
+  (mouse-set-point event)
+  (w3-dired-find-file))
 
 ;;;###autoload
 (defun w3-dired-minor-mode (&optional arg)
