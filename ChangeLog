@@ -1,4 +1,14 @@
+1999-01-07  William M. Perry  <wmperry@aventail.com>
+
+* build.bat: More tweaking of finding EMACSDIR automatically.
+
+* lisp/w3-vars.el (w3-mode-map): Don't use read-kbd-macro
+
 1999-01-05  William M. Perry  <wmperry@aventail.com>
+
+* build.bat: Make sure that we build the autoload files under windows.
+  Easier setting of the environment variables.  Also can now pass in
+  EMACSDIR on the command line.
 
 * lisp/docomp.el (byte-compile-dest-file): Downcase file names if we are
   in windows of any flavor.  Sometimes we get foo.EL instead of foo.el and 
