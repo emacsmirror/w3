@@ -1,7 +1,7 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/23 14:19:56 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/04/08 11:47:49 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -111,6 +111,13 @@ This should be the name of a file that is stored in either
 NCSA's Mosaic/X or Netscape/X format.  It is used to keep a listing
 of commonly accessed URL's without having to go through 20 levels of
 menus to get to them."
+  :group 'w3-files
+  :type 'file)
+
+(defcustom w3-explicit-encodings-file nil
+  "*Explicit encodings filename.
+This should be the name of a file that is used to keep user-specified
+explicit encodings for URLs."
   :group 'w3-files
   :type 'file)
 

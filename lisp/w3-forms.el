@@ -1,7 +1,7 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/01/05 12:41:59 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/04/08 11:47:50 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,6 +34,7 @@
 
 (eval-and-compile
   (require 'w3-keyword)
+  (require 'w3-mouse)
   (require 'w3-display)
   (require 'widget)
   (condition-case nil
@@ -65,6 +66,7 @@
     (define-key map "\t"          'w3-widget-forward)
     (define-key map "\C-k"        'widget-kill-line)
     (define-key map "\C-a"        'widget-beginning-of-line)
+    (define-key map w3-mouse-button3 'w3-popup-menu)
     (if eol-loc
 	(define-key map eol-loc   'widget-end-of-line))
     map))

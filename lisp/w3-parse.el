@@ -256,7 +256,6 @@ which must be a string to use as the error message."
 ;;; General entity references and numeric character references.
 ;;;
 
-;; *** MULE conversion?
 ;; *** I18N HTML support?
 
 (let ((html-entities w3-html-entities))
@@ -285,19 +284,25 @@ which must be a string to use as the error message."
 ;; &computer; as part of a value of a form input when you display it and/or
 ;; submit it?!
 
-(let ((html-entities w3-graphic-entities)
-      (cur nil))
-  (while html-entities
-    (setq cur (car html-entities)
-          html-entities (cdr html-entities))
-    (put (nth 0 cur) 'html-entity-expansion
-	 (cons 'nil (format "<img src=\"%s/%s%s\" alt=\"%s\">"
-                            w3-icon-directory
-                            (nth 1 cur)
-                            (if w3-icon-format
-                                (concat "." (symbol-name w3-icon-format))
-                              "")
-                            (or (nth 3 cur) (nth 2 cur)))))))
+;; The HTML graphics entities code is going away - nobody uses it, and
+;; I cannot even find references to it on the w3c site.  I am leaving
+;; this code in as an example of how to make the html entity expansion
+;; stuff work a little differently.
+;; WMP 4/4/1999
+
+;;(let ((html-entities w3-graphic-entities)
+;;      (cur nil))
+;;  (while html-entities
+;;    (setq cur (car html-entities)
+;;          html-entities (cdr html-entities))
+;;    (put (nth 0 cur) 'html-entity-expansion
+;;	 (cons 'nil (format "<img src=\"%s/%s%s\" alt=\"%s\">"
+;;                            w3-icon-directory
+;;                            (nth 1 cur)
+;;                            (if w3-icon-format
+;;                                (concat "." (symbol-name w3-icon-format))
+;;                              "")
+;;                            (or (nth 3 cur) (nth 2 cur)))))))
 
 ;; These are the general entities in HTML 3.0 in terms of which the math
 ;; shortrefs are defined:
@@ -412,7 +417,7 @@ which must be a string to use as the error message."
       ;; wrongo!  Apparently, mule doesn't do sane things with char-to-string
       ;; -wmp 7/9/96
       (let ((repl (cdr-safe (assq w3-p-s-num w3-invalid-sgml-char-replacement))))
-            (insert (or repl (mule-make-iso-character w3-p-s-num)))))
+        (insert (or repl (mule-make-iso-character w3-p-s-num)))))
      ((looking-at "&#\\(re\\|rs\\|space\\|tab\\)[\ ;\n]?") ; \n should be \r
       (replace-match (assq (upcase (char-after (+ 3 (point))))
                            '(;; *** Strictly speaking, record end should be
@@ -2625,7 +2630,15 @@ Returns a data structure containing the parsed information."
                          (concat "[" (w3-invalid-sgml-chars) "]")))
            (w3-debug-html
             (format "Invalid SGML character: %c" (char-after (point))))
-           (insert (or (cdr-safe (assq (char-after (point))
+           ;; This will avoid ebola warnings... but do we reallly want
+           ;; to be nuking the invalid character if we are in a MULE
+           ;; buffer... ISO2022 could have 'invalid' HTML characters,
+           ;; but still parse well.  But would this only ever happen
+           ;; if for some reason we did not decode the SJIS/ISO2022
+           ;; encodings?  Mislabeled MIME with no charset?
+           ;;
+           ;; FIXME FIXME FIXME!!!!!
+           (insert (or (cdr-safe (assq (char-int (char-after (point)))
                                        w3-invalid-sgml-char-replacement)) ""))
            (delete-char 1))
           ((eobp)

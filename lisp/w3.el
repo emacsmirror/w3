@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/03/25 05:30:07 $
-;; Version: $Revision: 1.7 $
+;; Created: $Date: 1999/04/08 11:47:52 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1187,6 +1187,8 @@ invokes some commands which read a coding system from the user.")
 	       (;; explicit charset ? (through MIME headers or META tag)
 		(and (stringp mmcharset)
 		     (setq coding-system (w3-coding-system-for-mime-charset mmcharset))))
+	       (;; recorded explicit coding system ? (in `w3-explicit-encodings-file')
+		(setq coding-system (w3-recall-explicit-coding-system url-current-object)))
 	       ;; forced conversion ? (through user option w3-force-conversion-alist)
 	       ((and (url-filename url-current-object)
 		     (let ((force-alist w3-force-conversion-alist)
@@ -1783,8 +1785,96 @@ With prefix argument, it reads a coding system to decode the document."
 	(w3-explicit-coding-system explicit-coding-system))
     (kill-buffer (current-buffer))
     (w3-fetch tmp)
+    (if explicit-coding-system
+	(w3-record-explicit-coding-system tmp explicit-coding-system))
     (goto-char pnt)
     (set-window-start (selected-window) (min window-start (point-max)))))
+
+(defun w3-recall-explicit-coding-system (url)
+  "Find user-specified explicit coding system for this URL
+in w3-explicit-conversion-tree"
+  (let* ((urlobj (if (stringp url)
+		     (url-generic-parse-url url)
+		   url))
+	 (hostname (or (url-host urlobj) "localhost"))
+	 (fname-list (split-string (url-filename urlobj) "\\/")))
+    ;; now recurse
+    (w3-find-explicit-coding-system (cons hostname fname-list) w3-explicit-conversion-tree)))
+
+(defun w3-find-explicit-coding-system (fname-list tree)
+  "Recall a user-specified explicit coding system"
+  (let ((branch (assoc (car fname-list) tree)))
+    (and branch
+	 (or (and (cdr fname-list) (cddr branch)
+		  (w3-find-explicit-coding-system (cdr fname-list) (cddr branch)))
+	     (cadr branch)))))
+
+(defun w3-record-explicit-coding-system (url coding-system)
+  "Record user-specified explicit coding system for URLs
+as high as possible in w3-explicit-conversion-tree"
+  (let* ((urlobj (if (stringp url)
+		     (url-generic-parse-url url)
+		   url))
+	 (hostname (or (url-host urlobj) "localhost"))
+	 (fname-list (split-string (url-filename urlobj) "\\/"))
+	 (tree (or (assoc hostname w3-explicit-conversion-tree)
+		   (let ((branch (list hostname)))
+		     (setq w3-explicit-conversion-tree
+			   (cons branch w3-explicit-conversion-tree))
+		     branch))))
+    ;; now recurse
+    (w3-add-explicit-coding-system fname-list coding-system tree)
+    (setq w3-explicit-encodings-changed-since-last-save t)))
+
+(defun w3-add-explicit-coding-system (fname-list coding-system tree)
+  "Memorize a user-specified explicit coding system"
+  (if (and (cadr tree) (not (equal (cadr tree) coding-system)))
+      (setcar (cdr tree) nil))
+  (let ((branch (assoc (car fname-list) (cddr tree))))
+    (cond (branch
+	   ;; update existing branch
+	   (cond ((cdr fname-list)
+		  (or (equal (cadr branch) coding-system)
+		      (null (cadr branch))
+		      (setcar (cdr branch) nil))
+		  (w3-add-explicit-coding-system (cdr fname-list) coding-system branch))
+		 (t
+		  (setcar (cdr branch) coding-system))))
+	  (t
+	   ;; create a new branch
+	   (setcdr tree
+		   (if fname-list
+		       (let ((subbranch (list (car fname-list))))
+			 (w3-add-explicit-coding-system (cdr fname-list) coding-system subbranch)
+			 (cons (if (or (null (cddr tree))
+				       (equal coding-system (cadr tree)))
+				   coding-system)
+			       (cons subbranch (cddr tree))))
+		     (list coding-system)))))))
+
+(defun w3-write-explicit-encodings (&optional fname)
+  "Write the explicit encodings file into `w3-explicit-encodings-file'."
+  (interactive)
+  (or fname
+      (and w3-explicit-encodings-file
+	   (setq fname (expand-file-name w3-explicit-encodings-file))))
+  (cond
+   ((not w3-explicit-encodings-changed-since-last-save) nil)
+   ((not (file-writable-p fname))
+    (message "Explicit encodings file %s (see variable `w3-explicit-encodings-file') is unwritable." fname))
+   (t
+    (let ((make-backup-files nil)
+	  (version-control nil)
+	  (require-final-newline t))
+      (save-excursion
+	(set-buffer (get-buffer-create " *w3-tmp*"))
+	(erase-buffer)
+	(insert "(setq w3-explicit-conversion-tree\n      '"
+		(prin1-to-string w3-explicit-conversion-tree)
+		")\n\n")
+	(write-file fname)
+	(kill-buffer (current-buffer))))))
+  (setq w3-explicit-encodings-changed-since-last-save nil))
 
 (defun w3-leave-buffer ()
   "Bury this buffer, but don't kill it."
@@ -2177,6 +2267,13 @@ dumped with emacs."
 			       "Please consult the `%s' buffer for details."))
 			    w3-default-configuration-file buf-name))))))
 	       
+  ;; Load the explicit encodings file if it exists
+  (if (and w3-explicit-encodings-file
+	   (file-exists-p w3-explicit-encodings-file))
+      (condition-case nil
+	  (load w3-explicit-encodings-file nil t)
+	(error nil)))
+
   (if (and (eq w3-user-colors-take-precedence 'guess)
 	   (not (eq (device-type) 'tty))
 	   (not (eq (device-class) 'mono)))

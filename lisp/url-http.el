@@ -1,7 +1,7 @@
 ;;; url-http.el --- HTTP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 22:18:19 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/04/08 11:47:47 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -178,9 +178,9 @@
 	    "%s"			; Languages we understand
 	    "Accept: %s\r\n"		; Types we understand
 	    "%s"			; User agent
+	    "%s"			; Proxy Authorization
 	    "%s"			; Authorization
 	    "%s"			; Cookies
-	    "%s"			; Proxy Authorization
 	    "%s"			; If-modified-since
 	    "%s"			; Where we came from
 	    "%s"			; Any extra headers
@@ -199,10 +199,10 @@
 	     "")
 	   url-mime-accept-string
 	   (url-http-user-agent-string)
+	   (or proxy-auth "")
 	   (or auth "")
 	   (url-cookie-generate-header-lines
 	    host real-fname (equal "https" (url-type url-current-object)))
-	   (or proxy-auth "")
 	   (if (and (not no-cache)
 		    (member url-request-method '("GET" nil)))
 	       (let ((tm (url-is-cached url)))

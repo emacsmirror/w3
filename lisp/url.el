@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/03/25 05:30:04 $
-;; Version: $Revision: 1.10 $
+;; Created: $Date: 1999/04/08 11:47:48 $
+;; Version: $Revision: 1.11 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1999/03/25 05:30:04 $|$Revision: 1.10 $|Location Undetermined
+;;; $Date: 1999/04/08 11:47:48 $|$Revision: 1.11 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -479,9 +479,11 @@ The return value is a cons of the url and the date last accessed as a string"
   "Returns t iff the specified URL is directly accessible
 on your filesystem.  (nfs, local file, etc)."
   (let* ((urlobj (if (vectorp url) url (url-generic-parse-url url)))
-	 (type (url-type urlobj)))
+	 (type (url-type urlobj))
+	 (host (url-host urlobj)))
     (and (member type '("file" "ftp"))
-	 (not (url-host urlobj)))))
+	 (url-host-is-local-p host)
+	 (not (string-match "\\.\\(gz\\|Z\\|z\\)$" url)))))
 
 ;;;###autoload
 (defun url-file-attributes (url &rest args)
@@ -746,24 +748,30 @@ numbers, etc."
 		name (format "%s<%d>" start x)))
 	name))))
 
+(defvar url-generate-unique-filename-counter 0)
+
 (defun url-generate-unique-filename (&optional fmt)
   "Generate a unique filename in url-temporary-directory"
+  (setq url-generate-unique-filename-counter
+	(1+ url-generate-unique-filename-counter))
   (if (not fmt)
       (let ((base (format "url-tmp.%d" (user-real-uid)))
 	    (fname "")
-	    (x 0))
+	    (x url-generate-unique-filename-counter))
 	(setq fname (format "%s%d" base x))
 	(while (file-exists-p (expand-file-name fname url-temporary-directory))
 	  (setq x (1+ x)
 		fname (concat base (int-to-string x))))
+	(setq url-generate-unique-filename-counter x)
 	(expand-file-name fname url-temporary-directory))
     (let ((base (concat "url" (int-to-string (user-real-uid))))
 	  (fname "")
-	  (x 0))
+	  (x url-generate-unique-filename-counter))
       (setq fname (format fmt (concat base (int-to-string x))))
       (while (file-exists-p (expand-file-name fname url-temporary-directory))
 	(setq x (1+ x)
 	      fname (format fmt (concat base (int-to-string x)))))
+      (setq url-generate-unique-filename-counter x)
       (expand-file-name fname url-temporary-directory))))
 
 (defun url-lazy-message (&rest args)
@@ -1747,7 +1755,12 @@ user for what type to save as."
 	 ((looking-at "(setq") (url-write-Emacs-history fname))
 	 (t (url-write-Emacs-history fname)))
 	(kill-buffer (current-buffer))))))
-  (setq url-history-changed-since-last-save nil))
+  (setq url-history-changed-since-last-save nil)
+  (setq url-history-changed-since-last-save nil)
+  (if (not (or (eq url-privacy-level 'paranoid)
+ 	       (and (listp url-privacy-level) (memq 'cookies url-privacy-level))))
+      (url-cookie-write-file))
+  (w3-write-explicit-encodings))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

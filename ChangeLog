@@ -1,4 +1,85 @@
+1999-04-08  Thierry Emery <Thierry.Emery@nmu.alcatel.fr>
+
+* lisp/url-cookie.el (url-cookie-write-file): check
+  `url-cookies-changed-since-last-save' and that the file is writable.
+  (url-cookie-handle-set-cookie): set `url-cookies-changed-since-last-save'.
+
+* lisp/url-http.el (url-create-mime-request): Moved Proxy Authorization up
+  (before Cookie and Authorization).
+
+* lisp/url-vars.el (url-cookies-changed-since-last-save): new variable.
+
+* lisp/url.el (url-write-global-history): call `url-cookie-write-file' if
+  `url-privacy-level' tolerates cookies.
+
+1999-04-08  Thierry Emery <Thierry.Emery@nmu.alcatel.fr>
+
+* lisp/w3-display.el (w3-resurrect-images): corrected regexp for
+  removing trailing blanks from alt.
+
+1999-04-05  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-forms.el (w3-form-keymap): Ditto for form fields.
+
+* lisp/w3-display.el (w3-resurrect-hyperlinks): Hack around lossage in
+  XEmacs' Widget package.  button3 was used to activate the widget instead
+  of popping up a context-sensitive menu like everywhere else.
+
+1999-04-03  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-display.el: Make sure we load mule-sysdp at compile time.
+
+1999-04-03  Thierry Emery  <Thierry.Emery@nmu.alcatel.fr>
+
+* lisp/url-file.el (inline): require `w3-sysdp', necessary for
+  `add-minor-mode' in Gnu Emacs when Emacs-W3 is autoloaded through
+  `url-dired-find-file'.
+  (url-insert-possibly-compressed-file): set `url-current-mime-encoding'.
+  (url-dired-find-file): handle ange-ftp dired.
+  (url-file-asynch-callback, url-file): call
+  `url-insert-possibly-compressed-file' instead of
+  `insert-file-contents-literally'.
+  (url-file): compute `url-current-mime-type' and `viewer' from
+  `uncompressed-filename'; specify extension for
+  `mm-generate-unique-filename'.
+
+* lisp/url.el (url-file-directly-accessible-p): call
+  `url-host-is-local-p' and check that the file is not compressed.
+  (url-generate-unique-filename-counter): new variable.
+  (url-generate-unique-filename): use
+  `url-generate-unique-filename-counter' to ensure that filenames are
+  unique within an Emacs session.
+
+1999-04-03  Thierry Emery  <Thierry.Emery@nmu.alcatel.fr>
+
+* lisp/url.el (url-write-global-history): call
+  `w3-write-explicit-encodings'.
+
+* lisp/w3-cus.el (w3-explicit-encodings-file): new user option, which
+  specifies where to save `w3-explicit-conversion-tree'.
+
+* lisp/w3-vars.el: new variables
+  w3-explicit-conversion-tree: Tree to hold explicit coding systems
+  for URLs and their superdirs:
+  ((hostN default-coding (dirN-1 default-coding (dirN-1-1 ...) ...) ...)
+    ...),
+  w3-explicit-encodings-changed-since-last-save: whether
+  `w3-explicit-conversion-tree' needs saving.
+
+* lisp/w3.el:
+  w3-convert-code-for-mule: call `w3-recall-explicit-coding-system'
+  after checking `w3-explicit-coding-system' and `mmcharset'.
+  w3-reload-document: call `w3-record-explicit-coding-system'.
+  w3-recall-explicit-coding-system, w3-find-explicit-coding-system,
+  w3-record-explicit-coding-system, w3-add-explicit-coding-system,
+  w3-write-explicit-encodings: new functions to perform retrieval and
+  storage of user-specified (through C-u g `w3-reload-document')
+  explicit coding systems.
+  w3-do-setup: load `w3-explicit-encodings-file' if it exists.
+
 1999-03-24  William M. Perry  <wmperry@aventail.com>
+
+* Emacs/W3 4.0.40 released
 
 * lisp/url.el (url-do-setup): Always register the LDAP URL format.
 
@@ -4256,7 +4337,7 @@ text-align - this replaces the old 'align' attribute
 Reimplemented inlined styles.
 
 * default.css: Varius updates to take advantage of the new CSS properties
-white-space, list-style, etc.
+  white-space, list-style, etc.
 
 * w3-style.el: Handle url() and rgb() notation in color specifications
 
@@ -4270,13 +4351,13 @@ Sat Nov 23 02:10:37 1996  William M. Perry  <wmperry@cs.indiana.edu>
 
 * custom.el, custom-edit.el: Synch'd up to custom 1.0.1
 
-* w3-display.el:
-Better handling of <hr> and <center>, and line spacing in general
+* w3-display.el: Better handling of <hr> and <center>, and line spacing in
+  general
 
 * default.css: Updates to default stylesheet to deal with <center> and <div>
 
-* w3.el, url.el, url-vars.el, url-http.el:
-Patches from Thierry Emery to allow multiple asynch fetches.
+* w3.el, url.el, url-vars.el, url-http.el: Patches from Thierry Emery to
+  allow multiple asynch fetches.
 
 Fri Nov 22 22:26:35 1996  William M. Perry  <wmperry@cs.indiana.edu>
 
@@ -4287,9 +4368,8 @@ Fri Nov 22 22:26:35 1996  William M. Perry  <wmperry@cs.indiana.edu>
 * w3.el:
 When saving a document as html source, try to get into the 'head' before inserting the base.
 
-* w3-display.el, w3-style.el:
-Stylesheets now store all there information as property lists instead
-of assoc lists.  Just easier.
+* w3-display.el, w3-style.el: Stylesheets now store all there information
+  as property lists instead of assoc lists.  Just easier.
 
 * font.el: Fix for font-normalize-color under nextstep
 
@@ -4307,16 +4387,16 @@ Mon Nov 18 16:26:06 1996  William M. Perry  <wmperry@cs.indiana.edu>
 
 Thu Nov 14 22:39:36 1996  William M. Perry  <wmperry@cs.indiana.edu>
 
-* w3.el: Changed this so you can actually just do a (require 'w3-sysdp) and
-each function will check to see if it should overwrite, instead of
-conditionalizing that on the whole file.
+* w3.el: Changed this so you can actually just do a (require 'w3-sysdp)
+  and each function will check to see if it should overwrite, instead of
+  conditionalizing that on the whole file.
 
 * url.el: *** empty log message ***
 
-* images.el, font.el, docomp.el, w3-sysdp.el:
-Changed this so you can actually just do a (require 'w3-sysdp) and
-each function will check to see if it should overwrite, instead of
-conditionalizing that on the whole file.
+* images.el, font.el, docomp.el, w3-sysdp.el: Changed this so you can
+  actually just do a (require 'w3-sysdp) and each function will check to
+  see if it should overwrite, instead of conditionalizing that on the
+  whole file.
 
 * w3-display.el: Moved some macros around.
 

@@ -1,7 +1,7 @@
 ;;; url-file.el --- File retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 16:29:16 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/04/08 11:47:47 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -28,6 +28,7 @@
 
 (require 'url-vars)
 (require 'mule-sysdp)
+(require 'w3-sysdp)
 (require 'url-parse)
 
 (defun url-insert-possibly-compressed-file (fname &rest args)
@@ -80,6 +81,8 @@
 						 url-current-mime-headers)))
 	   (t
 	    (error "File not found %s" fname))))
+    (setq url-current-mime-encoding
+	  (cdr (assoc "content-transfer-encoding" url-current-mime-headers)))
     (apply 'insert-file-contents fname args)
     (set-buffer-modified-p nil)))
 
@@ -100,7 +103,11 @@
 (defun url-dired-find-file ()
   "In dired, visit the file or directory named on this line, using Emacs-W3."
   (interactive)
-  (w3-open-local (dired-get-filename)))
+  (let ((filename (dired-get-filename)))
+    (cond ((string-match "/\\(.*@.*\\):\\(/.*\\)" filename)
+	   (w3-fetch (concat "file://" (match-string 1 filename) (match-string 2 filename))))
+	  (t
+	   (w3-open-local filename)))))
 
 (defun url-dired-find-file-mouse (event)
   "In dired, visit the file or directory name you click on, using Emacs-W3."
@@ -163,7 +170,7 @@
     (if (not buff)
 	(setq buff (generate-new-buffer " *url-asynch-file*")))
     (set-buffer buff)
-    (insert-file-contents-literally name)
+    (url-insert-possibly-compressed-file name)
     (condition-case ()
 	(delete-file name)
       (error nil))))
@@ -202,10 +209,9 @@ and exchanges any | in the drive identifier with a :."
 			      (string-match "^/[a-zA-Z]:/" file))
 			 (substring file 1)
 		       file)))
-	 (viewer (mm-mime-info
-		  (mm-extension-to-mime (url-file-extension file))))
 	 (pos-index (if url-directory-index-file
-			(expand-file-name url-directory-index-file filename))))
+			(expand-file-name url-directory-index-file filename)))
+	 uncompressed-filename viewer)
     (url-clear-tmp-buffer)
     (and user pass
 	 (cond
@@ -226,8 +232,14 @@ and exchanges any | in the drive identifier with a :."
 	     (file-exists-p pos-index)
 	     (file-readable-p pos-index))
 	(setq filename pos-index))
+
+    (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)$" filename)
+				    (substring filename 0 (match-beginning 0))
+				  filename))
     (setq url-current-mime-type (mm-extension-to-mime
-				 (url-file-extension filename)))
+				 (url-file-extension uncompressed-filename)))
+    (setq viewer (mm-mime-info url-current-mime-type))
+
     (cond
      ((file-directory-p filename)
       (if (not (string-match "/$" filename))
@@ -246,12 +258,14 @@ and exchanges any | in the drive identifier with a :."
        ((file-exists-p (concat filename ".z"))
 	(setq filename (concat filename ".z")))
        (t nil))
-      (let ((new (mm-generate-unique-filename)))
+      (let* ((extension (url-file-extension filename))
+	     (new (mm-generate-unique-filename (and (> (length extension) 0)
+						    (concat "%s." extension)))))
 	(cond
 	 ((url-host-is-local-p site)
 	  (if (and (file-exists-p filename)
 		   (file-readable-p filename))
-	      (insert-file-contents-literally filename))
+	      (url-insert-possibly-compressed-file filename))
 	  (if (featurep 'efs)
 	      (url-file-asynch-callback nil nil nil nil nil
 					url-current-callback-func

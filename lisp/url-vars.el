@@ -1,14 +1,14 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:12 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/04/08 11:47:48 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
     (defmacro defcustom (var value doc &rest args) 
       (` (defvar (, var) (, value) (, doc))))))
 
-(defconst url-version (let ((x "$State: Exp $"))
+(defconst url-version (let ((x "$State: p4.0pre.44 $"))
 			(if (string-match "State: \\([^ \t\n]+\\)" x)
 			    (substring x (match-beginning 1) (match-end 1))
 			  x))
@@ -436,6 +436,9 @@ has been parsed.")
 (defvar url-history-changed-since-last-save nil
   "Whether the history list has changed since the last save operation.")
 
+(defvar url-cookies-changed-since-last-save nil
+  "Whether the cookies list has changed since the last save operation.")
+
 (defvar url-proxy-basic-authentication nil
   "Internal structure - do not modify!")
   
@@ -598,6 +601,9 @@ images/etc.")
 Each hook is called with a single argument URL and should return a tranformed
 url with a valid scheme (e.g., \"gnu\" --> \"http://www.gnu.org/\"), or nil
 otherwise.")
+
+(defvar url-load-hook nil
+  "*Hooks to be run after initalizing the URL library.")
 
 ;;; Make OS/2 happy - yeeks
 (defvar	tcp-binary-process-input-services nil

@@ -1,7 +1,7 @@
 ;;; url-cookie.el --- Netscape Cookie support
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/24 19:29:26 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/04/08 11:47:46 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -111,21 +111,26 @@
 ;;;###autoload
 (defun url-cookie-write-file (&optional fname)
   (setq fname (or fname url-cookie-file))
-  (url-cookie-clean-up)
-  (url-cookie-clean-up t)
-  (save-excursion
-    (set-buffer (get-buffer-create " *cookies*"))
-    (erase-buffer)
-    (fundamental-mode)
-    (insert ";; Emacs-W3 HTTP cookies file\n"
-	    ";; Automatically generated file!!! DO NOT EDIT!!!\n\n"
-	    "(setq url-cookie-storage\n '")
-    (pp url-cookie-storage (current-buffer))
-    (insert ")\n(setq url-cookie-secure-storage\n '")
-    (pp url-cookie-secure-storage (current-buffer))
-    (insert ")\n")
-    (write-file fname)
-    (kill-buffer (current-buffer))))
+  (cond
+   ((not url-cookies-changed-since-last-save) nil)
+   ((not (file-writable-p fname))
+    (message "Cookies file %s (see variable `url-cookie-file') is unwritable." fname))
+   (t
+    (url-cookie-clean-up)
+    (url-cookie-clean-up t)
+    (save-excursion
+      (set-buffer (get-buffer-create " *cookies*"))
+      (erase-buffer)
+      (fundamental-mode)
+      (insert ";; Emacs-W3 HTTP cookies file\n"
+	      ";; Automatically generated file!!! DO NOT EDIT!!!\n\n"
+	      "(setq url-cookie-storage\n '")
+      (pp url-cookie-storage (current-buffer))
+      (insert ")\n(setq url-cookie-secure-storage\n '")
+      (pp url-cookie-secure-storage (current-buffer))
+      (insert ")\n")
+      (write-file fname)
+      (kill-buffer (current-buffer))))))
 
 (defun url-cookie-store (name value &optional expires domain path secure)
   "Stores a netscape-style cookie"
@@ -305,6 +310,7 @@
 
 ;;;###autoload
 (defun url-cookie-handle-set-cookie (str)
+  (setq url-cookies-changed-since-last-save t)
   (let* ((args (mm-parse-args str nil t)) ; Don't downcase names
 	 (case-fold-search t)
 	 (secure (and (assoc* "secure" args :test 'url-header-comparison) t))

@@ -1,7 +1,7 @@
 ;;; w3-vars.el,v --- All variable definitions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/01/07 15:10:36 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/04/08 11:47:52 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,7 +34,7 @@
 (require 'wid-edit)			; For `widget-keymap'
 
 (defconst w3-version-number
-  (let ((x "$State: p4.0pre.42 $"))
+  (let ((x "$State: p4.0pre.44 $"))
     (if (string-match "State:[ \t\n]+.\\([^ \t\n]+\\)" x)
 	(setq x (substring x (match-beginning 1) (match-end 1)))
       (setq x (substring x 1)))
@@ -42,7 +42,7 @@
      (function (lambda (x) (if (= x ?-) "." (char-to-string x)))) x ""))
   "Version # of w3-mode.")
 
-(defconst w3-version-date (let ((x "$Date: 1999/01/07 15:10:36 $"))
+(defconst w3-version-date (let ((x "$Date: 1999/04/08 11:47:52 $"))
 			    (if (string-match "Date: \\([^ \t\n]+\\)" x)
 				(substring x (match-beginning 1) (match-end 1))
 			      x))
@@ -246,72 +246,6 @@ in later garbage collections taking more time.")
     )
   "*An assoc list of entity names and how to actually display them.")
 
-(defvar w3-graphic-entities
-  '(
-    (archive             "archive"                )
-    (audio               "audio"                  )
-    (binary.document     "binary.document"        )
-    (binhex.document     "binhex.document"        )
-    (calculator          "calculator"             )
-    (caution             "caution"                )
-    (cd.i                "cd.i"                   )
-    (cd.rom              "cd.rom"                 )
-    (clock               "clock"                  )
-    (compressed.document "compressed.document"    )
-    (disk.drive          "disk.drive"             )
-    (diskette            "diskette"               )
-    (document            "document"               )
-    (fax                 "fax"                    )
-    (filing.cabinet      "filing.cabinet"         )
-    (film                "film"                   )
-    (fixed.disk          "fixed.disk"             )
-    (folder              "folder"                 )
-    (form                "form"                   )
-    (ftp                 "ftp"                    )
-    (glossary            "glossary"               )
-    (gopher              "gopher"                 )
-    (home                "home"                   )
-    (html                "html"                   )
-    (image               "image"                  )
-    (index               "index"                  )
-    (keyboard            "keyboard"               )
-    (mail                "mail"                   )
-    (mail.in             "mail.in"                )
-    (mail.out            "mail.out"               )
-    (map                 "map"                    )
-    (mouse               "mouse"                  )
-    (new                 "new"                    )
-    (next                "next"                   )
-    (notebook            "notebook"               )
-    (parent              "parent"                 )
-    (play.fast.forward   "play.fast.forward"      )
-    (play.fast.reverse   "play.fast.reverse"      )
-    (play.pause          "play.pause"             )
-    (play.start          "play.start"             )
-    (play.stop           "play.stop"              )
-    (previous            "previous"               )
-    (prince              "prince" "the artist formerly known as prince")
-    (princesymbol        "prince" "the artist formerly known as prince")
-    (printer             "printer"                )
-    (sadsmiley           "sadsmiley"          ":(")
-    (smiley              "smiley"             ":)")
-    (stop                "stop"                   )
-    (summary             "summary"                )
-    (telephone           "telephone"              )
-    (telnet              "telnet"                 )
-    (text.document       "text.document"          )
-    (tn3270              "tn3270"                 )
-    (toc                 "toc"                    )
-    (trash               "trash"                  )
-    (unknown.document    "unknown.document"       )
-    (uuencoded.document  "uuencoded.document"     )
-    (work                "work"                   )
-    (www                 "www"                    )
-    )
-  "List of graphical entity names and the tail end of a URL for them.
-If there is a 3rd item in the list, it is the alternative text to use
-for the image.")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Menu definitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -447,6 +381,14 @@ for a charset indication")
 	  "[ \t]+http-equiv=\"?Content-type\"?>")
   "Regexp used in parsing `<META content=\"...;charset=...\" HTTP-EQUIV=\"Content-Type\">
 for a charset indication")
+
+(defvar w3-explicit-conversion-tree nil
+  "Tree to hold explicit coding systems for URLs and their superdirs:
+   ((hostN default-coding (dirN-1 default-coding (dirN-1-1 ...) ...) ...)
+    ...)")
+
+(defvar w3-explicit-encodings-changed-since-last-save nil
+  "Whether the explicit encodings tree has changed since the last save operation.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; buffer-local variables to keep around when going into w3-mode

@@ -1,7 +1,7 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/03/25 05:30:04 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1999/04/08 11:47:47 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -68,6 +68,9 @@
 (defvar url-ldap-attribute-formatters
   '(("mail"       . (lambda (x) (format "<a href='mailto:%s'>%s</a>" x x)))
     ("owner"      . url-ldap-dn-formatter)
+    ("creatorsname" . url-ldap-dn-formatter)
+    ("jpegphoto"     . url-ldap-image-formatter)
+    ("modifiersname" . url-ldap-dn-formatter)
     ("member"     . url-ldap-dn-formatter))
   "*An assoc list mapping LDAP attribute names to pretty formatters for them.")
 
@@ -75,13 +78,20 @@
   (or (cdr-safe (assoc (downcase n) url-ldap-pretty-names)) n))
 
 (defsubst url-ldap-attribute-pretty-desc (n v)
+  (if (string-match "^\\([^;]+\\);" n)
+      (setq n (match-string 1 n)))
   (funcall (or (cdr-safe (assoc (downcase n) url-ldap-attribute-formatters)) 'identity) v))
 
 (defun url-ldap-dn-formatter (dn)
   (concat "<a href='/"
 	  (url-hexify-string dn)
 	  "'>" dn "</a>"))
-  
+
+(defun url-ldap-image-formatter (data)
+  (let ((fname (url-generate-unique-filename "%s.jpg")))
+    (write-region data nil fname)
+    (format "<a title='image' href='file:%s'>[image]</a>" fname)))
+
 (defun url-ldap (url)
   (if (not (fboundp 'ldap-search-internal))
       (progn

@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/03/25 05:30:05 $
-;; Version: $Revision: 1.9 $
+;; Created: $Date: 1999/04/08 11:47:49 $
+;; Version: $Revision: 1.10 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -478,7 +478,8 @@ If the face already exists, it is unmodified."
 			   (list 'personality (car w3-active-voices))))
   )
 
-(require 'mule-sysdp)
+(eval-and-compile
+  (require 'mule-sysdp))
 
 (defun w3-display-get-cookie (args)
   (if (not (fboundp 'cookie))
@@ -946,7 +947,7 @@ If the face already exists, it is unmodified."
 (defmacro w3-image-alt (src)
   (`
    (let* ((doc-alt (w3-get-attribute 'alt))
-	  (alt (or doc-alt
+	  (alt (or (and (stringp doc-alt) (string-match "[^ \t\n]" doc-alt) doc-alt)
 		   (cond
 		    ((null w3-auto-image-alt) "")
 		    ((eq t w3-auto-image-alt)
@@ -1930,7 +1931,8 @@ Format: (((image-alt row column) . offset) ...)")
 	    (setq nd (or (next-single-property-change st 'w3-hyperimage-info)
 			 (point-max)))
 	    (let* ((raw-alt (widget-get info 'alt))
-		   (drawn-alt (if (and (stringp raw-alt) (string-match "\\([^ \t\n]+\\)[ \t\n]" raw-alt))
+		   ;; remove trailing blanks:
+		   (drawn-alt (if (and (stringp raw-alt) (string-match "\\(.*[^ \t\n]+\\)[ \t\n]+$" raw-alt))
 				  (substring raw-alt 0 (match-end 1))
 				raw-alt))
 		   (row (widget-get info 'row))
@@ -1964,7 +1966,15 @@ Format: (((image-alt row column) . offset) ...)")
       (setq st (next-single-property-change st 'w3-hyperimage-info)))
     (setq w3-resurrect-images-offset nil)))
 
+(require 'w3-mouse)
+(defvar w3-display-hackmap nil "Keymap used for hyperlink widgets")
+  
 (defun w3-resurrect-hyperlinks ()
+  (if (and (not w3-display-hackmap) w3-running-xemacs)
+      (progn
+	(setq w3-display-hackmap (make-sparse-keymap))
+	(set-keymap-parent w3-display-hackmap widget-button-keymap)
+	(define-key w3-display-hackmap w3-mouse-button3 'w3-popup-menu)))
   (let ((st (point-min))
 	(inhibit-read-only t)
 	info nd node face)
@@ -1975,6 +1985,7 @@ Format: (((image-alt row column) . offset) ...)")
 			 (point-max)))
 	    (apply 'widget-convert-text 'link st nd st nd (nconc
 							   (list :start st
+								 :button-keymap w3-display-hackmap
 								 :end nd)
 							   info))))
       (setq st (next-single-property-change st 'w3-hyperlink-info)))))
