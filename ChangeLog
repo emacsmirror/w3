@@ -1,3 +1,25 @@
+1999-07-19  William M. Perry  <wmperry@aventail.com>
+
+* lisp/images.el (image-register-netpbm-utilities): Fixed typo in the ppm
+  to xpm converter.
+
+1999-06-27  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url-parse.el (url-generic-parse-url): Added in gross hack to
+  preserve ';' in data URLs.  The usage as a separator for content-type
+  and encoding-type clashes horribly with the ';' as an
+  attribute-separator on normal URLs.
+
+* lisp/w3-parse.el (w3-parse-hooks): New hook to be run just before
+  parsing any document.  This can theoretically be used to rip out banner
+  advertisements, etc.
+  (w3-parse-munge-ethiopic-text): Moved the old ethiopic munging stuff
+  into hook form.
+
+* lisp/url-mail.el (url-mailto): Allow adding of more 'to' headers via the 
+  query interface for mailto URLs.  Would generate corrup To: headers
+  otherwise.
+
 1999-06-15  William M. Perry  <wmperry@aventail.com>
 
 * lisp/url-ldap.el (url-ldap-attribute-formatters): Format naming contexts 

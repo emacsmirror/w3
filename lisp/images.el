@@ -1,12 +1,12 @@
 ;;; images.el --- Automatic image converters
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:07 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/07/19 23:27:43 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -175,7 +175,7 @@ to a suitable internal image format will be carried out."
     (image-register-converter 'pgm 'pbm "pgmtopbm")
     (image-register-converter 'ppm 'pgm "ppmtopgm")
     (image-register-converter 'pnm 'xpm "ppmtoxpm")
-    (image-register-converter 'ppm 'xpm "ppmtoxpm)")
+    (image-register-converter 'ppm 'xpm "ppmtoxpm")
     (image-register-converter 'xpm 'ppm "xpmtoppm")
     (image-register-converter 'gif 'ppm "giftopnm")
     (image-register-converter 'pnm 'gif "(ppmquant 256 | ppmtogif)")
