@@ -140,196 +140,41 @@
 	    (put (, function) 'sysdep-defined-this t)
 	    (defalias (, function) (, def))))))
 
-;; bootstrapping: defalias and define-function don't exist
-;; in older versions of lemacs
-
-(sysdep-fset 'defalias 'fset)
-(sysdep-defalias 'define-function 'defalias)
-
-;; useful ways of determining what version is running
-;; emacs-major-version and emacs-minor-version are
-;; already defined in recent versions of FSF Emacs and XEmacs
-
-(sysdep-defconst emacs-major-version
-		 ;; will string-match ever fail?  If so, assume 19.0.
-		 ;; (should we assume 18.something?)
-		 (if (string-match "^[0-9]+" emacs-version)
-		     (string-to-int
-		      (substring emacs-version
-				 (match-beginning 0) (match-end 0)))
-		   19))
-
-(sysdep-defconst emacs-minor-version
-		 (if (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version)
-		     (string-to-int
-		      (substring emacs-version
-				 (match-beginning 1) (match-end 1)))
-		   0))
-
-(sysdep-defconst sysdep-running-xemacs
-		 (or (string-match "Lucid" emacs-version)
-		     (string-match "XEmacs" emacs-version)))
-
-(sysdep-defconst window-system nil)
-(sysdep-defconst window-system-version 0)
-
 (sysdep-defvar list-buffers-directory nil)
-(sysdep-defvar x-library-search-path (`
-				      ("/usr/X11R6/lib/X11/"
-				       "/usr/X11R5/lib/X11/"
-				       "/usr/lib/X11R6/X11/"
-				       "/usr/lib/X11R5/X11/"
-				       "/usr/local/X11R6/lib/X11/"
-				       "/usr/local/X11R5/lib/X11/"
-				       "/usr/local/lib/X11R6/X11/"
-				       "/usr/local/lib/X11R5/X11/"
-				       "/usr/X11/lib/X11/"
-				       "/usr/lib/X11/"
-				       "/usr/local/lib/X11/"
-				       "/usr/X386/lib/X11/"
-				       "/usr/x386/lib/X11/"
-				       "/usr/XFree86/lib/X11/"
-				       "/usr/unsupported/lib/X11/"
-				       "/usr/athena/lib/X11/"
-				       "/usr/local/x11r5/lib/X11/"
-				       "/usr/lpp/Xamples/lib/X11/"
-				       "/usr/openwin/lib/X11/"
-				       "/usr/openwin/share/lib/X11/"
-				       (, data-directory)
-				       )
-				      )
+(sysdep-defvar x-library-search-path `("/usr/X11R6/lib/X11/"
+				      "/usr/X11R5/lib/X11/"
+				      "/usr/lib/X11R6/X11/"
+				      "/usr/lib/X11R5/X11/"
+				      "/usr/local/X11R6/lib/X11/"
+				      "/usr/local/X11R5/lib/X11/"
+				      "/usr/local/lib/X11R6/X11/"
+				      "/usr/local/lib/X11R5/X11/"
+				      "/usr/X11/lib/X11/"
+				      "/usr/lib/X11/"
+				      "/usr/local/lib/X11/"
+				      "/usr/X386/lib/X11/"
+				      "/usr/x386/lib/X11/"
+				      "/usr/XFree86/lib/X11/"
+				      "/usr/unsupported/lib/X11/"
+				      "/usr/athena/lib/X11/"
+				      "/usr/local/x11r5/lib/X11/"
+				      "/usr/lpp/Xamples/lib/X11/"
+				      "/usr/openwin/lib/X11/"
+				      "/usr/openwin/share/lib/X11/"
+				      ,data-directory)
   "Search path used for X11 libraries.")
 
 ;; frame-related stuff.
-
-(sysdep-defalias 'buffer-dedicated-frame 'buffer-dedicated-screen)
-(sysdep-defalias 'deiconify-frame
-  (cond ((fboundp 'deiconify-screen) 'deiconify-screen)
-	;; make-frame-visible will be defined as necessary
-	(t 'make-frame-visible)))
-(sysdep-defalias 'delete-frame 'delete-screen)
-(sysdep-defalias 'event-frame 'event-screen)
-(sysdep-defalias 'event-glyph-extent 'event-glyph)
-(sysdep-defalias 'find-file-other-frame 'find-file-other-screen)
-(sysdep-defalias 'find-file-read-only-other-frame
-  'find-file-read-only-other-screen)
-(sysdep-defalias 'frame-height 'screen-height)
-(sysdep-defalias 'frame-iconified-p 'screen-iconified-p)
-(sysdep-defalias 'frame-left-margin-width 'screen-left-margin-width)
-(sysdep-defalias 'frame-list 'screen-list)
-(sysdep-defalias 'frame-live-p
-  (cond ((fboundp 'screen-live-p) 'screen-live-p)
-	((fboundp 'live-screen-p) 'live-screen-p)
-	;; #### not sure if this is correct (this is for Epoch)
-	;; but gnuserv.el uses it this way
-	((fboundp 'screenp) 'screenp)))
-(sysdep-defalias 'frame-name 'screen-name)
-(sysdep-defalias 'frame-parameters 'screen-parameters)
-(sysdep-defalias 'frame-pixel-height 'screen-pixel-height)
-(sysdep-defalias 'frame-pixel-width 'screen-pixel-width)
-(sysdep-defalias 'frame-right-margin-width 'screen-right-margin-width)
-(sysdep-defalias 'frame-root-window 'screen-root-window)
-(sysdep-defalias 'frame-selected-window 'screen-selected-window)
-(sysdep-defalias 'frame-totally-visible-p 'screen-totally-visible-p)
-(sysdep-defalias 'frame-visible-p 'screen-visible-p)
-(sysdep-defalias 'frame-width 'screen-width)
-(sysdep-defalias 'framep 'screenp)
-(sysdep-defalias 'get-frame-for-buffer 'get-screen-for-buffer)
-(sysdep-defalias 'get-frame-for-buffer-noselect 'get-screen-for-buffer-noselect)
-(sysdep-defalias 'get-other-frame 'get-other-screen)
-(sysdep-defalias 'iconify-frame 'iconify-screen)
-(sysdep-defalias 'lower-frame 'lower-screen)
-(sysdep-defalias 'mail-other-frame 'mail-other-screen)
 
 (sysdep-defun frame-parameter (frame parameter)
   "Return FRAME's value for parameter PARAMETER.
   If FRAME is omitted, describe the currently selected frame."
   (cdr (assq parameter (frame-parameters frame))))
 
-(sysdep-defalias 'make-frame
-  (cond ((fboundp 'make-screen)
-	 (function (lambda (&optional parameters device)
-		     (make-screen parameters))))
-	((fboundp 'x-create-screen)
-	 (function (lambda (&optional parameters device)
-		     (x-create-screen parameters))))))
-
-(sysdep-defalias 'make-frame-invisible 'make-screen-invisible)
-(sysdep-defalias 'make-frame-visible
-  (cond ((fboundp 'make-screen-visible) 'make-screen-visible)
-	((fboundp 'mapraised-screen) 'mapraised-screen)
-	((fboundp 'x-remap-window)
-	 (lambda (&optional x)
-	   (x-remap-window)
-	   (accept-process-output)))))
-(sysdep-defalias 'modify-frame-parameters 'modify-screen-parameters)
-(sysdep-defalias 'new-frame 'new-screen)
-(sysdep-defalias 'next-frame 'next-screen)
-(sysdep-defalias 'next-multiframe-window 'next-multiscreen-window)
-(sysdep-defalias 'other-frame 'other-screen)
-(sysdep-defalias 'previous-frame 'previous-screen)
-(sysdep-defalias 'previous-multiframe-window 'previous-multiscreen-window)
-(sysdep-defalias 'raise-frame
-  (cond ((fboundp 'raise-screen) 'raise-screen)
-	((fboundp 'mapraise-screen) 'mapraise-screen)))
-(sysdep-defalias 'redraw-frame 'redraw-screen)
-(sysdep-defalias 'select-frame 'select-screen)
-(sysdep-defalias 'selected-frame 'selected-screen)
-(sysdep-defalias 'set-buffer-dedicated-frame 'set-buffer-dedicated-screen)
-(sysdep-defalias 'set-frame-height 'set-screen-height)
-(sysdep-defalias 'set-frame-left-margin-width 'set-screen-left-margin-width)
-(sysdep-defalias 'set-frame-position 'set-screen-position)
-(sysdep-defalias 'set-frame-right-margin-width 'set-screen-right-margin-width)
-(sysdep-defalias 'set-frame-size 'set-screen-size)
-(sysdep-defalias 'set-frame-width 'set-screen-width)
-(sysdep-defalias 'show-temp-buffer-in-current-frame 'show-temp-buffer-in-current-screen)
-(sysdep-defalias 'switch-to-buffer-other-frame 'switch-to-buffer-other-screen)
-(sysdep-defalias 'visible-frame-list 'visible-screen-list)
-(sysdep-defalias 'window-frame 'window-screen)
-(sysdep-defalias 'x-create-frame 'x-create-screen)
-(sysdep-defalias 'x-set-frame-icon-pixmap 'x-set-screen-icon-pixmap)
-(sysdep-defalias 'x-set-frame-pointer 'x-set-screen-pointer)
-(sysdep-defalias 'x-display-color-p 'x-color-display-p)
-(sysdep-defalias 'x-display-grayscale-p 'x-grayscale-display-p)
-(sysdep-defalias 'menu-event-p 'misc-user-event-p)
-
 (sysdep-defun event-point (event)
   (let ((posn (event-end event)))
     (if posn 
  	(posn-point posn))))
-
-;; WMP - commenting these out so that Emacs 19 doesn't get screwed by them.
-;; In particular, this makes the 'custom' package blow up quite well.
-;;(sysdep-defun add-submenu (menu-path submenu &optional before)
-;;  "Add a menu to the menubar or one of its submenus.
-;;If the named menu exists already, it is changed.
-;;MENU-PATH identifies the menu under which the new menu should be inserted.
-;; It is a list of strings; for example, (\"File\") names the top-level \"File\"
-;; menu.  (\"File\" \"Foo\") names a hypothetical submenu of \"File\".
-;; If MENU-PATH is nil, then the menu will be added to the menubar itself.
-;;SUBMENU is the new menu to add.
-;; See the documentation of `current-menubar' for the syntax.
-;;BEFORE, if provided, is the name of a menu before which this menu should
-;; be added, if this menu is not on its parent already.  If the menu is already
-;; present, it will not be moved."
-;;  (add-menu menu-path (car submenu) (cdr submenu) before))
-
-;;(sysdep-defun add-menu-button (menu-path menu-leaf &optional before)
-;;  "Add a menu item to some menu, creating the menu first if necessary.
-;;If the named item exists already, it is changed.
-;;MENU-PATH identifies the menu under which the new menu item should be inserted.
-;; It is a list of strings; for example, (\"File\") names the top-level \"File\"
-;; menu.  (\"File\" \"Foo\") names a hypothetical submenu of \"File\".
-;;MENU-LEAF is a menubar leaf node.  See the documentation of `current-menubar'.
-;;BEFORE, if provided, is the name of a menu item before which this item should
-;; be added, if this item is not on the menu already.  If the item is already
-;; present, it will not be moved."
-;; (add-menu-item menu-path (aref menu-leaf 0) (aref menu-leaf 1)
-;;		(aref menu-leaf 2) before))
-
-(sysdep-defun make-glyph (&optional spec-list)
-  (if (and spec-list (cdr-safe (assq 'x spec-list)))
-      (make-pixmap (cdr-safe (assq 'x spec-list)))))
 
 (sysdep-defalias 'face-list 'list-faces)
 
@@ -345,7 +190,7 @@
 (sysdep-defun plist-put (plist prop val)
   "Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
 If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (plist-put x prop val))' to be sure to use the new value.
@@ -366,78 +211,7 @@ one of the properties on the list."
     (setq plist (cdr (cdr plist))))
   (and plist (car (cdr plist))))
 
-;; Extent stuff
-;; (sysdep-defalias 'delete-extent 'delete-overlay)
-;; (sysdep-defalias 'extent-end-position 'overlay-end)
-;; (sysdep-defalias 'extent-start-position 'overlay-start)
-;; (sysdep-defalias 'set-extent-endpoints 'move-overlay)
-;; (sysdep-defalias 'set-extent-property 'overlay-put)
-;; (sysdep-defalias 'make-extent 'make-overlay)
-
-;; (sysdep-defun extent-property (extent property &optional default)
-;;   (or (overlay-get extent property) default))
-
-;; (sysdep-defun extent-at (pos &optional object property before at-flag)
-;;   (let ((tmp (overlays-at (point)))
-;; 	ovls)
-;;     (if property
-;; 	(while tmp
-;; 	  (if (extent-property (car tmp) property)
-;; 	      (setq ovls (cons (car tmp) ovls)))
-;; 	  (setq tmp (cdr tmp)))
-;;       (setq ovls tmp
-;; 	    tmp nil))
-;;     (car-safe
-;;      (sort ovls
-;; 	   (function
-;; 	    (lambda (a b)
-;; 	      (< (- (extent-end-position a) (extent-start-position a))
-;; 		 (- (extent-end-position b) (extent-start-position b)))))))))
-
-(sysdep-defun overlays-in (beg end)
-  "Return a list of the overlays that overlap the region BEG ... END.
-Overlap means that at least one character is contained within the overlay
-and also contained within the specified region.
-Empty overlays are included in the result if they are located at BEG
-or between BEG and END."
-  (let ((ovls (overlay-lists))
-	tmp retval)
-    (if (< end beg)
-	(setq tmp end
-	      end beg
-	      beg tmp))
-    (setq ovls (nconc (car ovls) (cdr ovls)))
-    (while ovls
-      (setq tmp (car ovls)
-	    ovls (cdr ovls))
-      (if (or (and (<= (overlay-start tmp) end)
-		   (>= (overlay-start tmp) beg))
-	      (and (<= (overlay-end tmp) end)
-		   (>= (overlay-end tmp) beg)))
-	  (setq retval (cons tmp retval))))
-    retval))
-
-;; (sysdep-defun map-extents (function &optional object from to
-;; 				    maparg flags property value)
-;;   (let ((tmp (overlays-in (or from (point-min))
-;; 			  (or to (point-max))))
-;; 	ovls)
-;;     (if property
-;; 	(while tmp
-;; 	  (if (extent-property (car tmp) property)
-;; 	      (setq ovls (cons (car tmp) ovls)))
-;; 	  (setq tmp (cdr tmp)))
-;;       (setq ovls tmp
-;; 	    tmp nil))
-;;     (catch 'done
-;;       (while ovls
-;; 	(setq tmp (funcall function (car ovls) maparg)
-;; 	      ovls (cdr ovls))
-;; 	(if tmp
-;; 	    (throw 'done tmp))))))
-
 ;; misc
-(sysdep-defalias 'make-local-hook 'make-local-variable)
 
 (sysdep-defun buffer-substring-no-properties (beg end)
   "Return the text from BEG to END, without text properties, as a string."
@@ -507,37 +281,6 @@ Example:  (add-minor-mode 'view-minor-mode \" View\" view-mode-map)"
 	)
     (concat "\\`[-?*]" foundry - "\\(" family "\\)" -)))
 
-(sysdep-defun match-string (num &optional string)
-  "Return string of text matched by last search.
-NUM specifies which parenthesized expression in the last regexp.
- Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
-Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
-  (if (match-beginning num)
-      (if string
-	  (substring string (match-beginning num) (match-end num))
-	(buffer-substring (match-beginning num) (match-end num)))))
-
-(sysdep-defun add-hook (hook-var function &optional at-end)
-  "Add a function to a hook.
-First argument HOOK-VAR (a symbol) is the name of a hook, second
- argument FUNCTION is the function to add.
-Third (optional) argument AT-END means to add the function at the end
- of the hook list instead of the beginning.  If the function is already
- present, this has no effect.
-Returns nil if FUNCTION was already present in HOOK-VAR, else new
- value of HOOK-VAR."
-      (if (not (boundp hook-var)) (set hook-var nil))
-      (let ((old (symbol-value hook-var)))
-	(if (or (not (listp old)) (eq (car old) 'lambda))
-	    (setq old (list old)))
-	(if (member function old)
-	    nil
-	  (set hook-var
-	       (if at-end
-		   (append old (list function)) ; don't nconc
-		 (cons function old))))))
-
 (sysdep-defalias 'valid-color-name-p
   (cond
    ((fboundp 'x-valid-color-name-p)	; XEmacs/Lucid
@@ -562,27 +305,6 @@ Returns nil if FUNCTION was already present in HOOK-VAR, else new
    (t 'identity)))			; All others
 
 ;; Misc.
-;; NT doesn't have make-symbolic-link
-(sysdep-defalias 'make-symbolic-link 'copy-file)
-(sysdep-defalias 'insert-and-inherit 'insert)
-
-(sysdep-defun run-hook-with-args-until-success (hook &rest args)
-  "Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  Its value should
-be a list of functions.  We call those functions, one by one,
-passing arguments ARGS to each of them, until one of them
-returns a non-nil value.  Then we return that value.
-If all the functions return nil, we return nil."
-  (let ((rval nil)
-	(todo (and (boundp hook) (symbol-value hook)))
-	(global (and (boundp hook) (default-value hook)))
-	(cur nil))
-    (while (and (setq cur (car todo)) (not rval))
-      (setq todo (cdr todo))
-      (if (eq cur t)
-	  (if global
-	      (setq todo (append global todo)))
-	(setq rval (apply cur args))))))
 
 (sysdep-defun split-string (string pattern)
   "Return a list of substrings of STRING which are separated by PATTERN."
@@ -592,18 +314,6 @@ If all the functions return nil, we return nil."
 	    start (match-end 0)))
     (nreverse (cons (substring string start) parts))
     ))
-
-(sysdep-defun member (elt list)
-  (while (and list (not (equal elt (car list))))
-    (setq list (cdr list)))
-  list)
-
-(sysdep-defun rassoc (key list)
-  (let ((found nil))
-    (while (and list (not found))
-      (if (equal (cdr (car list)) key) (setq found (car list)))
-      (setq list (cdr list)))
-    found))
 
 (sysdep-defun display-error (error-object stream)
   "Display `error-object' on `stream' in a user-friendly way."
@@ -654,41 +364,27 @@ If all the functions return nil, we return nil."
 		  (prin1 error-object stream))))
 	   error-object stream))
 
-(sysdep-defun decode-time (&optional specified-time)
-  (let* ((date (current-time-string specified-time))
-	 (dateinfo (and date (timezone-parse-date date)))
-	 (timeinfo (and dateinfo (timezone-parse-time (aref dateinfo 3)))))
-    (list (aref timeinfo 2) (aref timeinfo 1)
-	  (aref timeinfo 0) (aref dateinfo 2)
-	  (aref dateinfo 1) (aref dateinfo 0)
-	  "unknown" nil 0)))
-
 (sysdep-defun find-face (face)
   (car-safe (memq face (face-list))))
 
-(sysdep-defun set-marker-insertion-type (marker type)
-  "Set the insertion-type of MARKER to TYPE.
-If TYPE is t, it means the marker advances when you insert text at it.
-If TYPE is nil, it means the marker stays behind when you insert text at it."
-  nil)
 
-;; window functions
-
-;; not defined in v18
-(sysdep-defun eval-buffer (bufname &optional printflag)
-  (interactive)
-  (save-excursion
-    (set-buffer bufname)
-    (eval-current-buffer)))
-
-(sysdep-defun window-minibuffer-p (window)
-  "Returns non-nil if WINDOW is a minibuffer window."
-  (eq window (minibuffer-window)))
-
-(sysdep-defun window-live-p (window)
-  "Returns t if OBJ is a window which is currently visible."
-  (and (windowp window)
-       (window-point window)))
+(sysdep-defun copy-tree (tree &optional vecp)
+  "Make a copy of TREE.
+If TREE is a cons cell, this recursively copies both its car and its cdr.
+Contrast to copy-sequence, which copies only along the cdrs.  With second
+argument VECP, this copies vectors as well as conses."
+  (if (consp tree)
+      (let ((p (setq tree (copy-list tree))))
+	(while (consp p)
+	  (if (or (consp (car p)) (and vecp (vectorp (car p))))
+	      (setcar p (cl-copy-tree (car p) vecp)))
+	  (or (listp (cdr p)) (setcdr p (cl-copy-tree (cdr p) vecp)))
+	  (cl-pop p)))
+    (if (and vecp (vectorp tree))
+	(let ((i (length (setq tree (copy-sequence tree)))))
+	  (while (>= (setq i (1- i)) 0)
+	    (aset tree i (cl-copy-tree (aref tree i) vecp))))))
+  tree)
 
 (provide 'w3-sysdp)
 ;;; sysdep.el ends here
