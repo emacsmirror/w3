@@ -129,9 +129,7 @@
   (save-excursion
     (load-library "cus-dep")
     (let ((command-line-args-left (list dir)))
-      (custom-make-dependencies)
-      (if (file-exists-p "cus-load.el")
-	  (rename-file "cus-load.el" "custom-load.el")))))
+      (custom-make-dependencies))))
 
 (defun emacs-batch-build-custom-load ()
   (emacs-build-custom-load (car command-line-args-left)))
