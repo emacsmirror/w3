@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.36 $
+;; Version: $Revision: 1.37 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -165,7 +165,7 @@
       (setq len (1+ len)))
     prefix-vector))
 
-n(defvar w3-pause-keystroke nil)
+(defvar w3-pause-keystroke nil)
 
 (defsubst w3-pause ()
   (declare (special cur-viewing-pos))
