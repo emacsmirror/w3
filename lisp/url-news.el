@@ -1,14 +1,14 @@
 ;;; url-news.el --- News Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/22 20:41:01 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -162,10 +162,11 @@
       (require 'gnus)
     (error (setq gnus-version "GNUS not found")))
   (if (or (not (boundp 'gnus-version))
+	  (and (fboundp 'gnus-continuum-version)
+	       (>= (gnus-continuum-version gnus-version) 5))
 	  (string-match "v5.[.0-9]+$" gnus-version)
 	  (string-match "Red" gnus-version)
-	  (string-match "Quassia" gnus-version)
-	  (string-match "Pterodactyl" gnus-version))
+	  (string-match "Quassia" gnus-version))
       nil
     (url-warn 'url (concat
 		    "The version of GNUS found on this system is too old and does\n"
