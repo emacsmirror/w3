@@ -1,7 +1,7 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:47 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 1999/06/28 01:46:56 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -70,7 +70,10 @@
     ("owner"      . url-ldap-dn-formatter)
     ("creatorsname" . url-ldap-dn-formatter)
     ("jpegphoto"     . url-ldap-image-formatter)
+    ("usercertificate" . url-ldap-certificate-formatter)
     ("modifiersname" . url-ldap-dn-formatter)
+    ("namingcontexts" . url-ldap-dn-formatter)
+    ("defaultnamingcontext" . url-ldap-dn-formatter)
     ("member"     . url-ldap-dn-formatter))
   "*An assoc list mapping LDAP attribute names to pretty formatters for them.")
 
@@ -87,10 +90,13 @@
 	  (url-hexify-string dn)
 	  "'>" dn "</a>"))
 
+(defun url-ldap-certificate-formatter (data)
+  (setq data (base64-encode-string data))
+  (format "<a title='certificate' href='data:application/octet-stream;base64,%s'>[certificate]</a>" (url-hexify-string data)))
+
 (defun url-ldap-image-formatter (data)
-  (let ((fname (url-generate-unique-filename "%s.jpg")))
-    (write-region data nil fname)
-    (format "<a title='image' href='file:%s'>[image]</a>" fname)))
+  (format "<img alt='JPEG Photo' src='data:image/jpeg;base64,%s'>" 
+	  (url-hexify-string (base64-encode-string data))))
 
 (defun url-ldap (url)
   (if (not (fboundp 'ldap-search-internal))
@@ -122,7 +128,9 @@
 	   (filter nil)
 	   (extensions nil)
 	   (connection nil)
-	   (results nil))
+	   (results nil)
+	   (extract-dn (and (fboundp 'function-max-args)
+			    (= (function-max-args 'ldap-search-internal) 7))))
 
       ;; Get rid of leading /
       (if (string-match "^/" data)
@@ -170,7 +178,10 @@
     
       ;; Now, let's actually do something with it.
       (setq connection (ldap-open host (if binddn (list 'binddn binddn)))
-	    results (ldap-search-internal connection filter base-object scope attributes nil))
+	    results (if extract-dn
+			(ldap-search-internal connection filter base-object scope attributes nil t)
+		      (ldap-search-internal connection filter base-object scope attributes nil)))
+		      
       (ldap-close connection)
       (set-buffer (get-buffer-create url-working-buffer))
       (erase-buffer)
@@ -187,6 +198,8 @@
       (mapc (lambda (obj)
 	      (insert "  <hr>\n"
 		      "  <table border=1>\n")
+	      (if extract-dn
+		  (insert "   <tr><th colspan=2>" (car obj) "</th></tr>\n"))
 	      (mapc (lambda (attr)
 		      (if (= (length (cdr attr)) 1)
 			  ;; single match, easy
@@ -205,7 +218,7 @@
 					   "<br>\n")
 				"</td>"
 				"   </tr>\n")))
-		    obj)
+		    (if extract-dn (cdr obj) obj))
 	      (insert "  </table>\n"))
 	    results)
 

@@ -1,14 +1,14 @@
 ;;; url-mail.el --- Mail Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:09 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/06/28 01:46:57 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -88,8 +88,11 @@
 				       url-package-version)) args)))
     (if (and source-url (not (assoc "x-url-from" args)))
 	(setq args (cons (list "x-url-from" source-url) args)))
-    (setq args (cons (list "to" to) args)
-	  subject (cdr-safe (assoc "subject" args)))
+
+    (if (assoc "to" args)
+	(push to (cdr (assoc "to" args)))
+      (setq args (cons (list "to" to) args)))
+    (setq subject (cdr-safe (assoc "subject" args)))
     (if (fboundp url-mail-command) (funcall url-mail-command) (mail))
     (while args
       (if (string= (caar args) "body")

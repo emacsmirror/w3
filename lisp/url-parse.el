@@ -1,14 +1,14 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:09 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/06/28 01:46:57 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@
 (defun url-generic-parse-url (url)
   "Return a vector of the parts of URL.
 Format is:
-[proto username password hostname portnumber file reference attributes fullp]"
+\[proto username password hostname portnumber file reference attributes fullp\]"
   (cond
    ((null url)
     (make-vector 9 nil))
@@ -167,22 +167,29 @@ Format is:
 		  (setq host (substring host 0 (match-beginning 0))))
 	      (setq host (downcase host)
 		    save-pos (point))))
-	;; Now check for references
+
+	;; Gross hack to preserve ';' in data URLs
+
 	(setq save-pos (point))
-	(skip-chars-forward "^#")
-	(if (eobp)
-	    nil
-          (delete-region
-           (point)
-           (progn
-             (skip-chars-forward "#")
-             (setq refs (buffer-substring (point) (point-max)))
-             (point-max))))
-	(goto-char save-pos)
-	(skip-chars-forward "^;")
-	(if (not (eobp))
-	    (setq attr (mm-parse-args (point) (point-max))
-		  attr (nreverse attr)))
+
+	(if (string= "data" prot)
+	    (goto-char (point-max))
+	  ;; Now check for references
+	  (skip-chars-forward "^#")
+	  (if (eobp)
+	      nil
+	    (delete-region
+	     (point)
+	     (progn
+	       (skip-chars-forward "#")
+	       (setq refs (buffer-substring (point) (point-max)))
+	       (point-max))))
+	  (goto-char save-pos)
+	  (skip-chars-forward "^;")
+	  (if (not (eobp))
+	      (setq attr (mm-parse-args (point) (point-max))
+		    attr (nreverse attr))))
+
 	(setq file (buffer-substring save-pos (point)))
 	(and port (string= port (or (cdr-safe (assoc prot url-default-ports))
 				    ""))

@@ -1955,6 +1955,24 @@ skip-chars-forward."
 ;; For compatibility with the old parser interface.
 (defalias 'w3-preparse-buffer 'w3-parse-buffer)
 
+(defvar w3-parse-hooks '(w3-parse-munge-ethiopic-text)
+  "*List of hooks to be run before parsing.")
+
+(defun w3-parse-munge-ethiopic-text ()
+  ;; This is for ethiopic text.  Unfortunately, old MULE and new MULE conflict
+  ;; on what exactly to call this function.
+  (condition-case ()
+      (let ((sera-being-called-by-w3 t))
+        (case mule-sysdep-version
+          (2.4
+           (sera-to-fidel-marker))
+          ((xemacs 3.0)
+           (ethio-sera-to-fidel-marker))
+          (4.0
+           (when default-enable-multibyte-characters
+             (ethio-sera-to-fidel-marker)))))
+    (error nil)))
+  
 ;; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ;; %                                                    %
 ;; % This is the *ONLY* valid entry point in this file! %
@@ -1977,20 +1995,9 @@ Returns a data structure containing the parsed information."
     (insert "\n")
     (goto-char (point-min))
     (setq case-fold-search t)           ; allows smaller regexp patterns
-  
-    ;; This is for ethiopic text.  Unfortunately, old MULE and new MULE conflict
-    ;; on what exactly to call this function.
-    (condition-case ()
-        (let ((sera-being-called-by-w3 t))
-          (case mule-sysdep-version
-            (2.4
-             (sera-to-fidel-marker))
-            ((xemacs 3.0)
-             (ethio-sera-to-fidel-marker))
-            (4.0
-             (when default-enable-multibyte-characters
-               (ethio-sera-to-fidel-marker)))))
-      (error nil))
+
+    (run-hooks 'w3-parse-hooks);
+
     (goto-char (point-min))
   
     ;; *** Should premunge line boundaries.
