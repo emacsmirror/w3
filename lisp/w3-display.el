@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2000/07/10 14:43:33 $
-;; Version: $Revision: 1.23 $
+;; Created: $Date: 2000/11/15 13:58:28 $
+;; Version: $Revision: 1.24 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -209,7 +209,7 @@
 		       "Runaway indentation!  Too deep for window width!")
 		      fill-prefix)))
 
-(defsubst w3-decimal-to-roman (n)
+(defun w3-decimal-to-roman (n)
   ;; Convert from decimal to roman numerals
   (let ((curmod 1000)
 	(str "")
@@ -238,12 +238,12 @@
 	    j (- j 2)))
     str))
 
-(defsubst w3-decimal-to-alpha (n)
+(defun w3-decimal-to-alpha (n)
   ;; Convert from decimal to alphabetical (a, b, c, ..., aa, ab,...)
   (cond
    ((< n 1) (char-to-string ?Z))
    ((<= n 26) (char-to-string (+ ?A (1- n))))
-   (t (concat (char-to-string (+ ?A (1- (/ n 27))))
+   (t (concat (w3-decimal-to-alpha (/ n 26))
 	      (w3-decimal-to-alpha (% n 26))))))
 
 (defsubst w3-get-style-info (info node &optional default)
@@ -557,12 +557,19 @@ If the face already exists, it is unmodified."
 	(and extent (extent-buffer extent)))))
 
 (defun w3-widget-echo (widget &rest ignore)
+  (if (windowp widget)
+      ;; FSF emacs 21.x does some weird shit...
+      ;; args are window object pos
+      (debug)
+      (save-excursion
+	(set-buffer (window-buffer widget))
+	(setq widget (widget-at (cadr ignore)))))
   (save-excursion
     (set-buffer (or (w3-widget-buffer widget) (current-buffer)))
     (let* ((url (widget-get widget :href))
 	   (name (widget-get widget :name))
 	   (text (buffer-substring (widget-get widget :from)
-						 (widget-get widget :to)))
+				   (widget-get widget :to)))
 	   (title (widget-get widget :title))
 	   (check w3-echo-link)
 	   (msg nil))

@@ -1,3 +1,22 @@
+2000-11-15  William M. Perry  <wmperry@aventail.com>
+
+	* lisp/w3-mouse.el (not): Don't ever try to grab mouse-movement
+	events if we are running Emacs 21.
+
+	* lisp/w3-display.el (w3-decimal-to-alpha): Don't try to inline
+	this - it called itself recursively and so blew up Emacs'
+	byte-compiler.
+	(w3-decimal-to-alpha): Also fixed bug where large numbers did not
+	get converted correctly (3 letters or more were completely screwed
+	up).
+	(w3-decimal-to-roman): Don't inline this one either, just for
+	safety.
+
+2000-10-16  William M. Perry  <wmperry@aventail.com>
+
+	* lisp/w3-e21.el (toolbar-file-icon): added definitions of
+	toolbar-file-icon and toolbar-printer-icon
+
 2000-10-02  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/w3-e21.el (w3-setup-version-specifics): Advise this
