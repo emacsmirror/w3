@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.31 $
+;; Version: $Revision: 1.32 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -457,14 +457,7 @@ If the face already exists, it is unmodified."
 	))
     (setq n (1- n)))
   (setq w3-last-fill-pos (point-max))
-  (insert-char ?\n n)
-  (cond
-   ((<= n 0) nil)
-   ((< n 10)
-    (insert (aref w3-line-breaks-vector n)))
-   (t
-    (dotimes (i n)
-      (insert ?\n)))))
+  (insert-char ?\n n t))
 
 (defsubst w3-munge-line-breaks-p ()
   (eq (car w3-display-whitespace-stack) 'pre))
