@@ -1,7 +1,7 @@
 ;;; w3-imap.el --- Imagemap functions
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:07 $
-;; Version: $Revision: 1.2 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/05/14 17:29:25 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -206,7 +206,7 @@ vectors."
 
 (defmacro w3-image-cached-p (href)
   "Return non-nil iff HREF is in the image cache."
-  (` (cdr-safe (assoc (, href) w3-graphics-list))))
+  `(cdr-safe (assoc ,href w3-graphics-list)))
 
 (defun w3-image-loadable-p (href force)
   (let ((attribs (url-file-attributes href)))
@@ -218,9 +218,12 @@ vectors."
 	     (<= (nth 7 attribs) w3-image-size-restriction)))))
 
 (defmacro w3-image-invalid-glyph-p (glyph)
-  (` (or (null (aref (, glyph) 0))
-	 (null (aref (, glyph) 2))
-	 (equal (aref (, glyph) 2) ""))))
+  `(if (vectorp glyph)
+       (progn
+	 (or (null (aref ,glyph 0))
+	     (null (aref ,glyph 2))
+	     (equal (aref ,glyph 2) "")))
+     (not (eq 'image (car-safe glyph)))))
 
 ;; data structure in storage is a vector
 ;; if (href == t) then no action should be taken
