@@ -1,14 +1,14 @@
 ;;; devices.el -- XEmacs device API emulation
-;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:07 $
-;; Version: $Revision: 1.1 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:41:24 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -256,47 +256,53 @@ will automatically call `save-buffers-kill-emacs'.)"
     (otherwise 2)))
 
 (defun device-class (&optional device)
-  (case window-system
-    (x					; X11
-     (cond
-      ((fboundp 'x-display-visual-class)
-       (let ((val (symbol-name (x-display-visual-class device))))
-	 (cond
-	  ((string-match "color" val) 'color)
-	  ((string-match "gray-scale" val) 'grayscale)
-	  (t 'mono))))
-      ((fboundp 'x-display-color-p)
-       (if (x-display-color-p device)
-	   'color
-	 'mono))
-      (t 'color)))
-    (pm					; OS/2 Presentation Manager
-     (cond
-      ((fboundp 'pm-display-visual-class)
-       (let ((val (symbol-name (pm-display-visual-class device))))
-	 (cond
-	  ((string-match "color" val) 'color)
-	  ((string-match "gray-scale" val) 'grayscale)
-	  (t 'mono))))
-      ((fboundp 'pm-display-color-p)
-       (if (pm-display-color-p device)
-	   'color
-	 'mono))
-      (t 'color)))
-    (ns
-     (cond
-      ((fboundp 'ns-display-visual-class)
-       (let ((val (symbol-name (ns-display-visual-class device))))
-	 (cond
-	  ((string-match "color" val) 'color)
-	  ((string-match "gray-scale" val) 'grayscale)
-	  (t 'mono))))
-      ((fboundp 'ns-display-color-p)
-       (if (ns-display-color-p device)
-	   'color
-	 'mono))
-      (t 'mono)))
-    (otherwise 'color)))
+  (if (fboundp 'display-color-p)
+      (if (display-color-p device)
+	  'color
+	(if (display-grayscale-p device)
+	    'grayscale
+	  'mono))
+    (case window-system
+      (x		 ; X11
+       (cond
+	((fboundp 'x-display-visual-class)
+	 (let ((val (symbol-name (x-display-visual-class device))))
+	   (cond
+	    ((string-match "color" val) 'color)
+	    ((string-match "gray-scale" val) 'grayscale)
+	    (t 'mono))))
+	((fboundp 'x-display-color-p)
+	 (if (x-display-color-p device)
+	     'color
+	   'mono))
+	(t 'color)))
+      (pm ; OS/2 Presentation Manager
+       (cond
+	((fboundp 'pm-display-visual-class)
+	 (let ((val (symbol-name (pm-display-visual-class device))))
+	   (cond
+	    ((string-match "color" val) 'color)
+	    ((string-match "gray-scale" val) 'grayscale)
+	    (t 'mono))))
+	((fboundp 'pm-display-color-p)
+	 (if (pm-display-color-p device)
+	     'color
+	   'mono))
+	(t 'color)))
+      (ns
+       (cond
+	((fboundp 'ns-display-visual-class)
+	 (let ((val (symbol-name (ns-display-visual-class device))))
+	   (cond
+	    ((string-match "color" val) 'color)
+	    ((string-match "gray-scale" val) 'grayscale)
+	    (t 'mono))))
+	((fboundp 'ns-display-color-p)
+	 (if (ns-display-color-p device)
+	     'color
+	   'mono))
+	(t 'mono)))
+      (otherwise 'color))))
 
 (defun device-class-list ()
   "Returns a list of valid device classes."
