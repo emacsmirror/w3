@@ -1,7 +1,7 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/26 02:40:13 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/26 14:50:05 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -32,10 +32,17 @@
 ;;
 ;; basic format is: ldap://host:port/dn?attributes?scope?filter?extensions
 ;;
-;;
 ;; Test URLs:
 ;; ldap://ldap.itd.umich.edu/cn%3Dumbflabmanager%2C%20ou%3DUser%20Groups%2C%20ou%3DGroups%2C%20o%3DUniversity%20of%20Michigan%2C%20c%3DUS
 ;; ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US
+;;
+;; For simple queries, I have verified compatibility with Netscape
+;; Communicator v4.5 under linux.
+;;
+;; For anything _useful_ though, like specifying the attributes,
+;; scope, filter, or extensions, netscape claims the URL format is
+;; unrecognized.  So I don't think it supports anything other than the
+;; defaults (scope=base,attributes=*,filter=(objectClass=*)
 
 (defvar url-ldap-default-host "ldap"
   "*Default LDAP server to contact when none has been specified in the URL.")
