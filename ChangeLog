@@ -1,3 +1,17 @@
+2001-05-10  Dave Love  <fx@gnu.org>
+
+	* lisp/mule-sysdp.el: Removed in favour of one in url package.
+
+2001-01-04  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-toolbar.el (w3-add-toolbar-to-buffer) <featurep 'tool-bar>: 
+	Test display-graphic-p and tool-bar-lines.  Use mapc, not mapcar.
+	
+2001-01-03  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-toolbar.el (w3-add-toolbar-to-buffer): In Emacs, test
+	for graphic display and non-zero tool bar lines.
+
 2001-01-02  Sam Steingold  <sds@gnu.org>
 
 	* lisp/docomp.el (load-path): Gnus and URL are two levels
