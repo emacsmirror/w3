@@ -1,7 +1,7 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/07/10 14:43:35 $
-;; Version: $Revision: 1.6 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:40:37 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -706,7 +706,6 @@ on that platform."
 		'(
 		  ps-print-color-p
 		  url-automatic-caching
-		  url-be-asynchronous
 		  url-honor-refresh-requests
 		  url-privacy-level
 		  url-cookie-confirmation
@@ -774,8 +773,9 @@ on that platform."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Context-sensitive popup menu
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(if (not (fboundp 'event-glyph))
-    (fset 'event-glyph 'ignore))
+(if (fboundp 'event-glyph)
+    (defalias 'w3-event-glyph 'event-glyph)
+  (defalias 'w3-event-glyph 'ignore))
 
 (defun w3-menu-popup-menu (e menu)
   (if w3-running-xemacs
@@ -790,7 +790,7 @@ on that platform."
   (if (not w3-popup-menu-on-mouse-3)
       (call-interactively (lookup-key global-map (vector w3-mouse-button3)))
     (mouse-set-point e)
-    (let* ((glyph (event-glyph e))
+    (let* ((glyph (w3-event-glyph e))
 	   (widget (or (and glyph (glyph-property glyph 'widget))
 		       (widget-at (point))))
 	   (parent (and widget (widget-get widget :parent)))
