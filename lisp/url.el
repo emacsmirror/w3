@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/30 11:26:49 $
-;; Version: $Revision: 1.9 $
+;; Created: $Date: 1999/03/25 05:30:04 $
+;; Version: $Revision: 1.10 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/30 11:26:49 $|$Revision: 1.9 $|Location Undetermined
+;;; $Date: 1999/03/25 05:30:04 $|$Revision: 1.10 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -103,9 +103,7 @@
 (autoload 'url-news "url-news")
 (autoload 'url-nntp "url-news")
 (autoload 'url-cid "url-cid")
-
-(if (featurep 'ldap)
-    (autoload 'url-ldap "url-ldap"))
+(autoload 'url-ldap "url-ldap")
 
 (autoload 'url-open-stream "url-gw")
 (autoload 'url-mime-response-p "url-http")
@@ -929,8 +927,7 @@ dumped with emacs."
     (url-register-protocol 'telnet)
     (url-register-protocol 'tn3270)
     (url-register-protocol 'proxy)
-    (if (featurep 'ldap)
-	(url-register-protocol 'ldap))
+    (url-register-protocol 'ldap)
     (url-register-protocol 'auto 'url-handle-no-scheme)
 
     ;; Register all the authentication schemes we can handle
@@ -1040,8 +1037,13 @@ dumped with emacs."
     (run-hooks 'url-load-hook)
     (setq url-setup-done t)))
 
-(defvar url-get-url-filename-chars "-%.?@a-zA-Z0-9()_/:~=&"
-  "Valid characters in a URL")
+;;; Evidently, there is a chicken and egg problem with the
+;;; eval-when-compile in url-get-url-at-point, so we have to eval this
+;;; at compile time.
+(eval-and-compile
+  (defvar url-get-url-filename-chars "-%.?@a-zA-Z0-9()_/:~=&"
+    "Valid characters in a URL")
+  )
 
 ;;;###autoload
 (defun url-get-url-at-point (&optional pt)

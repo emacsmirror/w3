@@ -233,6 +233,11 @@
 (sysdep-defalias 'lower-frame 'lower-screen)
 (sysdep-defalias 'mail-other-frame 'mail-other-screen)
 
+(sysdep-defun frame-parameter (frame parameter)
+  "Return FRAME's value for parameter PARAMETER.
+  If FRAME is omitted, describe the currently selected frame."
+  (cdr (assq parameter (frame-parameters frame))))
+
 (sysdep-defalias 'make-frame
   (cond ((fboundp 'make-screen)
 	 (function (lambda (&optional parameters device)

@@ -1,12 +1,12 @@
 ;;; w3-hot.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/03/25 05:30:06 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -113,6 +113,8 @@
 	    args (and (listp node) (nth 1 node))
 	    content (and (listp node) (nth 2 node)))
       (cond
+       ((eq tag 'hr)
+	(setq cur-title '("------")))
        ((eq tag 'title)
 	(setq cur-title (list (w3-normalize-spaces (car content))))
 	(w3-grok-html-bookmarks-internal content))

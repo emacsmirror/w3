@@ -1,7 +1,7 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/29 14:49:33 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/03/25 05:30:04 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, firewalls
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,6 +29,12 @@
 ;;; RFC 1928.
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TODO
+;; - Finish the redirection rules stuff
+;; - Implement composition of servers.  Recursively evaluate the
+;;   redirection rules and do SOCKS-over-HTTP and SOCKS-in-SOCKS
+
 (require 'cl)
 (require 'custom)
 
@@ -288,6 +294,13 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       (cl-puthash 'scratch (concat string (cl-gethash 'scratch info)) info)
       (setq string (cl-gethash 'scratch info))
       (case (cl-gethash 'server-protocol info)
+	(http
+	 (if (not (string-match "\r\n\r\n" string))
+	     nil			; Need to spin some more
+	   (debug)
+	   (cl-puthash 'state socks-state-connected info)
+	   (cl-puthash 'reply 0 info)
+	   (cl-puthash 'response string info)))
 	(4
 	 (if (< (length string) 2)
 	     nil			; Can't know how much to read yet
@@ -346,6 +359,9 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       (cl-puthash 'server-protocol (nth 3 server-info) info)
       (cl-puthash 'server-name (nth 1 server-info) info)
       (case (nth 3 server-info)
+	(http
+	 ;; Don't really have to do any connection setup under http
+	 nil)
 	(4
 	 ;; Don't really have to do any connection setup under v4
 	 nil)
@@ -398,6 +414,17 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (cl-puthash 'state socks-state-waiting info)
     (setq version (cl-gethash 'server-protocol info))
     (case version
+      (http
+       (setq request (format (eval-when-compile
+			       (concat
+				"CONNECT %s:%d HTTP/1.0\r\n"
+				"User-Agent: Emacs/SOCKS v1.0\r\n"
+				"\r\n"))
+			     (case atype
+			       (socks-address-type-name address)
+			       (otherwise
+				(error "Unsupported address type for HTTP: %d" atype)))
+			     port)))
       (4
        (setq request (format
 		      "%c%c%c%c%s%s%c"

@@ -1,3 +1,38 @@
+1999-03-24  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url.el (url-do-setup): Always register the LDAP URL format.
+
+* lisp/url-ldap.el (url-ldap): Deal with non-LDAP enabled emacsen better.
+
+1999-03-22  Markus Rost <markus.rost@mathematik.uni-regensburg.de>
+
+* lisp/w3.el (w3-fetch): Gracefully accept 'nil' as the URL.
+
+1999-03-22  Martin Schwenke <Martin.Schwenke@cs.anu.edu.au>
+
+* lisp/w3-sysdp.el (frame-parameter): This was not defined in 19.34.
+
+1999-03-19  William Perry <wmperry@aventail.com>
+
+* lisp/w3-parse.el (w3-parse-buffer): Make sure we restore the old syntax
+  table when we are done parsing.
+
+1999-03-18  Kenichi Handa <handa@etl.go.jp>
+
+* lisp/w3.el (w3-viewer-filter): Do not create the 'output' buffer if the
+  length of the string received by the filter is 0.  Evidently solaris
+  sends an empty string to the filter when the process exits.
+
+1999-03-18  "T. V. Raman" <raman@adobe.com>
+
+* lisp/w3-display.el (w3-widget-echo): Use buffer-substring --rather than
+  buffer-substring-no-properties when picking out the text under the
+  current link. 
+
+  This is good for emacspeak because you can then tell while
+  tabbing through a  page whether the link you just hit has
+  been visited.
+
 1999-01-08  William M. Perry  <wmperry@aventail.com>
 
 * lisp/docomp.el (emacs-build-autoloads): Only do the autoloads one way

@@ -1,7 +1,7 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/01/05 12:41:57 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/03/25 05:30:04 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -49,15 +49,20 @@
 
 (defvar url-ldap-pretty-names
   '(("l"           . "City")
-    ("objectClass" . "Object Class")
+    ("objectclass" . "Object Class")
     ("o"           . "Organization")
     ("ou"          . "Organizational Unit")
+    ("cn"          . "Name")
+    ("sn"          . "Last Name")
+    ("givenname"   . "First Name")
     ("mail"        . "Email")
+    ("title"       . "Title")
     ("c"           . "Country")
-    ("postalCode"  . "ZIP Code")
-    ("telephoneNumber" . "Phone Number")
-    ("postalAddress"   . "Mailing Address")
-    ("description"     . "Notes"))
+    ("postalcode"  . "ZIP Code")
+    ("telephonenumber"          . "Phone Number")
+    ("facsimiletelephonenumber" . "Fax")
+    ("postaladdress"            . "Mailing Address")
+    ("description"              . "Notes"))
   "*An assoc list mapping LDAP attribute names to pretty descriptions of them.")
 
 (defvar url-ldap-attribute-formatters
@@ -67,10 +72,10 @@
   "*An assoc list mapping LDAP attribute names to pretty formatters for them.")
 
 (defsubst url-ldap-attribute-pretty-name (n)
-  (or (cdr-safe (assoc n url-ldap-pretty-names)) n))
+  (or (cdr-safe (assoc (downcase n) url-ldap-pretty-names)) n))
 
 (defsubst url-ldap-attribute-pretty-desc (n v)
-  (funcall (or (cdr-safe (assoc n url-ldap-attribute-formatters)) 'identity) v))
+  (funcall (or (cdr-safe (assoc (downcase n) url-ldap-attribute-formatters)) 'identity) v))
 
 (defun url-ldap-dn-formatter (dn)
   (concat "<a href='/"
@@ -78,106 +83,124 @@
 	  "'>" dn "</a>"))
   
 (defun url-ldap (url)
-  (let* ((urlobj (url-generic-parse-url url))
-	 (binddn nil)
-	 (data (url-filename urlobj))
-	 (host (url-host urlobj))
-	 (port (url-port urlobj))
-	 (base-object nil)
-	 (attributes nil)
-	 (scope nil)
-	 (filter nil)
-	 (extensions nil)
-	 (connection nil)
-	 (results nil))
+  (if (not (fboundp 'ldap-search-internal))
+      (progn
+	(set-buffer (get-buffer-create url-working-buffer))
+	(erase-buffer)
+	(setq url-current-mime-type "text/html"
+	      url-current-can-be-cached nil)
+	(insert "<html>\n"
+		" <head>\n"
+		"  <title>LDAP Not Supported</title>\n"
+		"  <base href='" url "'>\n"
+		" </head>\n"
+		" <body>\n"
+		"  <h1>LDAP Not Supported</h1>\n"
+		"  <p>\n"
+		"    This version of Emacs does not support LDAP.\n"
+		"  </p>\n"
+		" </body>\n"
+		"</html>\n"))
+    (let* ((urlobj (url-generic-parse-url url))
+	   (binddn nil)
+	   (data (url-filename urlobj))
+	   (host (url-host urlobj))
+	   (port (url-port urlobj))
+	   (base-object nil)
+	   (attributes nil)
+	   (scope nil)
+	   (filter nil)
+	   (extensions nil)
+	   (connection nil)
+	   (results nil))
 
-    ;; Get rid of leading /
-    (if (string-match "^/" data)
-	(setq data (substring data 1)))
+      ;; Get rid of leading /
+      (if (string-match "^/" data)
+	  (setq data (substring data 1)))
 
-    ;; Fill in the default host
-    (if (not host)
-	(setq host url-ldap-default-host))
+      ;; Fill in the default host
+      (if (not host)
+	  (setq host url-ldap-default-host))
 
-    (setq data (mapcar (lambda (x) (if (/= (length x) 0) x nil)) (split-string data "\\?"))
-	  base-object (nth 0 data)
-	  attributes (nth 1 data)
-	  scope (nth 2 data)
-	  filter (nth 3 data)
-	  extensions (nth 4 data))
+      (setq data (mapcar (lambda (x) (if (/= (length x) 0) x nil)) (split-string data "\\?"))
+	    base-object (nth 0 data)
+	    attributes (nth 1 data)
+	    scope (nth 2 data)
+	    filter (nth 3 data)
+	    extensions (nth 4 data))
 
-    ;; fill in the defaults
-    (setq base-object (url-unhex-string (or base-object ""))
-	  scope (intern (url-unhex-string (or scope "base")))
-	  filter (url-unhex-string (or filter "(objectClass=*)")))
+      ;; fill in the defaults
+      (setq base-object (url-unhex-string (or base-object ""))
+	    scope (intern (url-unhex-string (or scope "base")))
+	    filter (url-unhex-string (or filter "(objectClass=*)")))
 
-    (if (not (memq scope '(base one tree)))
-	(error "Malformed LDAP URL: Unknown scope: %S" scope))
+      (if (not (memq scope '(base one tree)))
+	  (error "Malformed LDAP URL: Unknown scope: %S" scope))
 
-    ;; Convert to the internal LDAP support scoping names.
-    (setq scope (cdr (assq scope '((base . base) (one . onelevel) (sub . subtree)))))
+      ;; Convert to the internal LDAP support scoping names.
+      (setq scope (cdr (assq scope '((base . base) (one . onelevel) (sub . subtree)))))
 
-    (if attributes
-	(setq attributes (mapcar 'url-unhex-string (split-string attributes ","))))
+      (if attributes
+	  (setq attributes (mapcar 'url-unhex-string (split-string attributes ","))))
 
-    ;; Parse out the exentions
-    (if extensions
-	(setq extensions (mapcar (lambda (ext)
-				   (if (string-match "\\([^=]*\\)=\\(.*\\)" ext)
-				       (cons (match-string 1 ext) (match-string 2 ext))
-				     (cons ext ext)))
-				 (split-string extensions ","))
-	      extensions (mapcar (lambda (ext)
-				   (cons (url-unhex-string (car ext))
-					 (url-unhex-string (cdr ext))))
-				 extensions)))
+      ;; Parse out the exentions
+      (if extensions
+	  (setq extensions (mapcar (lambda (ext)
+				     (if (string-match "\\([^=]*\\)=\\(.*\\)" ext)
+					 (cons (match-string 1 ext) (match-string 2 ext))
+				       (cons ext ext)))
+				   (split-string extensions ","))
+		extensions (mapcar (lambda (ext)
+				     (cons (url-unhex-string (car ext))
+					   (url-unhex-string (cdr ext))))
+				   extensions)))
 
-    (setq binddn (cdr-safe (or (assoc "bindname" extensions)
-			       (assoc "!bindname" extensions))))
+      (setq binddn (cdr-safe (or (assoc "bindname" extensions)
+				 (assoc "!bindname" extensions))))
     
-    ;; Now, let's actually do something with it.
-    (setq connection (ldap-open host (if binddn (list 'binddn binddn)))
-	  results (ldap-search-internal connection filter base-object scope attributes nil))
-    (ldap-close connection)
-    (set-buffer (get-buffer-create url-working-buffer))
-    (erase-buffer)
-    (setq url-current-mime-type "text/html"
-	  url-current-can-be-cached nil)
-    (insert "<html>\n"
-	    " <head>\n"
-	    "  <title>LDAP Search Results</title>\n"
-	    "  <base href='" url "'>\n"
-	    " </head>\n"
-	    " <body>\n"
-	    "  <h1>" (int-to-string (length results)) " matches</h1>\n")
+      ;; Now, let's actually do something with it.
+      (setq connection (ldap-open host (if binddn (list 'binddn binddn)))
+	    results (ldap-search-internal connection filter base-object scope attributes nil))
+      (ldap-close connection)
+      (set-buffer (get-buffer-create url-working-buffer))
+      (erase-buffer)
+      (setq url-current-mime-type "text/html"
+	    url-current-can-be-cached nil)
+      (insert "<html>\n"
+	      " <head>\n"
+	      "  <title>LDAP Search Results</title>\n"
+	      "  <base href='" url "'>\n"
+	      " </head>\n"
+	      " <body>\n"
+	      "  <h1>" (int-to-string (length results)) " matches</h1>\n")
 
-    (mapc (lambda (obj)
-	    (insert "  <hr>\n"
-		    "  <table border=1>\n")
-	    (mapc (lambda (attr)
-		    (if (= (length (cdr attr)) 1)
-			;; single match, easy
-			(insert "   <tr><td>"
-				(url-ldap-attribute-pretty-name (car attr))
-				"</td><td>"
-				(url-ldap-attribute-pretty-desc (car attr) (car (cdr attr)))
-				"</td></tr>\n")
-		      ;; Multiple matches, slightly uglier
-		      (insert "   <tr>\n"
-			      (format "    <td valign=top>" (length (cdr attr)))
-			      (url-ldap-attribute-pretty-name (car attr)) "</td><td>"
-			      (mapconcat (lambda (x)
-					   (url-ldap-attribute-pretty-desc (car attr) x))
-					 (cdr attr)
-					 "<br>\n")
-			      "</td>"
-			      "   </tr>\n")))
-		  obj)
-	    (insert "  </table>\n"))
-	  results)
+      (mapc (lambda (obj)
+	      (insert "  <hr>\n"
+		      "  <table border=1>\n")
+	      (mapc (lambda (attr)
+		      (if (= (length (cdr attr)) 1)
+			  ;; single match, easy
+			  (insert "   <tr><td>"
+				  (url-ldap-attribute-pretty-name (car attr))
+				  "</td><td>"
+				  (url-ldap-attribute-pretty-desc (car attr) (car (cdr attr)))
+				  "</td></tr>\n")
+			;; Multiple matches, slightly uglier
+			(insert "   <tr>\n"
+				(format "    <td valign=top>" (length (cdr attr)))
+				(url-ldap-attribute-pretty-name (car attr)) "</td><td>"
+				(mapconcat (lambda (x)
+					     (url-ldap-attribute-pretty-desc (car attr) x))
+					   (cdr attr)
+					   "<br>\n")
+				"</td>"
+				"   </tr>\n")))
+		    obj)
+	      (insert "  </table>\n"))
+	    results)
 
-    (insert "  <hr>\n"
-	    " </body>\n"
-	    "</html>\n")))
+      (insert "  <hr>\n"
+	      " </body>\n"
+	      "</html>\n"))))
 
 (provide 'url-ldap)

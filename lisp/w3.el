@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/30 11:26:51 $
-;; Version: $Revision: 1.6 $
+;; Created: $Date: 1999/03/25 05:30:07 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -143,16 +143,18 @@ the subprocess exits."
 
 (defun w3-viewer-filter (proc string)
   ;; A process filter for asynchronous external viewers
-  (let ((buff (get-buffer-create (url-generate-new-buffer-name
-				  (symbol-name
-				   (read (nth 2 (process-command proc))))))))
-    (save-excursion
-      (set-buffer buff)
-      (erase-buffer)
-      (insert string)
-      (set-process-buffer proc buff)
-      (w3-notify-when-ready buff)
-      (set-process-filter proc nil))))
+  (if (= (length string) 0)
+      nil
+    (let ((buff (get-buffer-create (url-generate-new-buffer-name
+				    (symbol-name
+				     (read (nth 2 (process-command proc))))))))
+      (save-excursion
+	(set-buffer buff)
+	(erase-buffer)
+	(insert string)
+	(set-process-buffer proc buff)
+	(w3-notify-when-ready buff)
+	(set-process-filter proc nil)))))
 
 (defun w3-viewer-sentinel (proc string)
   ;; Delete any temp files left from a viewer process.
@@ -410,7 +412,7 @@ With prefix argument, use the URL of the hyperlink under point instead."
 	   (string-match url-nonrelative-link (car command-line-args-left)))
       (setq url (car command-line-args-left)
 	    command-line-args-left (cdr command-line-args-left)))
-  (if (equal url "") (error "No document specified!"))
+  (if (or (null url) (equal url "")) (error "No document specified!"))
   ;; legal use for relative URLs ?
   (if (string-match "^www:[^/].*" url)
       (setq url (concat (file-name-directory (url-filename

@@ -1,7 +1,7 @@
 ;;; base64.el,v --- Base64 encoding functions
 ;; Author: Kyle E. Jones
-;; Created: $Date: 1998/12/27 01:48:52 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/03/25 05:30:03 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: extensions
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -271,7 +271,7 @@ base64-encoder-program.")
 	(buffer-string)
       (kill-buffer (current-buffer)))))  
 
-(defalias 'base64-encode 'base64-encode-string)
-(defalias 'base64-decode 'base64-decode-string)
+(defalias 'base64-encode-string 'base64-encode)
+(defalias 'base64-decode-string 'base64-decode)
 
 (provide 'base64)

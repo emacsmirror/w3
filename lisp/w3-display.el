@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 21:44:07 $
-;; Version: $Revision: 1.8 $
+;; Created: $Date: 1999/03/25 05:30:05 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -265,11 +265,13 @@
       (or (if backgroundp
 	      (face-background-name 'default)
 	    (face-foreground-name 'default))
-	  (frame-property nil (if backgroundp 'background-color 'foreground-color)))
+	  (frame-property nil (if backgroundp 'background-color 'foreground-color))
+	  (if backgroundp "white" "black"))
       (or (if backgroundp
 	      (face-background 'default)
 	    (face-foreground 'default))
-	  (frame-parameter nil (if backgroundp 'background-color 'foreground-color)))))
+	  (frame-parameter nil (if backgroundp 'background-color 'foreground-color))
+	  (if backgroundp "white" "black"))))
 
 (defun w3-display-background-useless-p (color)
   (let ((foreground-color (font-color-rgb-components
@@ -397,7 +399,7 @@ If the face already exists, it is unmodified."
        (= w3-last-fill-pos (point))
        (> w3-last-fill-pos (point-max)))
       (if (not (eq (char-before (point)) ?\n))
-	  (setq n (1+ n))) ; at least put one line in
+ 	  (setq n (1+ n))) ; at least put one line in
     (let ((fill-column (max (1+ (length fill-prefix)) fill-column))
 	  width)
       (case (car w3-display-alignment-stack)
@@ -509,7 +511,7 @@ If the face already exists, it is unmodified."
     (set-buffer (or (w3-widget-buffer widget) (current-buffer)))
     (let* ((url (widget-get widget :href))
 	   (name (widget-get widget :name))
-	   (text (buffer-substring-no-properties (widget-get widget :from)
+	   (text (buffer-substring (widget-get widget :from)
 						 (widget-get widget :to)))
 	   (title (widget-get widget :title))
 	   (check w3-echo-link)
