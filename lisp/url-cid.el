@@ -1,7 +1,7 @@
 ;;; url-cid.el --- Content-ID URL loader
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 15:12:21 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/08/05 20:21:27 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,7 +42,9 @@
     (setq part (mm-get-content-id cid))
     (if (not part)
 	(message "Unknown CID encountered: %s" cid)
-      (setq data (buffer-string nil nil (mm-handle-buffer part))
+      (setq data (save-excursion
+		   (set-buffer (mm-handle-buffer part))
+		   (buffer-string))
 	    content-type (mm-handle-type part)
 	    encoding (symbol-name (mm-handle-encoding part)))
       (if (= 0 (length content-type)) (setq content-type "text/plain"))

@@ -1,3 +1,14 @@
+1999-08-04  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url-cid.el (url-cid-gnus): Fixed so it will work in Emacs and
+  XEmacs 21.2
+
+1999-08-03  William M. Perry  <wmperry@aventail.com>
+
+* lisp/mule-sysdp.el (mule-sysdep-version): Make
+  enable-multibyte-characters buffer-local when in XEmacs, to better mimic 
+  the Emacs 20.x behaviour.
+
 1999-07-19  William M. Perry  <wmperry@aventail.com>
 
 * lisp/images.el (image-register-netpbm-utilities): Fixed typo in the ppm
