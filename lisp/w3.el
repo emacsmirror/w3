@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/10/16 15:25:47 $
-;; Version: $Revision: 1.15 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:45:02 $
+;; Version: $Revision: 1.16 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -555,7 +555,7 @@ url-get-url-at-point"
          (url1 (and widget (widget-get widget :href)))
          (url2 (url-get-url-at-point)))
     (cond
-      (url1 (widget-button-press))
+      (url1 (widget-button-press (point)))
       ((and url2 (string-match url-nonrelative-link url2)) (w3-fetch url2))
       (t (message "No URL could be found!")))))
 
