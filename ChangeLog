@@ -1,4 +1,22 @@
+1998-12-21  William M. Perry  <wmperry@aventail.com>
+
+* lisp/docomp.el: If WIDGETDIR is not set, or set to `no', then scream and 
+  bitch and die, to avoid more arcane errors later on.
+  (emacs-build-custom-load): Try to work around emacs19 that doesn't have
+  cus-dep installed.
+
+* lisp/w3.el (w3-fetch): Avoid use of with-current-buffer, since it
+  doesn't exist in Emacs 19.xx 
+  (w3-convert-code-for-mule): Finished rename to mule-coding-system-p
+
+1998-12-20  Bertil Askelid <bertil@ioc.net>
+
+* lisp/w3-mouse.el: Don't bind mouse-movement unless w3-track-mouse is
+  set.
+
 1998-12-19  William M. Perry  <wmperry@aventail.com>
+
+* Emacs/W3 4.0pre34 released
 
 * lisp/mule-sysdp.el (mule-coding-system-p-version): Renamed and fixed
   mule-coding-system-p for non-MULE Emacs/XEmacs.

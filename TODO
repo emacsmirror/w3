@@ -54,6 +54,8 @@ FEATURES (4.1)
     additional methods to automatically index documents.
 
     * Multi keyword search
+- Nice custom-y way to create an HTTP request.  This would allow
+  people to use HTTP PUT to upload documents to HTTP servers, etc.
 - cache a formatted version of documents, with enough info to recreate
   the widgets in them.
 - w3-preview-region command
