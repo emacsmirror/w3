@@ -1,4 +1,17 @@
+1999-06-15  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url-ldap.el (url-ldap-attribute-formatters): Format naming contexts 
+  as hyperlinks back into the directory.
+  (url-ldap-certificate-formatter): Save certificate data to a file.
+
+1999-04-29  William M. Perry  <wmperry@aventail.com>
+
+* lisp/font.el (font-find-available-family): Fixes for latest version of
+  the new Emacs redisplay.
+
 1999-04-08  William M. Perry  <wmperry@aventail.com>
+
+* Emacs/W3 4.0.43 released
 
 * Fixed the hackmap stuff for Emacs 19/20
 
