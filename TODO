@@ -1,3 +1,5 @@
+[This is probably in need of updating.  -- fx]
+
 BUGS (4.0):
 - trim down w3-sysdp.el to be just the stuff it really needs
 - border-color can have multiple color specifications, but we

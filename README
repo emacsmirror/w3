@@ -1,4 +1,4 @@
-This directory tree holds version $State: p4.0pre.46 $ of Emacs/W3, the fully
+This directory tree holds version $State: p4.0pre.47 $ of Emacs/W3, the fully
 customizable, largely undocumented web browser for Emacs.
 
 You may encounter bugs in this release.  If you do, please report
@@ -33,3 +33,7 @@ There are several subdirectories:
 `lisp' holds the lisp code for Emacs/W3
 `texi' holds the documentation tree for Emacs/W3
 `contrib' holds user-contributed utilities that are not officially supported
+
+This version requires either Emacs 20.3 or later, or XEmacs 20.4 or
+later.  For Emacs, at least 20.4 is recommended since 20.3 (the first
+release of Mule 4) was somewhat buggy.
