@@ -1,7 +1,7 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 ;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:53:17 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 2002/01/22 18:57:48 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: comm, firewalls
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,10 +35,12 @@
 ;; - Implement composition of servers.  Recursively evaluate the
 ;;   redirection rules and do SOCKS-over-HTTP and SOCKS-in-SOCKS
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl)
+  (require 'wid-edit))
 (require 'custom)
 
-;; For non-MULE
+;; For non-XEmacs-MULE
 (if (fboundp 'char-int)
     (defalias 'socks-char-int 'char-int)
   (defalias 'socks-char-int 'identity))
