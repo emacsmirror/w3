@@ -1,12 +1,11 @@
-;;; ssl.el,v --- ssl functions for emacsen without them builtin
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/11/24 20:59:52 $
-;; Version: $Revision: 1.3 $
+;;; ssl.el,v --- ssl functions for Emacsen without them builtin
+;; Author: William M. Perry <wmperry@cs.indiana.edu>
+;; $Revision: 1.4 $
 ;; Keywords: comm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -26,27 +25,16 @@
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'base64)
-
-(eval-and-compile
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args)
-      nil)
-    (defmacro defcustom (var value doc &rest args) 
-      (` (defvar (, var) (, value) (, doc))))))
+(require 'url)				; for `url-configuration-directory'
 
 (defgroup ssl nil
   "Support for `Secure Sockets Layer' encryption."
   :group 'comm)
   
 (defcustom ssl-certificate-directory "~/.w3/certs/"
-  "*Directory to store CA certificates in"
+  "*Directory in which to store CA certificates."
   :group 'ssl
   :type 'directory)
 
@@ -66,7 +54,7 @@ Run with one argument, the directory name."
 The certificate is piped to it.
 Maybe a way of passing a file should be implemented"
   :group 'ssl
-  :type 'list)
+  :type '(repeat string))
 
 (defcustom ssl-certificate-directory-style 'ssleay
   "*Style of cert database to use, the only valid value right now is `ssleay'.
@@ -105,6 +93,19 @@ to."
   :group 'ssl
   :type 'list)
 
+(defcustom ssl-view-certificate-program-name ssl-program-name
+  "*The program to run to provide a human-readable view of a certificate."
+  :group 'ssl
+  :type 'string)
+
+(defcustom ssl-view-certificate-program-arguments
+  '("x509" "-text" "-inform" "DER")
+  "*Arguments that should be passed to the certificate viewing program.
+The certificate is piped to it.
+Maybe a way of passing a file should be implemented."
+  :group 'ssl
+  :type 'list)
+
 (defun ssl-certificate-information (der)
   "Return an assoc list of information about a certificate in DER format."
   (let ((certificate (concat "-----BEGIN CERTIFICATE-----\n"
@@ -115,18 +116,19 @@ to."
       (set-buffer (get-buffer-create " *openssl*"))
       (erase-buffer)
       (insert certificate)
-      (setq exit-code (condition-case ()
-			  (call-process-region (point-min) (point-max)
-					       ssl-program-name
-					       t (list (current-buffer) nil) t
-					       "x509"
-					       "-subject" ; Print the subject DN
-					       "-issuer" ; Print the issuer DN
-					       "-dates" ; Both before and after dates
-					       "-serial" ; print out serial number
-					       "-noout" ; Don't spit out the certificate
-					       )
-			(error -1)))
+      (setq exit-code
+	    (condition-case ()
+		(call-process-region (point-min) (point-max)
+				     ssl-program-name
+				     t (list (current-buffer) nil) t
+				     "x509"
+				     "-subject" ; Print the subject DN
+				     "-issuer" ; Print the issuer DN
+				     "-dates" ; Both before and after dates
+				     "-serial" ; print out serial number
+				     "-noout" ; Don't spit out the certificate
+				     )
+	      (error -1)))
       (if (/= exit-code 0)
 	  nil
 	(let ((vals nil))
@@ -136,17 +138,17 @@ to."
 	  vals)))))
   
 (defun ssl-accept-ca-certificate ()
-  "Ask if the user is willing to accept a new CA certificate. The buffer-name
-should be the intended name of the certificate, and the buffer should probably
-be in DER encoding"
+  "Ask if the user is willing to accept a new CA certificate.
+The buffer name should be the intended name of the certificate, and
+the buffer should probably be in DER encoding"
   ;; TODO, check if it is really new or if we already know it
   (let* ((process-connection-type nil)
 	 (tmpbuf (generate-new-buffer "X509 CA Certificate Information"))
 	 (response (save-excursion
-		     (and (eq 0 
+		     (and (eq 0
 			      (apply 'call-process-region
-				     (point-min) (point-max) 
-				     ssl-view-certificate-program-name 
+				     (point-min) (point-max)
+				     ssl-view-certificate-program-name
 				     nil tmpbuf t
 				     ssl-view-certificate-program-arguments))
 			  (switch-to-buffer tmpbuf)
@@ -187,7 +189,8 @@ be in DER encoding"
 	      ;; Need to create our handy-dandy utility script to shut OpenSSL
 	      ;; up completely.
 	      (progn
-		(write-region "#!/bin/sh\n\nexec \"$@\" 2> /dev/null\n" nil script nil 5)
+		(write-region "#!/bin/sh\n\nexec \"$@\" 2> /dev/null\n" nil
+			      script nil 5)
 		(set-file-modes script 493))) ; (rwxr-xr-x)
 	  (setq ssl-exec-wrapper script)))
     (cons ssl-exec-wrapper (cons ssl-program-name ssl-program-arguments))))
@@ -198,11 +201,11 @@ Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
 Args are NAME BUFFER HOST SERVICE.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or buffer-name) to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer
+BUFFER is the buffer (or buffer name) to associate with the process.
+Process output goes at end of that buffer, unless you specify
+an output stream or filter function to handle the output.
+BUFFER may be also nil, meaning that this process is not associated
+with any buffer.
 Third arg is name of the host to connect to, or its IP address.
 Fourth arg SERVICE is name of the service desired, or an integer
 specifying a port number to connect to."
@@ -210,9 +213,7 @@ specifying a port number to connect to."
   (let* ((process-connection-type nil)
 	 (port service)
 	 (proc (eval
-		(`
-		 (start-process name buffer
-				(,@ (ssl-get-command)))))))
+		(start-process name buffer ,@(ssl-get-command)))))
     (process-kill-without-query proc)
     proc))
 
