@@ -1,14 +1,14 @@
 ;;; url-http.el --- HTTP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:09 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/28 22:18:19 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun url-parse-viewer-types ()
   "Create a string usable for an Accept: header from mm-mime-data"
-  (let ((tmp mm-mime-data)
+  (let ((tmp (append mm-mime-data mm-mime-data-default))
 	label mjr mnr cur-mnr (str ""))
     (while tmp
       (setq mnr (cdr (car tmp))
@@ -549,58 +549,49 @@ HTTP/1.0 specification for more details." x redir) 'error)
       (if (equal port "") (setq port "80"))
       (if (equal file "") (setq file "/"))
       (if (not server)
+	  (message "Malformed URL: `%s'" url)
+	(if (or (not (member port url-bad-port-list))
+		(funcall url-confirmation-func
+			 (concat
+			  "Warning!  Trying to connect to port "
+			  port
+			  " - continue? ")))
+	    (progn
+	      (setq request (url-create-mime-request file ref-url))
+	      (url-lazy-message "Contacting %s:%s" server port)
+	      (let ((process
+		     (url-open-stream "WWW" url-working-buffer server
+				      (string-to-int port))))
+		(if (not (processp process))
+		    (url-sentinel url-working-buffer nil)
+		  (progn
+		    (url-process-put process 'url (or proxy-info url))
+		    (set-process-sentinel process 'ignore)
+		    (process-kill-without-query process)
+		    (process-send-string process request)
+		    (url-lazy-message "Request sent, waiting for response...")
+		    (setq url-current-content-length nil)
+		    (make-local-variable 'after-change-functions)
+		    (add-hook 'after-change-functions 'url-after-change-function)
+		    (if url-be-asynchronous
+			(set-process-sentinel process 'url-sentinel)
+		      (unwind-protect
+			  (save-excursion
+			    (set-buffer url-working-buffer)
+			    (while (memq (url-process-status process)
+					 '(run open))
+			      (url-accept-process-output process)))
+			(condition-case ()
+			    (url-kill-process process)
+			  (error nil))))
+		    (if url-be-asynchronous
+			nil
+		      (message "Retrieval complete.")
+		      (remove-hook 'after-change-functions
+				   'url-after-change-function))))))
 	  (progn
-	    (url-warn
-	     'url
-	     (eval-when-compile
-	       (concat
-		"Malformed URL got passed into url-retrieve.\n"
-		"Either `url-expand-file-name' is broken in some\n"
-		"way, or an incorrect URL was manually entered (more likely)."
-		)))
-	    (error "Malformed URL: `%s'" url)))
-      (if (or (not (member port url-bad-port-list))
-	      (funcall url-confirmation-func
-		       (concat
-			"Warning!  Trying to connect to port "
-			port
-			" - continue? ")))
-	  (progn
-	    (setq request (url-create-mime-request file ref-url))
-	    (url-lazy-message "Contacting %s:%s" server port)
-	    (let ((process
-		   (url-open-stream "WWW" url-working-buffer server
-				   (string-to-int port))))
-	      (if (not (processp process))
-		  (url-sentinel url-working-buffer nil)
-		(progn
-		  (url-process-put process 'url (or proxy-info url))
-		  (set-process-sentinel process 'ignore)
-		  (process-kill-without-query process)
-		  (process-send-string process request)
-		  (url-lazy-message "Request sent, waiting for response...")
-		  (setq url-current-content-length nil)
-		  (make-local-variable 'after-change-functions)
-		  (add-hook 'after-change-functions 'url-after-change-function)
-		  (if url-be-asynchronous
-		      (set-process-sentinel process 'url-sentinel)
-		    (unwind-protect
-			(save-excursion
-			  (set-buffer url-working-buffer)
-			  (while (memq (url-process-status process)
-				       '(run open))
-			    (url-accept-process-output process)))
-		      (condition-case ()
-			  (url-kill-process process)
-			(error nil))))
-		  (if url-be-asynchronous
-		      nil
-		    (message "Retrieval complete.")
-		    (remove-hook 'after-change-functions
-				 'url-after-change-function))))))
-	(progn
-	  (ding)
-	  (url-warn 'security "Aborting connection to bad port..."))))))
+	    (ding)
+	    (url-warn 'security "Aborting connection to bad port...")))))))
 
 (defun url-https (url)
   ;; Retrieve a URL via SSL
