@@ -2643,16 +2643,9 @@ Returns a data structure containing the parsed information."
                            (concat "[" (w3-invalid-sgml-chars) "]")))
              (w3-debug-html
               (format "Invalid SGML character: %c" (char-after (point))))
-             ;; This will avoid ebola warnings... but do we reallly want
-             ;; to be nuking the invalid character if we are in a MULE
-             ;; buffer... ISO2022 could have 'invalid' HTML characters,
-             ;; but still parse well.  But would this only ever happen
-             ;; if for some reason we did not decode the SJIS/ISO2022
-             ;; encodings?  Mislabeled MIME with no charset?
-             ;;
-             ;; FIXME FIXME FIXME!!!!!
-             (insert (or (cdr-safe (assq (w3-char-int (char-after (point)))
-                                         w3-invalid-sgml-char-replacement)) ""))
+             ;; Probably cp1252 or some such without proper MIME spec...
+             (insert (w3-resolve-numeric-entity
+                      (w3-char-int (char-after (point)))))
              (delete-char 1))
             ((eobp)
              ;; We have finished the buffer.  Make sure we process the last
