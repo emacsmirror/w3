@@ -12,7 +12,7 @@
 @c site: http://www.cs.indiana.edu/elisp/w3/docs.html
 @c
 @setfilename w3.info
-@settitle Emacs/W3 $State: Exp $ User's Manual
+@settitle Emacs/W3 $State: TESTING $ User's Manual
 @iftex
 @finalout
 @end iftex
@@ -85,12 +85,12 @@ encouraged to @i{Web-enable} their applications and daily work routines
 with the library.
 
 Emacs/W3 is completely customizable, both from Emacs-Lisp and from
-stylesheets @xref{Stylesheets}  If there is any aspect of Emacs/W3 that
+stylesheets @xref{Stylesheets}.  If there is any aspect of Emacs/W3 that
 cannot be modified to your satisfaction, please send mail to the
 @t{w3-beta@@indiana.edu} mailing list with any suggestions.
-@xref{Reporting Bugs}
+@xref{Reporting Bugs}.
 
-This manual corresponds to Emacs/W3 $State: Exp $
+This manual corresponds to Emacs/W3 $State: TESTING $
 
 @menu
 * Getting Started::             Getting up and running with Emacs/W3
@@ -314,8 +314,8 @@ as well as the site-wide directories.  In particular it will look for
 background and @file{light.css} or @file{stylesheet-light} if you're
 using a light background as well as @file{stylesheet} and
 @file{default.css}.  If @code{w3-default-stylesheet} is not @code{nil}
-then the file that it names will be used as well.  @xref{Stylesheets}
-for more information.
+then the file that it names will be used as well.  For more information,
+@xref{Stylesheets}.
 
 @subsection History
 @cindex history
@@ -366,7 +366,8 @@ with lots of form fields.
 By default, hypertext links are surrounded by '[[' and ']]' on
 non-graphic terminals (VT100, DOS window, etc.).  On a graphics
 terminal, the links are in shown in different colors.
-@xref{Stylesheets} for information on how to change this.
+For information on how to change this, @xref{Stylesheets}.
+
 
 There are approximately 50 keys bound to special Emacs/W3 functions.
 The basic rule of thumb regarding keybindings in Emacs/W3 is that a
@@ -786,8 +787,9 @@ to @code{w3-mode-hook}.
 
 @code{turn-on-lynx-emulation} turns on lynx emulation and turns off
 netscape emulation.  lynx emulation is handled by the
-@code{w3-lynx-emulation-minor-mode} minor mode.  @xref{Hotlist Handling}
-for more information about lynx style hotlists.
+@code{w3-lynx-emulation-minor-mode} minor mode.  For more information
+about lynx style hotlists, @xref{Hotlist Handling}.
+
 
 :: work :: Document lynx emulation@*
 @table @kbd
@@ -962,10 +964,11 @@ Invoke the Cookie Jar Page (ignored)
 @findex turn-on-netscape-emulation
 @findex w3-netscape-emulation-minor-mode
 
-@code{turn-on-netscape-emulation} turns on netscape emulation and turns off
-lynx emulation.  netscape emulation is handled by the
-@code{w3-netscape-emulation-minor-mode} minor mode.  @xref{Hotlist Handling}
-for more information about netscape style hotlists.
+@code{turn-on-netscape-emulation} turns on netscape emulation and turns
+off lynx emulation.  netscape emulation is handled by the
+@code{w3-netscape-emulation-minor-mode} minor mode.  For more
+information about netscape style hotlists, @xref{Hotlist Handling}.
+
 
 
 @table @kbd
@@ -2984,12 +2987,12 @@ Examples:
 @node cue-after, cue, cue-before, Speech Properties
 @subsubsection cue-after
 
-@xref{cue-before}
+@xref{cue-before}.
 
 @node cue, play-during, cue-after, Speech Properties
 @subsubsection cue
 
-@xref{cue-before}
+@xref{cue-before}.
 
 @node play-during, speed, cue, Speech Properties
 @subsubsection cue-during
@@ -3545,11 +3548,11 @@ passed to external programs or Emacs Lisp functions to be viewed.
 Not all files can be viewed accurately from within an Emacs session (PNG
 files for example, or audio files).  For this reason, the user can
 specify file "viewers" based on MIME content-types.  This is done with
-a standard mailcap file.  @xref{Mailcap Files}
+a standard mailcap file.  @xref{Mailcap Files}.
 
 @findex mm-add-mailcap-entry
 As an alternative, the function @code{mm-add-mailcap-entry} can also be
-used from an appropriate hook.@xref{Hooks}  This functions takes three
+used from an appropriate hook.  @xref{Hooks}.  This functions takes three
 arguments, the major type ("@i{image}"), the minor type ("@i{png}"), and
 an assoc list of information about the viewer.  Please see the @sc{url}
 documentation for more specific information on what this assoc list
@@ -3591,7 +3594,7 @@ archive@footnote{One is ftp://ds.internic.net/internet-drafts}.
 SSL is the @code{Secure Sockets Layer} interface developed by Netscape
 Communications @footnote{http://www.netscape.com/}.  Emacs/W3 supports
 @sc{http} transfers over an SSL encrypted channel, if the appropriate files
-have been installed.@xref{Installing SSL}
+have been installed.  @xref{Installing SSL}.
 @end table
 
 @section Privacy
