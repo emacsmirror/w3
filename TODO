@@ -3,8 +3,6 @@ BUGS (4.0):
 - When auto-loading the index.html file out of a directory, if the
   directory does not have the trailing '/', relative URL references
   are wrong.
-- Make sure that we pass all the relative URL expansion tests at
-  http://www.ics.uci.edu/%7Efielding/url/test1.html
 - /etc/mailcap cannot overide builtin mm-mime-data stuff?
 - try to protect people from using '~' in file URLs
 - keystrokes entered while in w3-pause self-insert under XEmacs - the
@@ -64,8 +62,6 @@ FEATURES (4.1)
 - keystrokes and supporting infrastructure to prefetch URLs from
   within a document that you are likely to read next.  Don't even parse
   or render them David Kastrup <dak@neuroinformatik.ruhr-uni-bochum.de>
-- LDAP support (XEmacs)
-- New proxy type for sending requests via mail to a mail->web->mail gateway.
 - Emacspeak Interaction
   - some way of specifying in a stylesheet whether certain text is
     inaudible.  use the 'inaudible text property for this.

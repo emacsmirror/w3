@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/25 21:54:57 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1998/12/26 02:40:13 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/25 21:54:57 $|$Revision: 1.3 $|Location Undetermined
+;;; $Date: 1998/12/26 02:40:13 $|$Revision: 1.4 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -103,6 +103,9 @@
 (autoload 'url-news "url-news")
 (autoload 'url-nntp "url-news")
 (autoload 'url-cid "url-cid")
+
+(if (featurep 'ldap)
+    (autoload 'url-ldap "url-ldap"))
 
 (autoload 'url-open-stream "url-gw")
 (autoload 'url-mime-response-p "url-http")
@@ -923,6 +926,8 @@ dumped with emacs."
     (url-register-protocol 'telnet)
     (url-register-protocol 'tn3270)
     (url-register-protocol 'proxy)
+    (if (featurep 'ldap)
+	(url-register-protocol 'ldap))
     (url-register-protocol 'auto 'url-handle-no-scheme)
 
     ;; Register all the authentication schemes we can handle

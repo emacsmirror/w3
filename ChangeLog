@@ -1,5 +1,10 @@
 1998-12-25  William M. Perry  <wmperry@aventail.com>
 
+* lisp/url-ldap.el: New file to implement LDAP support ala RFC2255
+
+* lisp/url.el (url-do-setup): Register the LDAP URL handler if the feature 
+  is present.
+
 * Emacs/W3 4.0pre36 released
 
 * lisp/url.el (url-default-expander): Make sure that we remove any query

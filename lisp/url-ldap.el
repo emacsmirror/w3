@@ -1,0 +1,176 @@
+;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
+;; Author: $Author: wmperry $
+;; Created: $Date: 1998/12/26 02:40:13 $
+;; Version: $Revision: 1.1 $
+;; Keywords: comm, data, processes
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Copyright (c) 1998 - 1999 Free Software Foundation, Inc.
+;;;
+;;; This file is part of GNU Emacs.
+;;;
+;;; GNU Emacs is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation; either version 2, or (at your option)
+;;; any later version.
+;;;
+;;; GNU Emacs is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU General Public License
+;;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;;; Boston, MA 02111-1307, USA.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'url-vars)
+(require 'url-parse)
+
+;; This has been implemented from RFC2255 'The LDAP URL Format' (Dec 1997)
+;;
+;; basic format is: ldap://host:port/dn?attributes?scope?filter?extensions
+;;
+;;
+;; Test URLs:
+;; ldap://ldap.itd.umich.edu/cn%3Dumbflabmanager%2C%20ou%3DUser%20Groups%2C%20ou%3DGroups%2C%20o%3DUniversity%20of%20Michigan%2C%20c%3DUS
+;; ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US
+
+(defvar url-ldap-default-host "ldap"
+  "*Default LDAP server to contact when none has been specified in the URL.")
+
+(defvar url-ldap-pretty-names
+  '(("l"           . "City")
+    ("objectClass" . "Object Class")
+    ("o"           . "Organization")
+    ("ou"          . "Organizational Unit")
+    ("mail"        . "Email")
+    ("c"           . "Country")
+    ("postalCode"  . "ZIP Code")
+    ("telephoneNumber" . "Phone Number")
+    ("postalAddress"   . "Mailing Address")
+    ("description"     . "Notes"))
+  "*An assoc list mapping LDAP attribute names to pretty descriptions of them.")
+
+(defvar url-ldap-attribute-formatters
+  '(("mail"       . (lambda (x) (format "<a href='mailto:%s'>%s</a>" x x)))
+    ("owner"      . url-ldap-dn-formatter)
+    ("member"     . url-ldap-dn-formatter))
+  "*An assoc list mapping LDAP attribute names to pretty formatters for them.")
+
+(defsubst url-ldap-attribute-pretty-name (n)
+  (or (cdr-safe (assoc n url-ldap-pretty-names)) n))
+
+(defsubst url-ldap-attribute-pretty-desc (n v)
+  (funcall (or (cdr-safe (assoc n url-ldap-attribute-formatters)) 'identity) v))
+
+(defun url-ldap-dn-formatter (dn)
+  (concat "<a href='/"
+	  (url-hexify-string dn)
+	  "'>" dn "</a>"))
+  
+(defun url-ldap (url)
+  (let* ((urlobj (url-generic-parse-url url))
+	 (binddn nil)
+	 (data (url-filename urlobj))
+	 (host (url-host urlobj))
+	 (port (url-port urlobj))
+	 (base-object nil)
+	 (attributes nil)
+	 (scope nil)
+	 (filter nil)
+	 (extensions nil)
+	 (connection nil)
+	 (results nil))
+
+    ;; Get rid of leading /
+    (if (string-match "^/" data)
+	(setq data (substring data 1)))
+
+    ;; Fill in the default host
+    (if (not host)
+	(setq host url-ldap-default-host))
+
+    (setq data (mapcar (lambda (x) (if (/= (length x) 0) x nil)) (split-string data "\\?"))
+	  base-object (nth 0 data)
+	  attributes (nth 1 data)
+	  scope (nth 2 data)
+	  filter (nth 3 data)
+	  extensions (nth 4 data))
+
+    ;; fill in the defaults
+    (setq base-object (url-unhex-string (or base-object ""))
+	  scope (intern (url-unhex-string (or scope "base")))
+	  filter (url-unhex-string (or filter "(objectClass=*)")))
+
+    (if (not (memq scope '(base one tree)))
+	(error "Malformed LDAP URL: Unknown scope: %S" scope))
+
+    ;; Convert to the internal LDAP support scoping names.
+    (setq scope (cdr (assq scope '((base . base) (one . onelevel) (sub . subtree)))))
+
+    (if attributes
+	(setq attributes (mapcar 'url-unhex-string (split-string attributes ","))))
+
+    ;; Parse out the exentions
+    (if extensions
+	(setq extensions (mapcar (lambda (ext)
+				   (if (string-match "\\([^=]*\\)=\\(.*\\)" ext)
+				       (cons (match-string 1 ext) (match-string 2 ext))
+				     (cons ext ext)))
+				 (split-string extensions ","))
+	      extensions (mapcar (lambda (ext)
+				   (cons (url-unhex-string (car ext))
+					 (url-unhex-string (cdr ext))))
+				 extensions)))
+
+    (setq binddn (cdr-safe (or (assoc "bindname" extensions)
+			       (assoc "!bindname" extensions))))
+    
+    ;; Now, let's actually do something with it.
+    (setq connection (ldap-open host (if binddn (list 'binddn binddn)))
+	  results (ldap-search-internal connection filter base-object scope attributes nil))
+
+    (set-buffer (get-buffer-create url-working-buffer))
+    (erase-buffer)
+    (setq url-current-mime-type "text/html"
+	  url-current-can-be-cached nil)
+    (insert "<html>\n"
+	    " <head>\n"
+	    "  <title>LDAP Search Results</title>\n"
+	    "  <base href='" url "'>\n"
+	    " </head>\n"
+	    " <body>\n"
+	    "  <h1>" (int-to-string (length results)) " matches</h1>\n")
+
+    (mapc (lambda (obj)
+	    (insert "  <hr>\n"
+		    "  <table border=1>\n")
+	    (mapc (lambda (attr)
+		    (if (= (length (cdr attr)) 1)
+			;; single match, easy
+			(insert "   <tr><td>"
+				(url-ldap-attribute-pretty-name (car attr))
+				"</td><td>"
+				(url-ldap-attribute-pretty-desc (car attr) (car (cdr attr)))
+				"</td></tr>\n")
+		      ;; Multiple matches, slightly uglier
+		      (insert "   <tr>\n"
+			      (format "    <td valign=top>" (length (cdr attr)))
+			      (url-ldap-attribute-pretty-name (car attr)) "</td><td>"
+			      (mapconcat (lambda (x)
+					   (url-ldap-attribute-pretty-desc (car attr) x))
+					 (cdr attr)
+					 "<br>\n")
+			      "</td>"
+			      "   </tr>\n")))
+		  obj)
+	    (insert "  </table>\n"))
+	  results)
+
+    (insert "  <hr>\n"
+	    " </body>\n"
+	    "</html>\n")))
+
+(provide 'url-ldap)
