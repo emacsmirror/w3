@@ -1,7 +1,7 @@
 ;;; w3-keymap.el --- Keybindings for Emacs/W3
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:08 $
-;; Version: $Revision: 1.1 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/05/29 15:46:28 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,7 +40,7 @@
 (define-key w3-mode-map "ha"       'w3-hotlist-apropos)
 (define-key w3-mode-map "hd"       'w3-hotlist-delete)
 (define-key w3-mode-map "hi"       'w3-hotlist-add-document)
-(define-key w3-mode-map "hv"       'w3-show-hotlist)
+(define-key w3-mode-map "hv"       'w3-hotlist-view)
 (define-key w3-mode-map "hr"       'w3-hotlist-rename-entry)
 (define-key w3-mode-map "hu"       'w3-use-hotlist)
 (define-key w3-mode-map "hA"       'w3-hotlist-append)
