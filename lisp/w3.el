@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/10/01 11:34:55 $
-;; Version: $Revision: 1.23 $
+;; Created: $Date: 2001/10/11 12:57:16 $
+;; Version: $Revision: 1.24 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -49,6 +49,8 @@
 (require 'w3-vars)
 (eval-and-compile
   (require 'w3-display))
+(autoload 'w3-parse-hotlist "w3-hot")
+(autoload 'w3-menu-install-menus "w3-menu")
 
 
 (defun w3-notify-when-ready (buff)
@@ -144,13 +146,19 @@ hypertext document."
 		    (url-get-url-at-point))))
     url))
 
+(defvar w3-explicit-coding-system nil
+  "Coding system to decode documents.
+
+The global value is usually nil.  It will be bound locally if a user
+invokes some commands which read a coding system from the user.")
+
 (defun w3-decode-charset (handle)
   "Decode charset-encoded text in the document.
 HANDLE is the MIME handle of the original part.
 Return the coding system used for the decoding."
-  (interactive "P")
   (let* ((encoding (mm-handle-encoding handle))
-	 (charset (or (mail-content-type-get (mm-handle-type handle)
+	 (charset (or w3-explicit-coding-system
+		      (mail-content-type-get (mm-handle-type handle)
 					     'charset)
 		      "iso-8859-1"))
 	 (type (mm-handle-media-type handle))
@@ -291,11 +299,15 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 			    (w3-handle-refresh-header (cdr header))
 			    (setq refreshed t))))))))
     (let ((handle (mm-dissect-buffer t))
+	  (w3-explicit-coding-system
+	   (or w3-explicit-coding-system
+	       (w3-recall-explicit-coding-system url)))
 	  (buff nil))
       (message "Downloading of `%s' complete." url)
       (url-mark-buffer-as-dead (current-buffer))
       (unless headers
-	(setq headers (list (cons 'content-type (mm-handle-media-type handle)))))
+	(setq headers (list (cons 'content-type
+				  (mm-handle-media-type handle)))))
       ;; Fixme: can handle be null?
       (cond
        ((equal (mm-handle-media-type handle) "text/html")
@@ -378,17 +390,17 @@ With prefix argument, use the URL of the hyperlink under point instead."
 	  (buf (w3-buffer-visiting url)))
       (if (or (not buf)
 	      (cond
-	       ((not (equal (downcase (or url-request-method "GET")) "get")) t)
+	       ((not (equal (downcase (or url-request-method "GET")) "get"))
+		t)
 	       ((memq w3-reuse-buffers '(no never reload)) t)
 	       ((memq w3-reuse-buffers '(yes reuse always)) nil)
 	       (t
-		(if (and w3-reuse-buffers (not (eq w3-reuse-buffers 'ask)))
-		    (progn
-		      (ding)
-		      (message
-		       "Warning: Invalid value for variable w3-reuse-buffers: %s"
-		       (prin1-to-string w3-reuse-buffers))
-		      (sit-for 2)))
+		(when (and w3-reuse-buffers (not (eq w3-reuse-buffers 'ask)))
+		  (ding)
+		  (message
+		   "Warning: Invalid value for variable w3-reuse-buffers: %s"
+		   (prin1-to-string w3-reuse-buffers))
+		  (sit-for 2))
 		(not (funcall url-confirmation-func
 			      (format "Reuse URL in buffer %s? "
 				      (buffer-name buf)))))))
@@ -971,12 +983,6 @@ ftp.w3.org:/pub/www/doc."
   w3-compression-encodings
   "List of MIME encodings that require Mule not to convert
 even though the MIME type is nil or listed in `w3-mime-list-for-code-conversion'.")
-
-(defvar w3-explicit-coding-system nil
-  "Coding system to decode documents.
-
-The global value is usually nil.  It will be bound locally if a user
-invokes some commands which read a coding system from the user.")
 
 (defun w3-show-history-list ()
   "Format the url-history-list prettily and show it to the user."
