@@ -1,5 +1,10 @@
 1999-11-20  William M. Perry  <wmperry@aventail.com>
 
+* lisp/url-news.el (url-news): Unhex article references, since netscape is
+  so dumb that they escape a '@' in an explicit article reference, which
+  is SUPPOSED TO BE HOW YOU TELL IT FROM A NEWSGROUP.  Lame.
+  (url-nntp): Ditto.
+
 * lisp/url-ldap.el (url-ldap-certificate-formatter): Make sure we require
   ssl before calling any of the functions.
 

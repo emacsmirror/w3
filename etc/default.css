@@ -299,6 +299,7 @@ a:visited { voice-family: betty;}
 
 } // @media speech
 
+@media experimental {
 table    { display: table; }
 tr       { display: table-row; }
 thead    { display: table-header-group; }
@@ -308,3 +309,4 @@ col      { display: table-column; }
 colgroup { display: table-column-group; }
 td, th   { display: table-cell; }
 caption  { display: table-caption; }
+} // @media experimental
