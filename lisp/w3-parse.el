@@ -382,7 +382,9 @@ which must be a string to use as the error message."
       ;; wrongo!  Apparently, mule doesn't do sane things with char-to-string
       ;; -wmp 7/9/96
       (let ((repl (cdr-safe (assq w3-p-s-num w3-invalid-sgml-char-replacement))))
-        (insert (or repl (mule-make-iso-character w3-p-s-num)))))
+        (condition-case ()
+            (insert (or repl (mule-make-iso-character w3-p-s-num)))
+          (error (insert "~")))))
      ((looking-at "&#\\(re\\|rs\\|space\\|tab\\)[\ ;\n]?") ; \n should be \r
       (replace-match (assq (upcase (char-after (+ 3 (point))))
                            '(;; *** Strictly speaking, record end should be

@@ -1,3 +1,9 @@
+2000-07-10  William M. Perry  <wmperry@aventail.com>
+
+	* lisp/w3-parse.el (w3-expand-entity-at-point-maybe): Wrap
+	inserting of &#xxx; entities inside a condition-case so that we
+	won't choke and die when parsing a bad document.
+
 1999-12-23  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/w3-speak-table.el (w3-table-focus-on-this-cell): Synch'd up
