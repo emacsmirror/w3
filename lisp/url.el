@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/27 02:01:52 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 1998/12/28 16:30:47 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/27 02:01:52 $|$Revision: 1.5 $|Location Undetermined
+;;; $Date: 1998/12/28 16:30:47 $|$Revision: 1.6 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1960,6 +1960,13 @@ retrieve a URL by its HTML source."
       (url-warn 'url (format "Unknown proxy directive: %s" proxy) 'critical)
       nil))))
 
+(defun url-looks-like-html (&optional buf)
+  (save-excursion
+    (set-buffer (or buf (current-buffer)))
+    (goto-char (point-min))
+    (let ((case-fold-search t))
+      (re-search-forward "<\\(html\\|head\\|title\\|body\\).*>" nil t))))
+
 (defun url-retrieve-internally (url &optional no-cache)
   (let* ((url-working-buffer (if (and url-multiple-p
 				      (string-equal
@@ -2016,14 +2023,20 @@ retrieve a URL by its HTML source."
      ((and (not url-inhibit-mime-parsing)
 	   (or cached (url-mime-response-p t)))
       (or cached (url-parse-mime-headers nil t))))
+
     (if (and (or (not url-be-asynchronous)
 		 (not (equal type "http")))
 	     url-current-object
 	     (not url-current-mime-type))
-	(setq url-current-mime-type (mm-extension-to-mime
-				     (url-file-extension
-				      (url-filename
-				       url-current-object)))))
+	(progn
+	  (setq url-current-mime-type (mm-extension-to-mime
+				       (url-file-extension
+					(url-filename
+					 url-current-object))))
+	  (if (and (not url-current-mime-type)
+		   (url-looks-like-html))
+	      (setq url-current-mime-type "text/html"))))
+
     (if (not url-be-asynchronous)
 	(url-store-in-cache url-working-buffer))
     (if (not url-global-history-hash-table)
