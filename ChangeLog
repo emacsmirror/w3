@@ -1,3 +1,69 @@
+2001-05-14  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-sysdp.el: Don't define extent-related functions, to
+	avoid trouble with other packages.
+
+	* lisp/w3.el: Don't require mule-sysdp.
+	(w3-decode-charset): Remove prompting stuff.  Avoid
+	gnus-strip-whitespace.  Use mm-charset-to-coding-system and return
+	coding system used.
+	(w3-fetch-callback): Bind and set mule-retrieval-coding-system.
+	Call mm-enable-multibyte.
+	(w3-widget-button-click): Add Emacs case.
+	(w3-warn): Wrap definition in eval-and-compile.
+
+	* lisp/w3-imap.el: Use new backquote syntax.
+	(w3-image-invalid-glyph-p): Test for Emacs images.
+
+	* lisp/w3-widget.el: Use (featurep 'xemacs).  Use modern backquote
+	syntax.
+	(widget): Don't require cl.
+	(w3-vars): Require.
+	(w3-point-in-map, w3-point-in-map): Autoload.
+	(widget-image-value-set): Add Emacs 21 image test.
+	(widget-image-usemap): Avoid a string-match.
+	(widget-image-value-create): Use align property.  Fix call of
+	image-type-available-p.  Some simplification.  Use `insert-image'
+	in Emacs.
+	(widget-image-delete): Maybe use delete-overlay.
+	(widget-glyphp): Test for Emacs image.
+	(widget-image-button-press): Add code for Emacs.
+
+	* lisp/w3-display.el: Use (featurep 'xemacs), not
+	w3-running-xemacs.  Use modern backquote syntax.
+	(w3-maybe-start-image-download): Use display-graphic-p.  Don't use
+	make-glyph in Emacs.
+	(w3-maybe-start-background-image-download): Fix typo `mesage'.
+	Don't use make-glyph in Emacs.
+	(w3-finalize-image-download): For Emacs, grok `align' attribute.
+	Use unibyte for image data in Emacs.  Only do xbm stuff in XEmacs.
+	Don't do make-glyph by default.  Only call set-glyph-image if it's
+	defined.
+	(w3-handle-image): Use `align'.
+	(w3-dingbats): Define without using mule-sysdep-version.
+	(w3-make-char): Likewise.
+	(w3-display-node): Minor logic simplification.
+
+	* lisp/w3-menu.el (cl): Require cl when compiling.  Use (featurep
+	'xemacs), not w3-running-xemacs.
+	(w3-menu-file-menu): Allow ---:shadowDoubleEtchedIn in Emacs 21.
+	(w3-menu-options-menu): Comment-out `download to disk'
+	(w3-dump-to-disk not defined).
+
+	* lisp/w3-parse.el (url-expand-file-name): Autoload.
+	(cl): Require when compiling.
+	(w3-invalid-sgml-char-replacement): Defvar when compiling.
+	(w3-parse-munge-ethiopic-text): Don't bother supporting MULE 2.
+	(w3-parse-hooks): Customize.  Default to nil, with
+	w3-parse-munge-ethiopic-text as an option.
+
+	* lisp/w3-dired.el (w3-dired-find-file-mouse): Use mouse-set-point.
+	(dired-get-filename): Autoload.
+	(w3-dired-find-file-dired): New function, renamed from second
+	occurrence of w3-dired-find-file.
+
+	* lisp/w3-hot.el (cl): Require when compiling.
+
 2001-05-10  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-menu.el (w3-menu-go-menu): Use url-history-track, not
