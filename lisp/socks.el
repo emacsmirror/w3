@@ -1,13 +1,14 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:08 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/29 14:49:33 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, firewalls
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 - 1998 by William M. Perry <wmperry@cs.indiana.edu>
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -441,8 +442,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (while noproxy
       (if (eq ?! (aref (car noproxy) 0))
 	  (if (string-match (substring (car noproxy) 1) host)
-	      (setq route nil
-		    noproxy nil))
+	      (setq noproxy nil))
 	(if (string-match (car noproxy) host)
 	    (setq route nil
 		  noproxy nil)))
