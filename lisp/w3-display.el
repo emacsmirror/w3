@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.42 $
+;; Version: $Revision: 1.43 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2458,7 +2458,7 @@ Format: (((image-alt row column) . offset) ...)")
 		 (setf (car w3-face-color) fore)
 		 (setf (car w3-face-background-color) back)
 
-		 (if (not font-running-xemacs)
+		 (if (not (featurep 'xemacs))
 		     (setq w3-display-background-properties (cons fore back))
 		   (if pixm
 		       (w3-maybe-start-background-image-download pixm 'default))
