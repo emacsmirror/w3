@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.34 $
+;; Version: $Revision: 1.35 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,7 +139,7 @@
   )
 
 (defvar w3-display-same-buffer nil)
-(defvar w3-face-cache nil  "Cache for w3-face-for-element")
+(defvar w3-face-cache nil  "Cache for `w3-face-for-element'.")
 (defvar w3-face-index 0)
 (defvar w3-image-widgets-waiting nil)
 
@@ -165,7 +165,7 @@
       (setq len (1+ len)))
     prefix-vector))
 
-(defvar w3-pause-keystroke nil)
+n(defvar w3-pause-keystroke nil)
 
 (defsubst w3-pause ()
   (declare (special cur-viewing-pos))
@@ -2500,30 +2500,13 @@ Format: (((image-alt row column) . offset) ...)")
 	    (*invisible
 	     (w3-handle-empty-tag))
 	    (meta
-	     ;; FIXME!!! This is broken for the new URL package.
-	     '(let* ((equiv (cdr-safe (assq 'http-equiv args)))
-		     (value (w3-get-attribute 'content))
-		     (name  (w3-get-attribute 'name))
-		     (node  (and equiv (assoc (setq equiv (downcase equiv))
-					      url-current-mime-headers))))
-		(if equiv
-		    (setq url-current-mime-headers (cons
-						    (cons equiv value)
-						    url-current-mime-headers)))
-		(if name
-		    (setq w3-current-metainfo (cons
-					       (cons name value)
-					       w3-current-metainfo)))
-
-		;; Special-case the Set-Cookie header
-		(if (and equiv (string= (downcase equiv) "set-cookie"))
-		    (url-cookie-handle-set-cookie value))
-		;; Special-case the refresh header
-		(if (and equiv (string= (downcase equiv) "refresh"))
-		    ;; FIXME!!!
-		    (url-handle-refresh-header value)))
-	     (w3-handle-empty-tag)
-	     )
+	     (let ((name (w3-get-attribute 'name))
+		   (value (or (w3-get-attribute 'content) "")))
+	       ;; http-equiv is dealt with by `w3-fetch-callback'.
+	       (if name
+		   (setq w3-current-metainfo (cons
+					      (cons name value)
+					      w3-current-metainfo)))))
 	    (link
 	     ;; This doesn't handle blank-separated values per the RFC.
 	     (w3-parse-link args)
