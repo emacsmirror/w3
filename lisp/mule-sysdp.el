@@ -14,6 +14,8 @@
 (defconst mule-sysdep-version (if (featurep 'mule)
 				  (cond
 				   ((string-match "XEmacs" emacs-version)
+				    (if (boundp 'enable-multibyte-characters)
+					(make-variable-buffer-local 'enable-multibyte-characters))
 				    'xemacs)
 				   ((and
 				     (boundp 'mule-version)
