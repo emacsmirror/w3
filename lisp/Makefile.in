@@ -32,6 +32,7 @@ W3_SOURCES =								\
 	w3-emacs.el							\
 	w3-emulate.el							\
 	w3-forms.el							\
+	w3-fast-parse.el						\
 	w3-hot.el							\
 	w3-hotindex.el							\
 	w3-imap.el							\
