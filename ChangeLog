@@ -1,3 +1,8 @@
+2001-05-30  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-menu.el: Require w3-sysdp.
+	(w3-popup-menu): Revert last change.
+
 2001-05-29  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-sysdp.el: Remove lots of unused stuff.
