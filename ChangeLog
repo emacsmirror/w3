@@ -1,18 +1,48 @@
 2001-06-07  Dave Love  <fx@gnu.org>
 
+	* lisp/w3-print.el (mule-sysdp): Don't require.
+
+	* lisp/w3-parse.el (mule-sysdp): Don't require.
+
+	* lisp/w3-latex.el (mule-sysdp): Don't require.
+	(w3-show-dvi): Avoid mule-write-region-no-coding-system.
+
+	* lisp/w3-display.el (mule-sysdp): Don't require.
+	(w3-display-get-cookie, w3-finalize-image-download): Avoid
+	mule-write-region-no-coding-system.
+
+	* lisp/w3-cus.el (mule-sysdp): Don't require.
+	(w3-force-conversion-alist): Use binary, not
+	mule-no-coding-system.
+
+	* lisp/images.el (mule-sysdp): Don't require.
+	(image-normalize): Use binary, not mule-no-coding-system.
+
+	* lisp/w3-forms.el (wid-edit): Require unconditionally.
+	(custom-magic-reset, w3-warn): Autoload.
+	(w3-form-keymap): Use substitute-key-definition, not
+	cl-map-keymap.
+	(w3-form-create-custom): Require cus-edit unconditionally.
+	(w3-all-widgets): Move definition.
+	(w3-form-create-file-browser, w3-form-create-option-list) 
+	(w3-form-default-button-update): Avoid mule-truncate-string.
+	(mule-sysdp): Don't require.
+	(w3-form-encode-xwfu): Avoid mule-encode-string.
+
 	* lisp/w3-emacs.el: New file.
 
 	* lisp/w3-e19.el, lisp/w3-e20.el, lisp/w3-e21.el: Deleted in
 	favour of w3-emacs.
 
 	* lisp/w3.el (w3-load-flavors): Remove Emacs version-specifics --
-	just require w3-emacs..
+	just require w3-emacs.
 
 	* lisp/w3-toolbar.el (w3-toolbar-file-icon)
 	(w3-toolbar-printer-icon, w3-toolbar-file-icon): New variable.
 	(w3-toolbar-map): Transform `toolbar-' symbols into `w3-toolbar-'.
 
 	* lisp/w3-sysdp.el (copy-tree): Fix cl- functions.
+	(truncate-string-to-width): New.
 
 2001-06-05  Dave Love  <fx@gnu.org>
 
