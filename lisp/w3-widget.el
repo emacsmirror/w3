@@ -1,12 +1,12 @@
 ;;; w3-widget.el --- An image widget
-;; Author: ll Perry <wmperry@gnu.org>$Author: fx $
-;; Created: $Date: 2001/05/14 17:27:57 $
-;; Version: $Revision: 1.6 $
+;; Author: Bill Perry <wmperry@gnu.org>
+;; Created: $Date: 2001/05/18 23:42:43 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: faces, images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 1997 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 1997, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -49,6 +49,10 @@
 ;;;    either a glyph of the image, or a drop-down-list of the destinations
 ;;;    These are either URLs (http://foo/...) or alternative text.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; I don't think there's currently any way to get the pixel position
+;; of a mouse event on an Emacs 21 image, so image maps aren't going
+;; to work properly.  -- fx
 
 (require 'widget)
 (require 'url-util)
