@@ -5,8 +5,10 @@
 (setq srcdir (or (getenv "W3SRCDIR") "."))
 
 (push srcdir load-path)
-(push (or (getenv "GNUSDIR") (expand-file-name "../gnus/lisp/" srcdir)) load-path)
-(push (or (getenv "URLDIR") (expand-file-name "../url/lisp/" srcdir)) load-path)
+(push (or (getenv "GNUSDIR") (expand-file-name "../../gnus/lisp/" srcdir))
+      load-path)
+(push (or (getenv "URLDIR") (expand-file-name "../../url/lisp/" srcdir))
+      load-path)
 
 (setq max-specpdl-size (* 1000 max-specpdl-size)
       max-lisp-eval-depth (* 1000 max-lisp-eval-depth))

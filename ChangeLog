@@ -1,3 +1,8 @@
+2001-01-02  Sam Steingold  <sds@gnu.org>
+
+	* lisp/docomp.el (load-path): Gnus and URL are two levels
+	above w3/lisp by default.
+
 2000-12-20  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-sysdp.el: Use sysdep-defalias, not sysdep-fset.
@@ -25,14 +30,14 @@
 	Callers changed.
 	(socks-original-open-network-stream, open-network-stream): Use
 	defalias, not fset.
-	(socks-wait-for-state-change, socks-filter) 
-	(socks-open-connection, socks-open-connection) 
-	(socks-send-command, socks-parse-services) 
+	(socks-wait-for-state-change, socks-filter)
+	(socks-open-connection, socks-open-connection)
+	(socks-send-command, socks-parse-services)
 	(socks-find-services-entry, socks-open-network-stream)
 	(socks-username/password-auth-filter)
 	(socks-username/password-auth): Don't use cl-...hash.
 
-	* lisp/css.el (css-get-internal, css-copy-stylesheet) 
+	* lisp/css.el (css-get-internal, css-copy-stylesheet)
 	(css-store-rule, css-display): Don't use cl-...hash.
 
 2000-11-15  William M. Perry  <wmperry@aventail.com>
