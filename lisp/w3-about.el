@@ -1,7 +1,7 @@
 ;;; w3-about.el --- About pages for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/27 01:50:02 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1998/12/27 01:54:10 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -427,7 +427,7 @@ experiment! :)
  <body>
   <hr width=\"85%\">
   <hr width=\"75%\" label=\" The Emacs-W3 Team \">
-  <hr width=\"65%\" label=\" 1993 - 1996 \">
+  <hr width=\"65%\" label=\" 1993 - 1999 \">
   <hr width=\"55%\">
   <dl>
    <dt> Author
