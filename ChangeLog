@@ -1,3 +1,15 @@
+2001-12-04  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3-display.el (w3-display-node): Explicitly put in breaks
+	for <hr> - <p> is not always inferred before and after (like when
+	using w3-fast-parse.
+
+2001-11-25  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3-parse.el (w3-parse-buffer): Add : to the allowed tag
+	names to deal with Microsoft XHTML.
+	(w3-parse-buffer): Allow : in attribute names for XHTML
+
 2001-11-24  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/font.el (font-set-face-font-new-redisplay): Doh!  Fix my

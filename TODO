@@ -75,9 +75,3 @@ FEATURES (5.0)
   - implement <spacer> from netscape 3.0b5
   - Handle math environment using the calc library
   - Better integration with the parser
-
-MAINTENANCE CRAP (4.0)
-- Get in touch with "Rob" == Rob Partington <rjp@netlink.co.uk> about
-  registering w3.browser.org
-- Legal Papers (status - emailed necessary paperwork)
-  - Stephen Peters <speters@cygnus.com> - LaTeX code (???)

@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.38 $
+;; Version: $Revision: 1.39 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2314,7 +2314,9 @@ Format: (((image-alt row column) . offset) ...)")
 		   (setq perc (/ (min (string-to-int perc) 100) 100.0)
 			 width (truncate (* fill-column perc)))
 		 (setq width perc))
+	       (w3-display-handle-break)
 	       (w3-insert-terminal-char (w3-horizontal-rule-char) width)
+	       (w3-display-handle-break)
 	       (w3-handle-empty-tag)))
 	    (map			; Client side imagemaps
 	     (let ((name (or (w3-get-attribute 'name)

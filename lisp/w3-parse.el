@@ -2025,7 +2025,7 @@ Do nothing in non-Mule or unibyte session."
 ;; %       DO NOT call any of the other functions!      %
 ;; %                                                    %
 ;; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-(defun w3-parse-buffer (&optional buff)
+(defun w3-slow-parse-buffer (&optional buff)
   "Parse contents of BUFF as HTML.
 BUFF defaults to the current buffer.
 Destructively alters contents of BUFF.
@@ -2213,7 +2213,9 @@ Returns a data structure containing the parsed information."
              (forward-char)
              (cond
 
-              ((looking-at "/?\\([a-z][-a-z0-9.]*\\)")
+              ;; jbw 2001-11-02: added possibility of of ":" in element
+              ;; name to handle Microsoft-generated XHTML.
+              ((looking-at "/?\\([a-z][-a-z0-9.:]*\\)")
                ;; We are looking at a non-empty tag.
 
                ;; Downcase it in the buffer, to save creation of a string
@@ -2253,7 +2255,9 @@ Returns a data structure containing the parsed information."
                          "[ \n\r\t,]*"
                          ;; The attribute name, possibly with a bad syntax
                          ;; component.
-                         "\\([a-z_:][-a-z0-9.]*\\(\\([_][-a-z0-9._:]*\\)?\\)\\)"
+                         ;; jbw 2001-11-02: added possibility of ":" to
+                         ;; next line to handle Microsoft-generated XHTML.
+                         "\\([a-z_][-a-z0-9.]*\\(\\([_:][-a-z0-9._:]*\\)?\\)\\)"
                          ;; Trailing whitespace and perhaps an "=".
                          "[ \n\r\t]*\\(\\(=[ \n\r\t]*\\)?\\)")))
                
@@ -2913,6 +2917,18 @@ Returns a data structure containing the parsed information."
          (set-syntax-table old-syntax-table)
          (w3-element-content w3-p-d-current-element)
          )))))
+
+(require 'w3-fast-parse)
+
+(defun w3-parse-buffer (&optional buff)
+  "Parse contents of BUFF as HTML.
+BUFF defaults to the current buffer.
+Destructively alters contents of BUFF.
+Returns a data structure containing the parsed information."
+  (if nil ;; (w3-fast-parse-find-tidy-program)
+      (fset 'w3-parse-buffer 'w3-fast-parse-buffer)
+    (fset 'w3-parse-buffer 'w3-slow-parse-buffer))
+  (w3-parse-buffer buff))
 
 
 
