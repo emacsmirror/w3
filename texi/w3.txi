@@ -12,7 +12,7 @@
 @c site: http://www.cs.indiana.edu/elisp/w3/docs.html
 @c
 @setfilename w3.info
-@settitle Emacs/W3 $State: TESTING $ User's Manual
+@settitle Emacs/W3 $State: Exp $ User's Manual
 @iftex
 @finalout
 @end iftex
@@ -90,7 +90,7 @@ cannot be modified to your satisfaction, please send mail to the
 @t{w3-beta@@indiana.edu} mailing list with any suggestions.
 @xref{Reporting Bugs}.
 
-This manual corresponds to Emacs/W3 $State: TESTING $
+This manual corresponds to Emacs/W3 $State: Exp $
 
 @menu
 * Getting Started::             Getting up and running with Emacs/W3

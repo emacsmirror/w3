@@ -27,7 +27,7 @@ This is the Emacs/W3 Frequently Asked Questions list.
 @item
 Q1.1  What is the latest version of Emacs/W3?
 
-The latest version is $State: Exp $.
+The latest version is $State: v4.0pre.46 $.
 
 @item
 Q1.2  Where do I get Emacs/W3?

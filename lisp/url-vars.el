@@ -1,7 +1,7 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:48 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/10/01 20:22:10 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -38,7 +38,7 @@
     (defmacro defcustom (var value doc &rest args) 
       (` (defvar (, var) (, value) (, doc))))))
 
-(defconst url-version (let ((x "$State: p4.0pre.44 $"))
+(defconst url-version (let ((x "$State: p4.0pre.46 $"))
 			(if (string-match "State: \\([^ \t\n]+\\)" x)
 			    (substring x (match-beginning 1) (match-end 1))
 			  x))

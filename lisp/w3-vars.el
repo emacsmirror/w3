@@ -1,7 +1,7 @@
 ;;; w3-vars.el,v --- All variable definitions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:52 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/10/01 20:22:11 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,7 +34,7 @@
 (require 'wid-edit)			; For `widget-keymap'
 
 (defconst w3-version-number
-  (let ((x "$State: p4.0pre.44 $"))
+  (let ((x "$State: p4.0pre.46 $"))
     (if (string-match "State:[ \t\n]+.\\([^ \t\n]+\\)" x)
 	(setq x (substring x (match-beginning 1) (match-end 1)))
       (setq x (substring x 1)))
@@ -42,7 +42,7 @@
      (function (lambda (x) (if (= x ?-) "." (char-to-string x)))) x ""))
   "Version # of w3-mode.")
 
-(defconst w3-version-date (let ((x "$Date: 1999/04/08 11:47:52 $"))
+(defconst w3-version-date (let ((x "$Date: 1999/10/01 20:22:11 $"))
 			    (if (string-match "Date: \\([^ \t\n]+\\)" x)
 				(substring x (match-beginning 1) (match-end 1))
 			      x))

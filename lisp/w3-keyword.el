@@ -1,7 +1,7 @@
 ;;; w3-keyword.el --- Emacs-W3 binding style sheet mechanism
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/03/25 05:30:06 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/10/01 20:22:11 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -107,6 +107,7 @@
 		  :tag
 		  :tab-order
 		  :notify
+		  :button-keymap
 		  :ignore-case
 		  :parent
 		  :type
