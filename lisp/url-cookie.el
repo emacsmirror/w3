@@ -1,7 +1,7 @@
 ;;; url-cookie.el --- Netscape Cookie support
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:46 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/11/09 14:52:19 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -346,6 +346,22 @@
 			      (url-match expires 3) " "
 			      (url-match expires 4) " ["
 			      (url-match expires 5) "]")))
+
+    ;; This one is for older Emacs/XEmacs variants that don't
+    ;; understand this format without tenths of a second in it.
+    ;; Wednesday, 30-Dec-2037 16:00:00 GMT
+    ;;       - vs -
+    ;; Wednesday, 30-Dec-2037 16:00:00.00 GMT
+    (if (and expires
+	     (string-match
+	      "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\(\\.[0-9]+\\)*[ \t]+\\([-+a-zA-Z0-9]+\\)"
+	      expires))
+	(setq expires (concat (url-match expires 1) "-"	; day
+			      (url-match expires 2) "-"	; month
+			      (url-match expires 3) " "	; year
+			      (url-match expires 4) ".00 " ; hour:minutes:seconds
+			      (url-match expires 6)))) ":" ; timezone
+    
     (while (consp trusted)
       (if (string-match (car trusted) current-url)
 	  (setq trusted (- (match-end 0) (match-beginning 0)))

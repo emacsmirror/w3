@@ -191,7 +191,7 @@ find-file-hooks, etc.
 		   (if (not (symbolp (car-safe possible)))
 		       '(undecided-unix)
 		     possible)))
-		(4.0
+		((4.0 4.1)
 		 ;; We can use HIGHEST arg t for faster detection.
 		 (detect-coding-region st nd t))
 		(otherwise nil))))
@@ -251,7 +251,7 @@ find-file-hooks, etc.
 	    (set-buffer-multibyte nil)
 	  (set 'enable-multibyte-characters nil))))
   (case mule-sysdep-version
-    ((3.0 4.0 2.4 2.3)
+    ((3.0 4.0 4.1 2.4 2.3)
      (set-process-coding-system proc mule-no-coding-system
 				mule-no-coding-system))
     (xemacs
@@ -277,7 +277,7 @@ find-file-hooks, etc.
       (3.0
        (let ((enable-multibyte-characters t))
 	 (write-region st nd file append visit lockname)))
-      (4.0
+      ((4.0 4.1)
        (write-region st nd file append visit lockname))
       (otherwise
        (write-region st nd file append visit lockname)))))
@@ -288,7 +288,7 @@ find-file-hooks, etc.
      (code-convert-string str *internal* mule-retrieval-coding-system))
     ((2.4 3.0 xemacs)
      (encode-coding-string str mule-retrieval-coding-system))
-    (4.0
+    ((4.0 4.1)
      (if default-enable-multibyte-characters
 	 (encode-coding-string str mule-retrieval-coding-system)
        str))
@@ -302,7 +302,7 @@ find-file-hooks, etc.
 	  (decode-coding-string str mule-retrieval-coding-system))
 	 (2.3
 	  (code-convert-string str *internal* mule-retrieval-coding-system))
-	 (4.0
+	 ((4.0 4.1)
 	  (if default-enable-multibyte-characters
 	      (decode-coding-string str mule-retrieval-coding-system)
 	    str))
@@ -314,7 +314,7 @@ find-file-hooks, etc.
  If width of the truncated string is less than LEN, and if a character PAD is
  defined, add padding end of it."
   (case mule-sysdep-version
-    ((3.0 4.0)
+    ((3.0 4.0 4.1)
      (truncate-string-to-width str len 0 pad))
     (2.4
      (let ((cl (string-to-vector str)) (n 0) (sw 0))
@@ -341,19 +341,19 @@ find-file-hooks, etc.
 (defun mule-find-charset-region (beg end &optional table)
   (case mule-sysdep-version
     (2.3 (code-detect-region beg end))
-    ((2.4 3.0 4.0) (find-charset-region beg end table))
+    ((2.4 3.0 4.0 4.1) (find-charset-region beg end table))
     (xemacs (charsets-in-region beg end))
     (otherwise '(no-conversion))))
 
 (defun mule-coding-system-name (codesys)
   (case mule-sysdep-version
-    ((3.0 4.0) nil)
+    ((3.0 4.0 4.1) nil)
     (xemacs (coding-system-name codesys))))
 
 (defun mule-find-coding-system (sys)
   (case mule-sysdep-version
     ((2.3 2.4) nil)
-    ((3.0 4.0) (if (get sys 'coding-system) sys nil))
+    ((3.0 4.0 4.1) (if (get sys 'coding-system) sys nil))
     (xemacs (find-coding-system sys))
     (otherwise nil)))
      
@@ -364,14 +364,14 @@ find-file-hooks, etc.
       (2.3 (make-character lc-ltn1 char))
       (2.4 (make-char charset-latin-iso8859-1 char))
       (3.0 (make-char 'latin-iso8859-1 char))
-      (4.0 (if default-enable-multibyte-characters
-	       (make-char 'latin-iso8859-1 char)
-	     char))
+      ((4.0 4.1) (if default-enable-multibyte-characters
+		     (make-char 'latin-iso8859-1 char)
+		   char))
       (xemacs char)
       (otherwise char))))
 
 (case mule-sysdep-version
-  ((2.3 2.4 3.0 4.0 xemacs) nil)
+  ((2.3 2.4 3.0 4.0 4.1 xemacs) nil)
   (otherwise (fset 'string-width 'length)))
 
 (and

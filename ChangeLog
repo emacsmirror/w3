@@ -1,3 +1,35 @@
+1999-11-09  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url-auth.el (url-register-auth-scheme): removed warning when
+  replacing auth methods.
+
+* lisp/url-file.el (url-file): Honor port numbers in ftp URLs.
+
+1999-11-09  James LewisMoss  <dres@ioa.com>
+
+* lisp/mm.el (mm-parse-mailcap): Fix invalid regular expressions caused by
+  entries like "text/x-c++"
+
+1999-11-09  Andrew Mazillius  <andrew_mazillius@pee.pioneer.be>
+
+* lisp/socks.el (socks-nslookup-host): Make sure that we always call
+  accept-process-output at least once.  Now deals correctly with multiple
+  addresses returned by nslookup in the format 'Addresses: ip1, ip2, ip3'
+
+1999-11-09  kyota@po.ntts.co.jp (Kyotaro HORIGUCHI)
+
+* lisp/mule-sysdp.el: Patches to understand MULE 4.1
+
+1999-11-09  Alexandre Guimond  <guim@guim.org>
+
+* lisp/w3.el (w3-mail-document-author): Fix problem with 'Reply-To'
+  headers.  They had not been converted to the (not quite so) new plist
+  format.
+
+1999-10-15  Dave Love  <fx@gnu.org>
+
+* lisp/w3-parse.el (char-int): Alias it to `identity' if necessary.
+
 1999-10-14  William M. Perry  <wmperry@aventail.com>
 
 * lisp/url-ldap.el (url-ldap-certificate-formatter): Now uses

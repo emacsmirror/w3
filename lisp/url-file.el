@@ -1,7 +1,7 @@
 ;;; url-file.el --- File retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:47 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/11/09 14:52:21 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -200,6 +200,8 @@ and exchanges any | in the drive identifier with a :."
 	 (user (url-user urlobj))
 	 (pass (url-password urlobj))
 	 (site (url-host urlobj))
+	 (port (url-port urlobj))
+	 (site (if port (format "%s#%s" site port)))
 	 (file (url-unhex-string (url-filename urlobj)))
 	 (dest (url-target urlobj))
 	 (filename (if (or user (not (url-host-is-local-p site)))

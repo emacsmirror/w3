@@ -1,7 +1,7 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/03/25 05:30:04 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/11/09 14:52:16 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, firewalls
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -638,13 +638,14 @@ version.")
 	(process-kill-without-query proc)
 	(save-excursion
 	  (set-buffer (process-buffer proc))
-	  (while (memq (process-status proc) '(run open))
-	    (accept-process-output proc))
+	  (while (progn
+		   (accept-process-output proc)
+		   (memq (process-status proc) '(run open))))
 	  (goto-char (point-min))
-	  (if (re-search-forward "Name:.*\nAddress: *\\(.*\\)$" nil t)
+	  (if (re-search-forward "Name:.*\nAddress\\(es\\)?: *\\([0-9.]+\\)$" nil t)
 	      (progn
-		(setq res (buffer-substring (match-beginning 1)
-					    (match-end 1))
+		(setq res (buffer-substring (match-beginning 2)
+					    (match-end 2))
 		      res (mapcar 'string-to-int (split-string res "\\.")))))
 	  (kill-buffer (current-buffer)))
 	res)

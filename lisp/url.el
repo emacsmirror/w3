@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:48 $
-;; Version: $Revision: 1.11 $
+;; Created: $Date: 1999/11/09 14:52:25 $
+;; Version: $Revision: 1.12 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1999/04/08 11:47:48 $|$Revision: 1.11 $|Location Undetermined
+;;; $Date: 1999/11/09 14:52:25 $|$Revision: 1.12 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -330,6 +330,11 @@
     (cond
      ((and url-current-content-length (> url-current-content-length 1)
 	   url-current-mime-type)
+      (if (fboundp 'progress)
+	  (progress "Reading [%s] %s"
+		    (url-percentage current-length
+				    url-current-content-length)
+		    url-current-mime-type (url-pretty-length url-current-content-length)))
       (url-lazy-message "Reading [%s]... %s of %s (%d%%)"
 			url-current-mime-type
 			(url-pretty-length current-length)
@@ -337,6 +342,11 @@
 			(url-percentage current-length
 					url-current-content-length)))
      ((and url-current-content-length (> url-current-content-length 1))
+      (if (fboundp 'progress)
+	  (progress "Reading %s"
+		    (url-percentage current-length
+				    url-current-content-length)
+		    url-current-mime-type (url-pretty-length url-current-content-length)))
       (url-lazy-message "Reading... %s of %s (%d%%)"
 			(url-pretty-length current-length)
 			(url-pretty-length url-current-content-length)

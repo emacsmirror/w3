@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/10/12 14:14:51 $
-;; Version: $Revision: 1.9 $
+;; Created: $Date: 1999/11/09 14:52:37 $
+;; Version: $Revision: 1.10 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1100,14 +1100,6 @@ insert URL under point"
 	(setq x (url-buffer-visiting "www:/auto/hotlist"))))
     (w3-fetch "www://auto/hotlist")))
 
-(defun url-maybe-relative (url)
-  "Take a url and either fetch it, or resolve relative refs, then fetch it"
-  (cond
-   ((not
-     (string-match url-nonrelative-link url))
-    (w3-relative-link url))
-   (t (w3-fetch url))))
-
 (defun w3-in-assoc (elt list)
   "Check to see if ELT matches any of the regexps in the car elements of LIST"
   (let (rslt)
@@ -1241,6 +1233,7 @@ invokes some commands which read a coding system from the user.")
 	  (if (or (stringp proc)
 		  (bufferp proc)) (setq w3-current-last-buffer proc))
 	  (remove-hook 'after-change-functions 'url-after-change-function)
+	  (if (fboundp 'clear-progress) (clear-progress))
 	  (if url-be-asynchronous
 	      (progn
 		(cond
@@ -2021,7 +2014,7 @@ No arg means whole window full.  Arg is number of lines to scroll."
 	(found nil))
     (setq found (cdr-safe (assoc "reply-to" url-current-mime-headers)))
     (if (and found (not (string-match url-nonrelative-link found)))
-	(setq found (list (concat "mailto:" found))))
+	(setq found (list (list 'href (concat "mailto:" found)))))
     (while (and x (not found))
       (setq y (car x)
 	    x (cdr x)

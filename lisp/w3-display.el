@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/10/12 14:14:48 $
-;; Version: $Revision: 1.12 $
+;; Created: $Date: 1999/11/09 14:52:29 $
+;; Version: $Revision: 1.13 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -777,7 +777,8 @@ If the face already exists, it is unmodified."
 		      (error 'nothing)))))
       (setq w3-image-widgets-waiting (cons widget w3-image-widgets-waiting)))
      ((or w3-delay-image-loads		; Delaying images
-	  (not (fboundp 'valid-specifier-domain-p)) ; Can't do images
+	  (and (not (fboundp 'valid-specifier-domain-p)) ; Can't do images (XEmacs)
+	       (not (boundp 'image-types))) ; Can't do images (Emacs)
 	  (eq (device-type) 'tty))	; Why bother?
       (w3-add-delayed-graphic widget))
      ((not (w3-image-loadable-p src nil)) ; Hey, we can't load it!
@@ -817,6 +818,7 @@ If the face already exists, it is unmodified."
 (defun w3-maybe-start-background-image-download (src face)
   (let* ((cached-glyph (w3-image-cached-p src))
 	 (buf (current-buffer)))
+    (debug)
     (cond
      ((and cached-glyph
 	   (widget-glyphp cached-glyph)

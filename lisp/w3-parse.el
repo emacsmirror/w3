@@ -1972,7 +1972,10 @@ skip-chars-forward."
            (when default-enable-multibyte-characters
              (ethio-sera-to-fidel-marker)))))
     (error nil)))
-  
+
+(if (not (fboundp 'char-int))
+    (defalias 'char-int 'identity))
+
 ;; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ;; %                                                    %
 ;; % This is the *ONLY* valid entry point in this file! %
@@ -2147,9 +2150,14 @@ Returns a data structure containing the parsed information."
          ;; of results
          (cond ((= 0 (% (setq loop-count (1+ loop-count)) 40))
                 (if status-message-format
-                    (message status-message-format
-                             ;; Percentage of buffer processed.
-                             (/ (* (point) one-hundred) (point-max))))))
+                    (progn
+                      (if (fboundp 'progress)
+                          (progress "Parsing %s"
+                                    (truncate (/ (* (point) one-hundred) (point-max)))
+                                    (url-pretty-length (point-max))))
+                      (message status-message-format
+                               ;; Percentage of buffer processed.
+                               (/ (* (point) one-hundred) (point-max)))))))
       
          ;; Go to next interesting thing in the buffer.
          (skip-chars-forward w3-p-d-non-markup-chars)
@@ -2844,6 +2852,8 @@ Returns a data structure containing the parsed information."
        (if status-message-format
            (message "%sdone" (format status-message-format 100)))
     
+       (if (fboundp 'clear-progress) (clear-progress))
+
        ;; *** For debugging, save the true parse tree.
        ;; *** Make this look inside *DOCUMENT.
        (setq w3-last-parse-tree

@@ -1,7 +1,7 @@
 ;;; url-http.el --- HTTP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:47 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/11/09 14:52:23 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -172,7 +172,7 @@
 	    "%s %s HTTP/1.0\r\n"	; The request
 	    "MIME-Version: 1.0\r\n"	; Version of MIME we speaketh
 	    "Extension: %s\r\n"		; HTTP extensions we support
-	    "Host: %s\r\n"		; Who we want to talk to
+	    "Host: %s:%d\r\n"		; Who we want to talk to
 	    "%s"			; Who its from
 	    "Accept-encoding: %s\r\n"	; Encodings we understand
 	    "%s"			; Languages we understand
@@ -190,6 +190,7 @@
 	   fname
 	   (or url-extensions-header "none")
 	   (or host "UNKNOWN.HOST.NAME")
+	   (url-port (or proxy-obj url-current-object))
 	   (if url-personal-mail-address
 	       (concat "From: " url-personal-mail-address "\r\n")
 	     "")
@@ -587,6 +588,7 @@ HTTP/1.0 specification for more details." x redir) 'error)
 		    (if url-be-asynchronous
 			nil
 		      (message "Retrieval complete.")
+		      (if (fboundp 'clear-progress) (clear-progress))
 		      (remove-hook 'after-change-functions
 				   'url-after-change-function))))))
 	  (progn

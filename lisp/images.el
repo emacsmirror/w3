@@ -1,7 +1,7 @@
 ;;; images.el --- Automatic image converters
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/07/19 23:27:43 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/11/09 14:52:10 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,9 +40,14 @@
 (defvar image-temp-stack nil "Do no touch - internal storage.")
 (defvar image-converters nil "Storage for the image converters.")
 (defvar image-native-formats
-  (delq nil (cons (if (featurep 'x) 'xbm)
-		  (mapcar (function (lambda (x) (if (featurep x) x)))
-			  '(xpm gif jpeg tiff png imagick))))
+  (cond
+   ((string-match "XEmacs" emacs-version)
+    (delq nil (cons (if (featurep 'x) 'xbm)
+		    (mapcar (function (lambda (x) (if (featurep x) x)))
+			    '(xpm gif jpeg tiff png imagick)))))
+   ((boundp 'image-types)
+    image-types)
+   (t nil))
   "A list of image formats that this version of emacs supports natively.")
 
 (defun image-register-converter (from to converter)

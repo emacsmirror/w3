@@ -97,8 +97,8 @@ This manual corresponds to Emacs/W3 $State: Exp $
 * Basic Usage::                 Basic movement and usage of Emacs/W3.
 * Compatibility::               Explanation of compatibility with
                                 other browsers.
+* Display Variables::           How to control Emacs/W3's look.
 * Stylesheets::                 How to control the look of web pages
-* Display::                     How to control Emacs/W3's look.
 * Supported URLs::              What @sc{URL} schemes are supported.
 * MIME Support::                Support for @sc{mime}
 * Security::                    Various security methods supported
@@ -118,8 +118,7 @@ Appendices:
 * Proxy Gateways::              Using a proxy gateway with Emacs/W3.
 * Installing SSL::              Turning on @sc{ssl} support.
 * Mailcap Files::               An explanation of Mailcap files.
-* Down with DoubleClick::       Annoyed by advertisements?  Read this!
-* Temporary::                   Temporary node.
+* Temporary::
 
 Indices:
 * General Index::               General Index.
@@ -279,7 +278,7 @@ html} and @samp{make ps} respectively.
 
 @c gdj1: document the other targets, fast etc.?
 
-@node Startup Files, , Building and Installing, Getting Started
+@node Startup Files,  , Building and Installing, Getting Started
 @section Startup Files
 @cindex Startup files
 @cindex .w3
@@ -741,7 +740,7 @@ a @code{completing-read} on only the links that have that type of
 relationship.
 @end table
 
-@node Compatibility, Display, Basic Usage, Top
+@node Compatibility, Display Variables, Basic Usage, Top
 @chapter Compatibility with other Browsers
 Due to the popularity of several other browsers, Emacs/W3 offers an easy
 transition to its much better way of life.  This ranges from being able
@@ -1486,7 +1485,7 @@ equivalent to meek.
 @end table
 
 
-@node Stylesheets, Supported URLs, Display, Top
+@node Stylesheets, Supported URLs, Display Variables, Top
 @chapter Stylesheets
 The way in which Emacs/W3 formats a document is very customizable.  All
 formatting is now controlled by a default stylesheet set by the user
@@ -4772,7 +4771,7 @@ SSL_VERIFY_CLIENT_ONCE
 @end table
 The default is 0
 
-@node Mailcap Files, Down with DoubleClick, Installing SSL, Top
+@node Mailcap Files, Temporary, Installing SSL, Top
 @appendix Mailcap Files
 NCSA Mosaic and almost all other WWW browsers rely on a separate file
 for mapping MIME types to external viewing programs.  This takes some of
@@ -4906,12 +4905,7 @@ some of which might be standardized in a future version of this
 document.
 @end itemize
 
-@node Down with DoubleClick, Temporary, Mailcap Files, Top
-@appendix Down with DoubleClick
-:: WORK :: Document why doubleclick is evil@*
-:: WORK :: Document how you can never see another ad from them again
-
-@node Temporary, General Index, Down with DoubleClick, Top
+@node Temporary, General Index, Mailcap Files, Top
 @comment  node-name,  next,  previous,  upGeneral Index
 
 @c @appendix Temporary

@@ -1,7 +1,7 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/30 11:14:35 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/11/09 14:52:18 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -301,12 +301,7 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 			    ", but it is not a function!") function)))
 
     (if node
-	(progn
-	  (setcdr node (cons function rating))
-	  (url-warn 'security
-		    (format
-		     "Replacing authorization method `%s' - this could be bad."
-		     type)))
+	(setcdr node (cons function rating))
       (setq url-registered-auth-schemes
 	    (cons (cons type (cons function rating))
 		  url-registered-auth-schemes)))))

@@ -1,7 +1,7 @@
 ;;; w3-widget.el --- An image widget
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/11/09 14:52:35 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -178,12 +178,25 @@
     ;; Specifier-instance will signal an error if we have an invalid
     ;; image specifier, which would be the case if we get screwed up
     ;; data back from a URL somewhere.
-    
-    (setq invalid-glyph (and glyph (condition-case ()
-				       (if (specifier-instance
-					    (glyph-image glyph))
+
+    (cond
+     (w3-running-xemacs
+      ;; All XEmacsen have support for glyphs
+      (setq invalid-glyph (and glyph (condition-case ()
+					 (if (fboundp 'specifier-instance)
+					     (if (specifier-instance
+						  (glyph-image glyph))
+						 nil)
 					   nil)
-				     (error t))))
+				       (error t)))))
+     ((boundp 'image-types)
+      ;; We are in Emacs 20.5+, which has image support
+      (require 'image)
+      (setq invalid-glyph (and glyph
+			       (not (memq (plist-get glyph :type) image-types)))))
+     (t
+      nil))
+
     (if (or (not glyph) invalid-glyph)
 	;; Do a TTY or delayed image version of the image.
 	(save-excursion
@@ -284,9 +297,14 @@
     (fset 'widget-mouse-event-p 'mouse-event-p)
   (fset 'widget-mouse-event-p 'ignore))
 
-(if (fboundp 'glyphp)
-    (fset 'widget-glyphp 'glyphp)
-  (fset 'widget-glyphp 'ignore))
+(cond
+ ((fboundp 'glyphp)
+  (fset 'widget-glyphp 'glyphp))
+ ((boundp 'image-types)
+  (defun widget-glyphp (glyph)
+    (and (listp glyph) (plist-get glyph :type))))
+ (t
+  (fset 'widget-glyphp 'ignore)))
 
 (defun widget-image-button-press (event)
   (interactive "@e")
