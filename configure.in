@@ -56,16 +56,9 @@ AC_SUBST(DOTEMACS)
 AC_SUBST(TEXI2HTML)
 AC_SUBST(TEXI2HTML_FLAGS)
 
-if test "${GNUS}" = "no"; then
-AC_MSG_WARN(" ")
-AC_MSG_WARN(Emacs/W3 will be unable to deal with Content-ID (CID) URLs)
-AC_MSG_WARN(because the version of Gnus you are running does not support)
-AC_MSG_WARN(" ")
-AC_MSG_WARN(If you routinely receive multipart/related MIME messages,)
-AC_MSG_WARN(you may wish to upgrade to the latest version of Gnus that)
-AC_MSG_WARN(is natively MIME aware.  Please see http://www.gnus.org/ for)
-AC_MSG_WARN(information on Gnus and how to download it.)
-AC_MSG_WARN(" ")
+if test "${GNUS}" != "no"; then
+CIDFILE=url-cid.el
+AC_SUBST(CIDFILE)
 fi
 
 if test "${CUSTOM}" = "no"; then
@@ -103,3 +96,8 @@ AC_MSG_RESULT("To finish building Emacs/W3 type \'make\' now.")
 AC_MSG_RESULT("To install Emacs/W3 type \'make install\'.")
 AC_MSG_RESULT("To create autoloads in \'${DOTEMACS}\' type \'make dotemacs\'")
 
+dnl (aclocal.m4) Local variables:
+dnl (aclocal.m4) eval: (make-local-hook 'kill-buffer-hook)
+dnl (aclocal.m4) eval: (defun w3-rebuild-configure-files () (if (file-newer-than-file-p (buffer-file-name) (expand-file-name "configure" (file-name-directory (buffer-file-name)))) (shell-command "autoreconf")))
+dnl (aclocal.m4) eval: (add-hook 'kill-buffer-hook 'w3-rebuild-configure-files nil t)
+dnl (aclocal.m4) End: ***
