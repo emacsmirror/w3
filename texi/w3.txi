@@ -1253,8 +1253,8 @@ partial @sc{url}.  This is very useful, especially for very long @sc{url}s that
 are not in a hotlist, or for seeing all the pages from a particular web
 site before choosing which to retrieve.
 
-@node Display, Stylesheets, Compatibility, Top
-@section Display
+@node Display Variables, Stylesheets, Compatibility, Top
+@section Display Variables
 
 Emacs/W3 has many variable for you to fiddle with to get the display
 just right.
