@@ -57,7 +57,7 @@ UTIL_SOURCES = 								\
 
 AUTO_SOURCES = auto-autoloads.el custom-load.el w3-auto.el w3-cfg.el
 
-W3_OBJECTS = $(SOURCES:.el=.elc)
+W3_OBJECTS = $(W3_SOURCES:.el=.elc)
 UTIL_OBJECTS = $(UTIL_SOURCES:.el=.elc)
 AUTO_OBJECTS = $(AUTO_SOURCES:.el=.elc)
 

@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:02 $
-;; Version: $Revision: 1.19 $
+;; Created: $Date: 1999/12/05 19:58:38 $
+;; Version: $Revision: 1.20 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -205,7 +205,7 @@
 (defsubst w3-set-fill-prefix-length (len)
   (setq fill-prefix (if (< len (- (or w3-strict-width (window-width)) 4))
 			(w3-get-pad-string len)
-		      (url-warn
+		      (w3-warn
 		       'html
 		       "Runaway indentation!  Too deep for window width!")
 		      fill-prefix)))
@@ -2763,14 +2763,7 @@ Format: (((image-alt row column) . offset) ...)")
 	    w3-current-parse parse)
       (w3-finish-drawing)
       (w3-mode))
-    (set-buffer-modified-p nil)
-    (if url-keep-history
-	(let ((url (url-view-url t)))
-	  (if (not url-history-list)
-	      (setq url-history-list (make-hash-table :size 131 :test 'equal)))
-	  (cl-puthash url (buffer-name) url-history-list)
-	  (if (fboundp 'w3-shuffle-history-menu)
-	      (w3-shuffle-history-menu)))))
+    (set-buffer-modified-p nil))
   (w3-maybe-fetch-frames))
 
 (defun w3-maybe-fetch-frames ()

@@ -1,5 +1,7 @@
 ;;; First things first - if they do not have the WIDGETDIR environment
 ;;; variable set, choke, scream, and die.
+(require 'cl)
+
 (setq srcdir (or (getenv "W3SRCDIR") "."))
 
 (push srcdir load-path)
@@ -89,7 +91,6 @@
 (w3-load-flavors)
 (w3-setup-version-specifics)
 
-(require 'cl)
 (require 'w3-sysdp)
 (require 'w3-vars)
 (require 'url)

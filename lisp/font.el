@@ -1,7 +1,7 @@
 ;;; font.el --- New font model
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:35:46 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1999/12/05 19:58:37 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -59,7 +59,9 @@
       "Return t if X is a face name or an internal face vector."
       (declare (special global-face-data))
       (if (not window-system)
-	  nil				; FIXME if FSF ever does TTY faces
+	  ;; FIXME if FSF ever does TTY faces
+	  ;; Well, they fixed it for us by finally defining facep! 12/5/1999
+	  nil
 	(and (or (internal-facep face)
 		 (and (symbolp face) (assq face global-face-data)))
 	     t))))

@@ -1,5 +1,14 @@
 1999-12-05  William M. Perry  <wmperry@aventail.com>
 
+	* lisp/w3-display.el (w3-prepare-buffer): Don't do the history
+	  stuff - this died a long time ago anyway.
+
+1999-12-05  Dave Love  <fx@gnu.org>
+
+	* lisp/Makefile.in (W3_OBJECTS): Use W3_SOURCES, not SOURCES.
+
+1999-12-05  William M. Perry  <wmperry@aventail.com>
+
 	* lisp/w3.el (w3-fetch): Urk, call w3-notify-when-ready if we
 	  found a buffer visiting the URL, otherwise nothing happens.
 	  User just silently gets no feedback about the operation.

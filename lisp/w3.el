@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:12 $
-;; Version: $Revision: 1.11 $
+;; Created: $Date: 1999/12/05 19:58:39 $
+;; Version: $Revision: 1.12 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -352,7 +352,8 @@ With prefix argument, use the URL of the hyperlink under point instead."
 		(not (funcall url-confirmation-func
 			      (format "Reuse URL in buffer %s? "
 				      (buffer-name buf)))))))
-	  (url-retrieve url 'w3-fetch-callback (list url)))))))
+	  (url-retrieve url 'w3-fetch-callback (list url))
+	(w3-notify-when-ready buf))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
