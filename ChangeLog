@@ -1,5 +1,8 @@
 2001-05-10  Dave Love  <fx@gnu.org>
 
+	* lisp/w3-menu.el (w3-menu-go-menu): Use url-history-track, not
+	url-keep-history.
+
 	* lisp/mule-sysdp.el: Removed in favour of one in url package.
 
 2001-01-04  Dave Love  <fx@gnu.org>
