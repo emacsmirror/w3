@@ -1,12 +1,12 @@
 ;;; w3-about.el --- About pages for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/27 01:50:02 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -192,7 +192,7 @@ static char *arena[] = {
 		'(("content-type"              . "image/x-pixmap"))
 		url-current-mime-type "image/x-pixmap"
 		url-current-mime-viewer (mm-mime-info "image/x-pixmap" nil 5)))
-	 ((string= "cXVvdGVz" (base64-encode node))
+	 ((string= "cXVvdGVz" (base64-encode-string node))
 	  (insert
 	   "
 H4sIAMtPtS8AA5VZTZPbNhLdM38FrMtcNPoBe5kax+tYW/HGtXHWtUeIhERkSIABQDPMr9/3ukFq
@@ -267,7 +267,7 @@ QN4UE7C2FZxu54iv23yPFj0H3fvIhW/0atSQC+ZSWvc/LM46zb4fAAA=
 	  (setq url-current-mime-headers
 		'(("content-transfer-encoding" . "base64")
 		  ("content-encoding" . "x-gzip"))))
-	 ((string= "emlwcHk=" (base64-encode node))
+	 ((string= "emlwcHk=" (base64-encode-string node))
 	  (insert
 	   "
 /9j/4AAQSkZJRgABAQAAAQABAAD//gBLCgpDUkVBVE9SOiBYViBWZXJzaW9uIDMuMTBhICBSZXY6
@@ -461,7 +461,7 @@ experiment! :)
 </html>
 "))
 
-	 ((string= "cGhvdG8=" (base64-encode node))
+	 ((string= "cGhvdG8=" (base64-encode-string node))
 	  (insert "
 R0lGODdhbAB4APQAADIyMjo6Ojw8PENDQ05OTldXV19fX2dnZ21tbXV1dXh4eIaGho+Pj5GRkZqa
 mqWlpaysrLW1tb29vcnJydHR0dPT0+Dg4Ofn5+zs7Pn5+fz8/AAAAAAAAAAAAAAAAAAAACwAAAAA
@@ -540,7 +540,7 @@ oTW7tBCrAr/JoNOKGGwLByEAADs=
 		url-current-mime-headers
 		'(("content-transfer-encoding" . "base64")
 		  ("content-type" . "image/gif"))))
-	 ((string= "bW96aWxsYQ==" (base64-encode node))
+	 ((string= "bW96aWxsYQ==" (base64-encode-string node))
 	  (insert
 	   "
 PGh0bWw+CiAgPGhlYWQ+CiAgICA8dGl0bGU+VGhlIEJvb2sgb2YgTW96aWxsYSwgMTg6Mjc8L3Rp
