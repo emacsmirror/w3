@@ -1,7 +1,7 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:02 $
-;; Version: $Revision: 1.5 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:36:31 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -210,6 +210,11 @@ work at all if we're using text-properties)."
   ;; This is the HTML3.0 list (downcased) plus "made".
   '("previous" "next" "up" "down" "home" "toc" "index" "glossary"
     "copyright" "bookmark" "help" "made" "contents" "top")
+  ;; HTML 4 link types
+  ;; <URL:http://www.w3.org/TR/html401/types.html#type-links>:
+  ;; Alternate, Stylesheet, Start, Next, Prev, Contents, Index,
+  ;; Glossary, Copyright, Chapter, Section, Subsection, Appendix,
+  ;; Help, Bookmark
   "A list of the (lower-case) names which have special significance
 as the values of REL or REV attributes of <link> elements.  They will
 be presented on the toolbar or the links menu, for instance."
