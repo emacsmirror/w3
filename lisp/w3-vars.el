@@ -1,7 +1,7 @@
 ;;; w3-vars.el,v --- All variable definitions for emacs-w3
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/06/05 15:56:16 $
-;; Version: $Revision: 1.7 $
+;; Created: $Date: 2001/10/01 11:42:46 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,7 +34,7 @@
 (require 'wid-edit)			; For `widget-keymap'
 
 (defconst w3-version-number
-  (let ((x "$State: Exp $"))
+  (let ((x "$State: p4.0pre.47 $"))
     (if (string-match "State:[ \t\n]+\\([^ \t\n]+\\)" x)
 	(setq x (substring x (match-beginning 1) (match-end 1)))
       (setq x (substring x 1)))
@@ -42,7 +42,7 @@
      (function (lambda (x) (if (= x ?-) "." (char-to-string x)))) x ""))
   "Version number of w3-mode.")
 
-(defconst w3-version-date (let ((x "$Date: 2001/06/05 15:56:16 $"))
+(defconst w3-version-date (let ((x "$Date: 2001/10/01 11:42:46 $"))
 			    (if (string-match "Date: \\([^ \t\n]+\\)" x)
 				(substring x (match-beginning 1) (match-end 1))
 			      x))
@@ -261,7 +261,7 @@ in later garbage collections taking more time.")
     ("Copy this Image Location" . w3-save-url))
   "An assoc list of function names and labels.  These will be displayed
 in a popup menu when the mouse is pressed on a hyperlink.  Format is
-( (label . function)), function is called with one argument, the URL of
+\( (label . function)), function is called with one argument, the URL of
 the link.  Each label can have exactly one `%s' that will be replaced by
 the URL of the link.")
 
@@ -273,7 +273,7 @@ the URL of the link.")
     ("Copy this Link Location to Clipboard" . w3-save-url))
   "An assoc list of function names and labels.  These will be displayed
 in a popup menu when the mouse is pressed on a hyperlink.  Format is
-( (label . function)), function is called with one argument, the URL of
+\( (label . function)), function is called with one argument, the URL of
 the link.  Each label can have exactly one `%s' that will be replaced by
 the URL of the link.")
 
@@ -281,10 +281,10 @@ the URL of the link.")
 ;;; Variables internal to W3, you should not change any of these
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar w3-graphics-list nil
-  "*List of graphics already read in.")
+  "List of graphics already read in.")
 
 (defvar w3-delayed-images nil
-  "*A buffer-local variable holding positions and urls of images within
+  "A buffer-local variable holding positions and urls of images within
 the buffer.")
 
 (defvar w3-frameset-structure nil
@@ -347,21 +347,6 @@ returns.")
 (defvar w3-submit-button nil
   "A widget object specifying what button was pressed to submit a form.")
 
-;; FIXME - this should be changed to use the mm stuff. - FIXME
-(defvar w3-meta-content-type-charset-regexp
-  (concat "<meta[ \t]+http-equiv=\"?Content-type\"?[ \t]+content=\"\\([^;]+\\)"
-	  ";[ \t]*charset=\"?\\([^\"]+\\)\"?"
-	  ">")
-  "Regexp used in parsing `<META HTTP-EQUIV=\"Content-Type\" content=\"...;charset=...\">
-for a charset indication")
-
-(defvar w3-meta-charset-content-type-regexp
-  (concat "<meta[ \t]+content=\"\\([^;]+\\)"
-	  ";[ \t]*charset=\"?\\([^\"]+\\)\"?"
-	  "[ \t]+http-equiv=\"?Content-type\"?>")
-  "Regexp used in parsing `<META content=\"...;charset=...\" HTTP-EQUIV=\"Content-Type\">
-for a charset indication")
-
 (defvar w3-explicit-conversion-tree nil
   "Tree to hold explicit coding systems for URLs and their superdirs:
    ((hostN default-coding (dirN-1 default-coding (dirN-1-1 ...) ...) ...)
@@ -403,6 +388,7 @@ for a charset indication")
     w3-target-window-distances
     w3-frameset-structure
     buffer-file-coding-system
+    url-current-mime-headers
     )
   "A list of variables that should be preserved when entering w3-mode.")
 
