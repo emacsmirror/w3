@@ -1,5 +1,13 @@
 1998-12-22  William M. Perry  <wmperry@aventail.com>
 
+* lisp/w3-display.el (w3-get-default-color): Function to get the default
+  foreground or background color, even if face-(fore|back)ground returns
+  nil, which it does under Emacs fairly often.  We fall back to getting
+  the colors out of the frame properties.  I think this is gross, but oh
+  well.
+  (w3-display-background-useless-p): Use it.
+  (w3-display-foreground-useless-p): Use it.
+
 * lisp/w3.el (w3-reload-document): Avoid using interactive spec 'Z', since 
   it doesn't exist in older versions of Emacs (19.xx)
 
