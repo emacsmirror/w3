@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2002/02/01 17:42:49 $
-;; Version: $Revision: 1.28 $
+;; Created: $Date: 2002/09/16 01:43:42 $
+;; Version: $Revision: 1.29 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -247,6 +247,8 @@ Operate on BUFFER."
 			 (w3-parse-buffer)))))
 		(when http-header
 		  (goto-char (point-min))
+		  (unless (search-forward ":" (line-end-position) t)
+		    (forward-line))
 		  (insert http-header)))))))))
 
 (defun w3-setup-reload-timer (url must-be-viewing &optional time)
@@ -304,8 +306,9 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 	 (dolist (header headers)
 	   ;; Act on multiple cookies if necessary, but only on a
 	   ;; single refresh request in case there's more than one.
-	   (case (cdr header)
+	   (case (car header)
 		 (set-cookie (url-cookie-handle-set-cookie (cdr header)))
+		 ;(set-cookie2 (url-cookie-handle-set-cookie2 (cdr header)))
 		 (refresh (unless refreshed
 			    (w3-handle-refresh-header (cdr header))
 			    (setq refreshed t))))))))

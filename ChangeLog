@@ -1,3 +1,15 @@
+2002-09-15  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3.el (w3-nasty-disgusting-http-equiv-handling): Need to
+	make sure that we skip the 'HTTP/1.x' line at the top of the
+	buffer (due to changes in the url library), or we end up confusing
+	mail-header-extract if there are any <meta> elements with
+	http-equiv headers in them.
+	(w3-fetch-callback): I'm an idiot and was trying to compare the
+	VALUE of a header against the actual header name for doing cookie
+	handling.  Arguably this cookie handling should all be done in the
+	HTTP handler itself.  Should move it somebday.
+
 2002-02-01  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3.el (w3-fetch-callback): Fiddling with how to display XML
