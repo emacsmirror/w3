@@ -1,3 +1,26 @@
+1999-11-12  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-display.el (w3-display-handle-java): Make sure that there is
+  ALWAYS a codebase attribute for java, or bad things could happen (like
+  not being able to find the classes since we write to a temp file, etc.)
+
+* lisp/w3-parse.el (w3-parse-buffer): Make sure that we expand the
+  'codebase' attribute.
+
+* lisp/w3-display.el (w3-auto-run-java): New variable to control whether
+  Java applets are run 
+  (w3-display-handle-java): New function to convert our internal parse
+  structure into something that `w3-java-run-applet' can understand.
+  (w3-display-node): Use it.
+
+* lisp/w3-java.el: New file for running java programs in an external
+  process.
+
+1999-11-07  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
+
+* lisp/url.el (url-retrieve-internally): make-local-variable
+  'track-mouse to workaround problem with `widget-button-click'.
+
 1999-11-10  William M. Perry  <wmperry@aventail.com>
 
 * lisp/w3-parse.el (textarea content model): Changed content model to

@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/11 01:36:09 $
-;; Version: $Revision: 1.15 $
+;; Created: $Date: 1999/11/12 16:30:08 $
+;; Version: $Revision: 1.16 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2016,6 +2016,22 @@ Format: (((image-alt row column) . offset) ...)")
 	    rval (plist-put rval newsym (cdr cur))))
     rval))
 
+(defvar w3-auto-run-java nil
+  "*If non-nil, will cause Java applets to automatically be run in another process.")
+
+(defun w3-display-handle-java (node)
+  (let ((options (nth 1 node))
+	(params (mapcar (lambda (subnode)
+			  (if (eq (car-safe subnode) 'param)
+			      (cons (cdr-safe (assq 'name (nth 1 subnode)))
+				    (cdr-safe (assq 'value (nth 1 subnode))))))
+			(nth 2 node))))
+    (setq options (delq nil options)
+	  params (delq nil params))
+    (if (not (assq 'codebase options))
+	(push (cons 'codebase (url-view-url t))))
+    (w3-java-run-applet options params)))
+
 (defun w3-display-node (node &optional nofaces)
   (let (
 	(content-stack (list (list node)))
@@ -2265,8 +2281,9 @@ Format: (((image-alt row column) . offset) ...)")
 		 (w3-handle-empty-tag)
 	       (w3-handle-content node)))
 	    (applet			; Wow, Java
-	     (w3-handle-content node)
-	     )
+	     (if w3-auto-run-java
+		 (w3-display-handle-java node)
+	       (w3-handle-content node)))
 	    (script			; Scripts
 	     (w3-handle-empty-tag))
 	    ((embed object)		; Embedded images/content

@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/09 14:52:25 $
-;; Version: $Revision: 1.12 $
+;; Created: $Date: 1999/11/12 16:30:06 $
+;; Version: $Revision: 1.13 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1999/11/09 14:52:25 $|$Revision: 1.12 $|Location Undetermined
+;;; $Date: 1999/11/12 16:30:06 $|$Revision: 1.13 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2024,6 +2024,7 @@ retrieve a URL by its HTML source."
 	  url (if cached (url-cache-create-filename url) url))
     (save-excursion
       (set-buffer (get-buffer-create url-working-buffer))
+      (make-local-variable 'track-mouse)
       (if (boundp 'buffer-file-coding-system)
 	  (setq buffer-file-coding-system nil))
       (setq url-current-can-be-cached (not no-cache)

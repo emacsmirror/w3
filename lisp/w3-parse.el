@@ -2399,6 +2399,7 @@ Returns a data structure containing the parsed information."
                                           (cdr w3-p-s-baseobject))))
                 ((setq w3-p-s-btdt (or (assq 'src tag-attributes)
                                        (assq 'background tag-attributes)
+                                       (assq 'codebase tag-attributes)
                                        (assq 'href tag-attributes)
                                        (assq 'action tag-attributes)))
                  (setcdr w3-p-s-btdt (url-expand-file-name (cdr w3-p-s-btdt)
