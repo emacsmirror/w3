@@ -7,7 +7,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996, 1997 by Stephen Peters <speters@cygnus.com>
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -421,6 +421,7 @@
    (t
     (w3-latex-contents tree))))
 
+;; Fixme: url-working-buffer is never defined.
 ;;;###autoload
 (defun w3-parse-tree-to-latex (tree &optional url)
   ; assumes that url-working-buffer exists.
@@ -440,8 +441,6 @@
     (w3-latex-subtree (car tree))
     (setq tree (cdr tree))))
 
-(require 'mule-sysdp)
-
 ;;;###autoload
 (defun w3-show-dvi ()
   "Uses xdvi to show DVI file created from `w3-parse-tree-to-latex'."
@@ -449,10 +448,11 @@
   (w3-parse-tree-to-latex w3-current-parse)
   (save-window-excursion
     (set-buffer url-working-buffer)
-    (mule-write-region-no-coding-system
-     (point-min) (point-max)
-     (expand-file-name "w3-tmp.latex"
-		       w3-temporary-directory) nil 5)
+    (let ((coding-system-for-write 'binary))
+      (write-region
+       (point-min) (point-max)
+       (expand-file-name "w3-tmp.latex"
+			 w3-temporary-directory) nil 5))
     (shell-command
      (format 
       "(cd %s ; latex w3-tmp.latex ; latex w3-tmp.latex ; xdvi w3-tmp.dvi ; rm -f w3-tmp*) &"
