@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2002/10/23 03:33:41 $
-;; Version: $Revision: 1.30 $
+;; Created: $Date: 2002/10/28 02:32:11 $
+;; Version: $Revision: 1.31 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -208,7 +208,7 @@ variable `http-header'."
 					 (cdr (assq 'content attrs))))))))
 	      (w3-http-equiv-headers (nth 2 node)))))))
 
-(defun w3-nasty-disgusting-http-equiv-handling (buffer)
+(defun w3-nasty-disgusting-http-equiv-handling (buffer url)
   "Propagate information from <meta http-equiv...> elements to MIME headers.
 Operate on BUFFER."
   (let (content-type end-of-headers extra-headers)
@@ -242,6 +242,7 @@ Operate on BUFFER."
 		       ;; widening and munging character references
 		       ;; &c.
 		       (with-temp-buffer
+			 (setq url-current-object (url-generic-parse-url url))
 			 (insert-buffer-substring buffer
 						  end-of-headers end-of-head)
 			 (w3-parse-buffer)))))
@@ -292,7 +293,7 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 			       (string-to-int (or reload "5"))))))
 
 (defun w3-fetch-callback (url)
-  (w3-nasty-disgusting-http-equiv-handling (current-buffer))
+  (w3-nasty-disgusting-http-equiv-handling (current-buffer) url)
   ;; Process any cookie and refresh headers.
   (let (headers)
     (ignore-errors
@@ -333,18 +334,18 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 	(setq url-current-mime-headers headers)
 	(w3-notify-when-ready (current-buffer))
 	(mm-destroy-parts handle))
-       ;;        ((equal (mm-handle-media-type handle) "text/xml")
-       ;; 	;; Special case text/xml if it comes through w3-fetch
-       ;; 	(set-buffer (generate-new-buffer " *w3-xml*"))
-       ;; 	(mm-disable-multibyte)
-       ;; 	(mm-insert-part handle)
-       ;; 	(w3-decode-charset handle)
-       ;;      !!! Need some function to view XML nicely... maybe the
-       ;;      !!! customize tree control?
-       ;; 	(setq url-current-object (url-generic-parse-url url)
-       ;; 	      url-current-mime-headers headers)
-       ;; 	(mm-destroy-parts handle)
-       ;; 	(w3-notify-when-ready (current-buffer)))
+	;;        ((equal (mm-handle-media-type handle) "text/xml")
+	;; 	;; Special case text/xml if it comes through w3-fetch
+	;; 	(set-buffer (generate-new-buffer " *w3-xml*"))
+	;; 	(mm-disable-multibyte)
+	;; 	(mm-insert-part handle)
+	;; 	(w3-decode-charset handle)
+	;;      !!! Need some function to view XML nicely... maybe the
+	;;      !!! customize tree control?
+	;; 	(setq url-current-object (url-generic-parse-url url)
+	;; 	      url-current-mime-headers headers)
+	;; 	(mm-destroy-parts handle)
+	;; 	(w3-notify-when-ready (current-buffer)))
        ((equal (car-safe (mm-handle-type handle))
 	       "application/x-elisp-parsed-html")
 	;; Also need to special-case pre-parsed representations of HTML.

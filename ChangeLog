@@ -1,3 +1,13 @@
+2002-10-27  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/w3.el (w3-nasty-disgusting-http-equiv-handling): Now takes
+	a second parameter, which is the URL that is being processed.
+	This allows us to set url-current-object in the temporary buffer.
+	This fixes the bug where a not-fully-qualified URL would cause
+	url-expand-filename to get 'confused' and throw an error.
+	(w3-fetch-callback): Pass the new URL argument to
+	w3-nasty-disgusting-*
+
 2002-10-22  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3-forms.el (w3-form-create-option-list): Invalid call to
