@@ -1,7 +1,7 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
 ;; Author: William M. Perry <wmperry@gnu.org>
-;; Created: $Date: 2001/06/05 15:50:25 $
-;; Version: $Revision: 1.6 $
+;; Created: $Date: 2001/06/07 13:44:51 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: mouse, toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -71,6 +71,12 @@ In Emacs, this is searched preferentially to the normal search path.")
 (defvar w3-toolbar-hotl-icon (if (featurep 'tool-bar)
 				 "jump_to")
   "Toolbar icon for hotlist")
+(defvar w3-toolbar-file-icon (if (featurep 'tool-bar)
+				 "new")
+  "Toolbar icon for open url")
+(defvar w3-toolbar-printer-icon (if (featurep 'tool-bar)
+				 "print")
+  "Toolbar icon for open url")
 
 (defvar w3-link-toolbar-orientation 'bottom
   "*Where to put the document specific toolbar.  Must be one of these symbols:
@@ -370,12 +376,18 @@ not `none'.")
 	  ;; Add to normal image search path:
 	  (load-path (cons w3-toolbar-icon-directory load-path)))
     (dolist (desc w3-toolbar)
-      (if (and desc (not (keywordp (aref desc 0))))
-	  (tool-bar-add-item (symbol-value (aref desc 0)) ; image
-			     (aref desc 1) ; binding
-			     (intern (aref desc 3)) ; key
-			     :help (aref desc 3)
-			     :enable (aref desc 2))))
+      (when desc
+	(let ((sym (aref desc 0)))
+	  ;; w3-toolbar contains `toolbar-' symbols as well as
+	  ;; `w3-toolbar-'.
+	  (unless (boundp sym)
+	    (setq sym (intern (format "w3-%s" sym))))
+	  (if (and desc (not (keywordp (aref desc 0))))
+	      (tool-bar-add-item (symbol-value sym) ; image
+				 (aref desc 1) ; binding
+				 (intern (aref desc 3)) ; key
+				 :help (aref desc 3)
+				 :enable (aref desc 2))))))
     tool-bar-map)))))
 
 (defun w3-add-toolbar-to-buffer ()
