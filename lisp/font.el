@@ -1,12 +1,12 @@
 ;;; font.el --- New font model
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/11/24 21:07:38 $
-;; Version: $Revision: 1.9 $
+;; Author: $Author: fx $
+;; Created: $Date: 2002/01/22 18:55:35 $
+;; Version: $Revision: 1.10 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -29,7 +29,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; The emacsen compatibility package - load it up before anything else
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'devices)
 
 ;; Needed for XEmacs 19.13, noop on all others, since it is always loaded.
@@ -44,7 +44,7 @@
     ;; We have the old custom-library, hack around it!
     (defmacro defgroup (&rest args)
       nil)
-    (defmacro defcustom (var value doc &rest args) 
+    (defmacro defcustom (var value doc &rest args)
       (` (defvar (, var) (, value) (, doc))))))
 
 (if (not (fboundp 'try-font-name))
@@ -78,14 +78,12 @@
       "Return FACE's value of the given PROPERTY."
       (and (symbolp face) (get face property))))
 
-(require 'disp-table)
-
-(if (not (fboundp '<<))   (defalias '<< 'lsh))
-(if (not (fboundp '&))    (defalias '& 'logand))
-(if (not (fboundp '|))    (defalias '| 'logior))
-(if (not (fboundp '~))    (defalias '~ 'lognot))
-(if (not (fboundp '>>))   (defun >> (value count) (<< value (- count))))
-
+(eval-and-compile
+  (if (not (fboundp '<<))   (defalias '<< 'lsh))
+  (if (not (fboundp '&))    (defalias '& 'logand))
+  (if (not (fboundp '|))    (defalias '| 'logior))
+  (if (not (fboundp '~))    (defalias '~ 'lognot))
+  (if (not (fboundp '>>))   (defun >> (value count) (<< value (- count)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Lots of variables / keywords for use later in the program
@@ -105,7 +103,7 @@
        (while keywords
 	 (or (boundp (car keywords))
 	     (set (car keywords) (car keywords)))
-	 (setq keywords (cdr keywords)))))))  
+	 (setq keywords (cdr keywords)))))))
 
 (defconst font-window-system-mappings
   '((x        . (x-font-create-name x-font-create-object))
@@ -114,8 +112,8 @@
     (w32      . (x-font-create-name x-font-create-object))
     (pm       . (x-font-create-name x-font-create-object)) ; Change? FIXME
     (tty      . (tty-font-create-plist tty-font-create-object)))
-  "An assoc list mapping device types to the function used to create
-a font name from a font structure.")
+  "Alist mapping device types to functions.
+The functions are used to create a font name from a font structure.")
 
 (defconst ns-font-weight-mappings
   '((:extra-light . "extralight")
@@ -126,8 +124,7 @@ a font name from a font structure.")
     (:demi-bold   . "demibold")
     (:bold        . "bold")
     (:extra-bold  . "extrabold"))
-  "An assoc list mapping keywords to actual NeXTstep specific
-information to use")
+  "Alist mapping keywords to actual NeXTstep specific information to use.")
 
 (defconst x-font-weight-mappings
   '((:extra-light . "extralight")
@@ -140,8 +137,8 @@ information to use")
     (:demi-bold   . "demibold")
     (:bold        . "bold")
     (:extra-bold  . "extrabold"))
-  "An assoc list mapping keywords to actual Xwindow specific strings
-for use in the 'weight' field of an X font string.")
+  "Alist mapping keywords to actual X-specific strings.
+These are for use in the `weight' field of an X font string.")
 
 (defconst font-new-redisplay-weight-mappings
   '((:extra-light . extra-light)
@@ -154,8 +151,7 @@ for use in the 'weight' field of an X font string.")
     (:demi-bold   . semi-bold)
     (:bold        . bold)
     (:extra-bold  . extra-bold))
-  "An assoc list mapping font weights to the actual symbols used by
-the new redisplay engine.")
+  "Alist mapping font weights to symbols used by the new redisplay engine.")
 
 (defconst font-possible-weights
   (mapcar 'car x-font-weight-mappings))
@@ -189,7 +185,7 @@ the new redisplay engine.")
 (defsubst set-font-registry (fontobj reg)
   (aset fontobj 9 reg))
 
-(defsubst set-font-encoding (fontobj enc)
+(defsubst font-set-font-encoding (fontobj enc)
   (aset fontobj 11 enc))
 
 (defsubst font-family (fontobj)
@@ -275,7 +271,7 @@ the new redisplay engine.")
     (while (< i 255)			;; Oslash - Thorn
       (aset table i (- i 32))
       (setq i (1+ i)))
-    table))    
+    table))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Utility functions
@@ -324,7 +320,7 @@ the new redisplay engine.")
       w2))))
 
 (defun font-spatial-to-canonical (spec &optional device)
-  "Convert SPEC (in inches, millimeters, points, or picas) into points"
+  "Convert SPEC (in inches, millimeters, points, or picas) into points."
   ;; 1 in = 6 pa = 25.4 mm = 72 pt
   (cond
    ((numberp spec)
@@ -422,7 +418,7 @@ the new redisplay engine.")
     (set-font-style retval (| (font-style fontobj-1) (font-style fontobj-2)))
     (set-font-registry retval (or (font-registry fontobj-1)
 				  (font-registry fontobj-2)))
-    (set-font-encoding retval (or (font-encoding fontobj-1)
+    (font-set-font-encoding retval (or (font-encoding fontobj-1)
 				  (font-encoding fontobj-2)))
     (set-font-size retval (cond
 			   ((and size-1 size-2 (>= size-2 size-1))
@@ -584,7 +580,7 @@ the new redisplay engine.")
 	  (set-font-oblique-p retval t)))
 	(when (string-match font-x-registry-and-encoding-regexp fontname)
 	  (set-font-registry retval (match-string 1 fontname))
-	  (set-font-encoding retval (match-string 2 fontname)))
+	  (font-set-font-encoding retval (match-string 2 fontname)))
 	retval))))
 
 (defun x-font-families-for-device (&optional device no-resetp)
@@ -756,8 +752,8 @@ the new redisplay engine.")
     (:bold        . "Bold")
     (:regular	  . "Regular")
     (:extra-bold  . "Extrabold"))
-  "An assoc list mapping keywords to actual mswindows specific strings
-for use in the 'weight' field of an mswindows font string.")
+  "Alist mapping keywords to actual MS-Windows specific strings.
+These are for use in the `weight' field of an MS-Windows font string.")
 
 (defvar font-mswindows-family-mappings
   '(
@@ -985,11 +981,12 @@ for use in the 'weight' field of an mswindows font string.")
   (cond
    ((and (vectorp font) (= (length font) 12))
     (set-face-property face 'font-specification font)
-    (set-face-attribute face nil
-			:underline (font-underline-p font)
-			:weight (or (cdr-safe (assoc (font-weight font)
-						     font-new-redisplay-weight-mappings))
-				    'normal))
+    (set-face-attribute
+     face nil
+     :underline (font-underline-p font)
+     :weight (or (cdr-safe (assoc (font-weight font)
+				  font-new-redisplay-weight-mappings))
+		 'normal))
     (if (font-find-available-family font)
 	(set-face-attribute :family (font-find-available-family font)))
     (if (and (font-size font)
@@ -1021,8 +1018,8 @@ for use in the 'weight' field of an mswindows font string.")
 	  (set-face-font cur font-spec device)))))
 
 (defun font-update-one-face (face &optional device-list)
-  ;; Update FACE on all devices in DEVICE-LIST
-  ;; DEVICE_LIST defaults to a list of all active devices
+  "Update FACE on all devices in DEVICE-LIST.
+DEVICE_LIST defaults to a list of all active devices."
   (setq device-list (or device-list (device-list)))
   (if (devicep device-list)
       (setq device-list (list device-list)))
@@ -1126,7 +1123,7 @@ The list (R G B) is returned, or an error is signaled if the lookup fails."
 		     (?3 . 3) (?d . 13) (?D . 13)
 		     (?4 . 4) (?e . 14) (?E . 14)
 		     (?5 . 5) (?f . 15) (?F . 15)
-		     (?6 . 6) 
+		     (?6 . 6)
 		     (?7 . 7)
 		     (?8 . 8)
 		     (?9 . 9)))
@@ -1248,7 +1245,7 @@ The variable x-library-search-path is use to locate the rgb.txt file."
       (font-lookup-rgb-components color)))))
 
 (defsubst font-tty-compute-color-delta (col1 col2)
-  (+ 
+  (+
    (* (- (aref col1 0) (aref col2 0))
       (- (aref col1 0) (aref col2 0)))
    (* (- (aref col1 1) (aref col2 1))
@@ -1292,8 +1289,8 @@ The variable x-library-search-path is use to locate the rgb.txt file."
     (cdr-safe (aref colors nearest))))
 
 (defun font-normalize-color (color &optional device)
-  "Return an RGB tuple, given any form of input.  If an error occurs, black
-is returned."
+  "Return an RGB tuple, given any form of input.
+If an error occurs, return black."
   (case (device-type device)
    ((x pm)
     (apply 'format "#%02x%02x%02x" (font-color-rgb-components color)))
@@ -1388,7 +1385,7 @@ is returned."
       (pop faces))))
 
 (defcustom font-blink-interval 0.5
-  "How often to blink faces"
+  "How often to blink faces."
   :type 'number
   :group 'faces)
   
@@ -1401,7 +1398,7 @@ is returned."
 		  font-blink-interval
 		  font-blink-interval))
    ((fboundp 'run-at-time)
-    (cancel-function-timers 'font-blink-callback)    
+    (cancel-function-timers 'font-blink-callback)
     (run-at-time font-blink-interval
 		 font-blink-interval
 		 'font-blink-callback))
