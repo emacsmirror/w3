@@ -1,6 +1,6 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.11 $
+;; Version: $Revision: 1.12 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -287,7 +287,7 @@ on that platform."
     ["PostScript" (w3-mail-current-document nil "PostScript") t]
     )
    (if (or (featurep 'xemacs) (>= emacs-major-version 21))
-       "---:shadowDoubleEtchedIn"
+       "--:shadowDoubleEtchedIn"
      "---")
    ["Close" delete-frame (not (eq (next-frame) (selected-frame)))]
    ["Exit"  save-buffers-kill-emacs t]
