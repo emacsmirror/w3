@@ -1,3 +1,9 @@
+2001-08-24  Dave Love  <fx@gnu.org>
+
+	* lisp/font.el (font-spatial-to-canonical): Don't choke if
+	font-default-size-for-device returns nil, convert it to 0.
+	From Jim Meyering <meyering@lucent.com>
+
 2001-07-19  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-toolbar.el (w3-toolbar-map): Don't lose on non-graphical
