@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 16:38:40 $
-;; Version: $Revision: 1.7 $
+;; Created: $Date: 1998/12/28 21:44:07 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -496,27 +496,37 @@ If the face already exists, it is unmodified."
 	    (setq w3-cookie-cache (cons (cons href fname) w3-cookie-cache))))
       (cookie fname st nd))))
 
+(defun w3-widget-buffer (widget)
+  (let ((overlay (or (widget-get widget :button-overlay)
+		     (widget-get widget :field-overlay)))
+	(extent (or (widget-get widget :button-extent)
+		    (widget-get widget :field-extent))))
+    (or (and overlay (overlay-buffer overlay))
+	(and extent (extent-buffer extent)))))
+
 (defun w3-widget-echo (widget &rest ignore)
-  (let* ((url (widget-get widget :href))
-	 (name (widget-get widget :name))
-	 (text (buffer-substring-no-properties (widget-get widget :from)
-					       (widget-get widget :to)))
-	 (title (widget-get widget :title))
-	 (check w3-echo-link)
-	 (msg nil))
-    (if url
-	(setq url (url-truncate-url-for-viewing url)))
-    (if name
-	(setq name (concat "anchor:" name)))
-    (if (not (listp check))
-	(setq check (cons check '(title url text name))))
-    (catch 'exit
-      (while check
-	(and (boundp (car check))
-	     (stringp (symbol-value (car check)))
-	     (> (length (symbol-value (car check))) 0)
-	     (throw 'exit (symbol-value (car check))))
-	(pop check)))))
+  (save-excursion
+    (set-buffer (or (w3-widget-buffer widget) (current-buffer)))
+    (let* ((url (widget-get widget :href))
+	   (name (widget-get widget :name))
+	   (text (buffer-substring-no-properties (widget-get widget :from)
+						 (widget-get widget :to)))
+	   (title (widget-get widget :title))
+	   (check w3-echo-link)
+	   (msg nil))
+      (if url
+	  (setq url (url-truncate-url-for-viewing url)))
+      (if name
+	  (setq name (concat "anchor:" name)))
+      (if (not (listp check))
+	  (setq check (cons check '(title url text name))))
+      (catch 'exit
+	(while check
+	  (and (boundp (car check))
+	       (stringp (symbol-value (car check)))
+	       (> (length (symbol-value (car check))) 0)
+	       (throw 'exit (symbol-value (car check))))
+	  (pop check))))))
 
 (defun w3-follow-hyperlink (widget &rest ignore)
   (let* ((target (or (widget-get widget :target) w3-base-target))
