@@ -1,3 +1,14 @@
+2001-06-01  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-display.el (widget-convert-text): Only advise it if
+	we're in Emacspeak.
+	(append-suffixes-hack, w3-java-run-applet, mm-inline-text):
+	Autoload.
+	(w3-display-get-cookie): Use url-generate-unique-filename.
+	(w3-display-table): Use copy-sequence, not copy-seq.
+
+	* lisp/w3.el (w3-decode-charset): Set buffer file coding system.
+
 2001-05-31  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-menu.el (w3-menu-file-menu): Fix
