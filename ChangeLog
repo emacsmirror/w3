@@ -1,3 +1,38 @@
+2001-06-05  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-display.el: Require cl only when compiling.
+	(w3-line-breaks-vector): Deleted.
+	(w3-display-line-break): Use justification arg of
+	fill-region-as-paragraph.  Use insert-char.
+
+	* lisp/css.el (w3-sysdp): Require.
+	(url-expand-file-name, url-insert-file-contents, url-view-url):
+	Autoload.
+	(css-running-xemacs): Removed.  Change callers to use featurep.
+	(css-handle-import, css-parse): Declare url-current-object
+	special.
+	(css-active-device-types): Use display-multi-font-p, not
+	font-running-emacs-new-redisplay.
+
+	* lisp/w3-parse.el (w3-invalid-sgml-char-replacement): Doc fix.
+	(w3-resolve-numeric-char): Renamed from
+	w3-resolve-numeric-entity.  Callers changed.
+
+	* lisp/w3-vars.el (w3-version-number): Fix regexp, doc.
+	(w3-html-entities): Modified per W3C entity list.
+
+	* lisp/w3-toolbar.el (w3-toolbar-back-icon, w3-toolbar-forw-icon) 
+	(w3-toolbar-home-icon, w3-toolbar-reld-icon) 
+	(w3-toolbar-imag-icon, w3-toolbar-open-icon) 
+	(w3-toolbar-print-icon, w3-toolbar-find-icon) 
+	(w3-toolbar-stop-icon, w3-toolbar-help-icon) 
+	(w3-toolbar-hotl-icon) [(featurep 'tool-bar)]: Initialize to names
+	of Emacs 21 icons.
+	(toolbar-make-button-list) [(featurep 'tool-bar)]: Don't define.
+	(w3-toolbar-make-buttons): Do nothing if (featurep 'tool-bar).
+	(w3-toolbar-map): New variable.
+	(w3-add-toolbar-to-buffer): Use it.
+
 2001-06-01  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-display.el (widget-convert-text): Only advise it if
