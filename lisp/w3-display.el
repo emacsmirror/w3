@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/23 00:38:55 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1998/12/28 15:11:01 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -489,6 +489,8 @@ If the face already exists, it is unmodified."
 	  (save-excursion
 	    (set-buffer (generate-new-buffer " *cookie*"))
 	    (url-insert-file-contents href)
+ 	    (setq buffer-file-name nil)
+ 	    (set-buffer-modified-p nil)    
 	    (mule-write-region-no-coding-system (point-min) (point-max) fname 5)
 	    (setq w3-cookie-cache (cons (cons href fname) w3-cookie-cache))))
       (cookie fname st nd))))
