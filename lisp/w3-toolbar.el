@@ -1,7 +1,7 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/01/04 12:50:00 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 2001/05/29 15:57:46 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: mouse, toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -84,7 +84,7 @@ not `none'.")
     [w3-toolbar-home-icon w3 t "Go home"]
     [:style 2d :size 5]
     [w3-toolbar-reld-icon w3-reload-document t "Reload document"]
-    [w3-toolbar-hotl-icon w3-show-hotlist t "View hotlist"]
+    [w3-toolbar-hotl-icon w3-hotlist-view t "View hotlist"]
     [w3-toolbar-imag-icon w3-load-delayed-images w3-delayed-images
 			  "Load images"]
     [toolbar-file-icon w3-fetch t "Fetch a URL"]
