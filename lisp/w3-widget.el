@@ -1,7 +1,7 @@
 ;;; w3-widget.el --- An image widget
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/07/10 14:43:37 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:48:08 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: faces, images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -190,10 +190,11 @@
 					   nil)
 				       (error t)))))
      ((boundp 'image-types)
-      ;; We are in Emacs 20.5+, which has image support
+      ;; We are in Emacs 21+, which has image support
       (require 'image)
-      (setq invalid-glyph (and glyph
-			       (not (memq (plist-get glyph :type) image-types)))))
+      (setq invalid-glyph
+	    (and glyph
+		 (not (image-type-available-p (plist-get glyph :type))))))
      (t
       nil))
 
@@ -294,17 +295,17 @@
       nil))))     
 
 (if (fboundp 'mouse-event-p)
-    (fset 'widget-mouse-event-p 'mouse-event-p)
-  (fset 'widget-mouse-event-p 'ignore))
+    (defalias 'widget-mouse-event-p 'mouse-event-p)
+  (defalias 'widget-mouse-event-p 'ignore))
 
 (cond
  ((fboundp 'glyphp)
-  (fset 'widget-glyphp 'glyphp))
+  (defalias 'widget-glyphp 'glyphp))
  ((boundp 'image-types)
   (defun widget-glyphp (glyph)
     (and (listp glyph) (plist-get glyph :type))))
  (t
-  (fset 'widget-glyphp 'ignore)))
+  (defalias 'widget-glyphp 'ignore)))
 
 (defun widget-image-button-press (event)
   (interactive "@e")
@@ -374,7 +375,7 @@ Any other value means ask the user each time.")
 	(message "No destination found for %d,%d" x y)))
      ((and glyph x y ismap)		; Do the server-side imagemap stuff
       (w3-fetch (format "%s?%d,%d" href x y) target))
-     (usemap				; Dummed-down tty client side imap
+     (usemap				; Dumbed-down tty client side imap
       (let ((choices (mapcar (function
 			      (lambda (entry)
 				(cons
