@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2000/07/10 14:43:37 $
-;; Version: $Revision: 1.14 $
+;; Created: $Date: 2000/10/16 15:25:47 $
+;; Version: $Revision: 1.15 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1955,6 +1955,8 @@ Current keymap is:
 	    mode-line-format w3-modeline-format)
       (run-hooks 'w3-mode-hook)
       (widget-setup))))
+
+(put 'w3-mode 'mode-class 'special)
 
 (require 'url)
 (require 'w3-parse)

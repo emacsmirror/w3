@@ -1,7 +1,7 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:11 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 2000/10/16 15:25:47 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: mouse, toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -94,6 +94,10 @@ not `none'.")
     nil
     [w3-toolbar-help-icon w3-show-info-node t "Help"])
   "The toolbar for w3")
+
+(if (featurep 'tool-bar)
+    (defun toolbar-make-button-list (up &optional dn no cap-up cap-dn cap-no)
+      (file-name-sans-extension up)))
 
 (defun w3-toolbar-make-captioned-buttons ()
   (mapcar
@@ -331,13 +335,29 @@ not `none'.")
     (popup-dialog-box descr)))
 
 (defun w3-add-toolbar-to-buffer ()
-  (if (or (not (featurep 'toolbar))
-	  (featurep 'infodock))		; InfoDock uses different toolbars
-      nil
+  (cond
+   ((featurep 'infodock)
+    ;; Infodock handles toolbars differently
+    nil)
+   ((featurep 'toolbar)
+    ;; XEmacs way of doing things
     (let ((toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
       (if toolbar
 	  (set-specifier toolbar (cons (current-buffer) w3-toolbar))))
     (set-specifier toolbar-buttons-captioned-p
-		   (cons (current-buffer) (eq w3-toolbar-type 'both)))))
+		   (cons (current-buffer) (eq w3-toolbar-type 'both))))
+   ((featurep 'tool-bar)
+    ;; Emacs 21.x way of doing things
+    (let ((toolbar-map (make-sparse-keymap)))
+      (mapcar (lambda (desc)
+		(if (and desc (not (keywordp (aref desc 0))))
+		    (tool-bar-add-item (symbol-value (aref desc 0)) ; image
+				       (aref desc 1) ; binding
+				       (intern (aref desc 3)) ; key
+				       toolbar-map ; keymap
+				       :enable (aref desc 2)))) w3-toolbar)
+      (define-key w3-mode-map [tool-bar] toolbar-map)))
+   (t
+    nil)))
 
 (provide 'w3-toolbar)

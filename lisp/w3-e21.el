@@ -1,7 +1,7 @@
 ;;; w3-e21.el --- Emacs 21.xx specific functions for emacs-w3
-;; Author: $Author: sds $
-;; Created: $Date: 2000/07/28 17:17:20 $
-;; Version: $Revision: 1.2 $
+;; Author: $Author: wmperry $
+;; Created: $Date: 2000/10/16 15:25:47 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: faces, help, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -26,4 +26,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'w3-e19)
+
+(defadvice w3-setup-version-specifics (after emacs21 pre act)
+  (and (featurep 'tool-bar)
+       (w3-toolbar-make-buttons)))
+
+(defadvice w3-mode-version-specifics (after emacs21 pre act)
+  (w3-add-toolbar-to-buffer))
+
+(defun w3-tooltip-get-tips (event)
+  (let (widget pos help start)
+    (setq start (event-start event)
+	  pos (posn-point start)
+	  widget (and pos (widget-at pos))
+	  help (and widget (widget-get widget :help-echo)))
+    (if (functionp help)
+	(setq help (funcall help widget (posn-window start)
+			    (window-buffer (posn-window start))
+			    (posn-point start))))
+    (if (stringp help)
+	(tooltip-show help))))
+
+(add-hook 'tooltip-hook 'w3-tooltip-get-tips)
+
 (provide 'w3-e21)
+(require 'w3-toolbar)
