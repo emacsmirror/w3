@@ -1,4 +1,4 @@
-;;;$Id: w3-speak-table.el,v 1.1 1998/12/01 22:12:11 wmperry Exp $
+;;;$Id: w3-speak-table.el,v 1.2 1999/01/05 12:42:03 wmperry Exp $
 ;;;Authors: Thierry Emery <Thierry.Emery@nmu.alcatel.fr>, T.V. Raman <raman@Adobe.COM>
 ;;;Description: Speak W3 tables
 
@@ -370,7 +370,7 @@ Prefix arg can be used to specify the desired table nesting."
 	(mapconcat 'identity
 		   (extract-rectangle (w3-cell-info-start cell-info)
 				      (w3-cell-info-end cell-info))
-		   " ")))))
+		   "\n")))))
 
 (defun w3-table-speak-this-cell-info (&optional at-depth)
   "Speak coordinates of current table cell.
@@ -388,11 +388,32 @@ Prefix arg can be used to specify the desired table nesting."
                  (format " at nesting level %s" at-depth)
                ""))))
 
+(defun w3-table-focus-on-this-cell (&optional at-depth)
+  "Focus on current cell --optional argument at-depth
+specifies nesting level. Focusing on a cell results in its
+contents being displayed in a separate buffer in W3 mode.
+This is useful to navigate pages that use a single table
+cell for a newspaper style column"
+  (interactive "p")
+  (let ((contents (w3-table-this-cell-contents at-depth))
+        (buffer (get-buffer-create
+                 (format "Cell-%s" (buffer-name))))
+        (inhibit-read-only t))
+    (save-excursion
+      (set-buffer buffer)
+      (erase-buffer)
+      (w3-mode)
+      (insert contents)
+      (goto-char (point-min)))
+    (switch-to-buffer buffer)))
+
+
 (defun w3-table-speak-this-cell (&optional at-depth)
   "Speak contents of current table cell.
 Prefix arg can be used to specify the desired table nesting."
   (interactive "p")
-  (dtk-speak (w3-table-this-cell-contents at-depth)))
+  (let ((contents (w3-table-this-cell-contents at-depth)))
+  (dtk-speak contents)))
 
 ;;}}}
 ;;{{{  Table navigation

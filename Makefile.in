@@ -42,7 +42,7 @@ dotemacs:
 		(echo >> $(DOTEMACS)); \
 		(echo ";;; Emacs/W3 Configuration" >> $(DOTEMACS)); \
 		(echo "(setq load-path (cons \"$(lispdir)\" load-path))" >> $(DOTEMACS)); \
-		(echo "(require 'w3-auto \"w3-auto\")" >> $(DOTEMACS)); \
+		(echo "(condition-case () (require 'w3-auto \"w3-auto\") (error nil))" >> $(DOTEMACS)); \
 		echo "Added Emacs/W3 setup to $(DOTEMACS)"; \
 	fi
 
@@ -58,7 +58,7 @@ $(srcdir)/configure: $(srcdir)/configure.in $(srcdir)/aclocal.m4
 ###############################################################################
 # Distribution building, the joy of my life
 ###############################################################################
-SUPPORTFILES =  HOWTO TODO README INSTALL README.NT README.VMS
+SUPPORTFILES =  HOWTO TODO README INSTALL README.NT README.VMS BUGS
 DISTFILES    =  configure.in aclocal.m4 Makefile.in install-sh	\
 		configure descrip.mms ChangeLog	build.bat 	\
 		$(SUPPORTFILES)

@@ -183,24 +183,6 @@ fi
 ])
 
 dnl
-dnl Figure out how we can rebuild the auto-autoloads.el files
-dnl
-AC_DEFUN(AC_CHECK_AUTOLOADS, [
-AC_MSG_CHECKING(how to rebuild autoloads)
-AC_CACHE_VAL(EMACS_cv_REBUILD_AUTOLOADS,[
-AC_EMACS_CHECK_LIB(autoload,batch-update-directory,"noecho")
-EMACS_cv_REBUILD_AUTOLOADS=${HAVE_autoload}
-])
-if test "${EMACS_cv_REBUILD_AUTOLOADS}" != "no"; then
-   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -eval "(setq autoload-package-name \"w3\")" -l autoload -f batch-update-directory $(srcdir)'
-else
-   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -l $(srcdir)/docomp.el -f emacs-batch-build-autoloads $(srcdir) auto-autoloads.el'
-fi
-AC_MSG_RESULT("${REBUILD_AUTOLOADS}")
-AC_SUBST(REBUILD_AUTOLOADS)
-])
-
-dnl
 dnl Figure out how we can rebuild the custom-load.el files
 dnl
 AC_DEFUN(AC_CHECK_CUSTOMLOADS, [

@@ -1,3 +1,76 @@
+1999-01-05  William M. Perry  <wmperry@aventail.com>
+
+* lisp/docomp.el (byte-compile-dest-file): Downcase file names if we are
+  in windows of any flavor.  Sometimes we get foo.EL instead of foo.el and 
+  we were just naming the output file foo.EL.elc
+  (compile-it): Make sure we get *.EL from directory-files as well.
+  (emacs-build-autoloads): Ditto.  %!@!ing windows file systems.
+  (emacs-build-autoloads): Deal with Emacs or XEmacs way of rebuilding
+  autoloads in lisp instead of relying on autoconf.  This will make
+  everything much happier under windows.
+
+1999-01-04  William M. Perry  <wmperry@aventail.com>
+
+* Makefile.in (dotemacs): Wrap the require we stick into $(DOTEMACS) in a
+  `condition-case' for people that share their setups between emacsen or
+  machines with different installed packages.
+
+* lisp/w3-forms.el (w3-form-encode-xwfu): Don't forget to deal with the
+  new attributes if we are doing just a plain old form submission!
+
+1999-01-04  Milan Zamazal <pdm@freesoft.cz>
+
+* lisp/w3-forms.el (w3-submit-form): Correctly shorten the separator
+  generated... was including too few characters.
+  (w3-form-encode-helper): Added ability to specify additional attributes
+  for the `file' input type so that we can keep track of the filename.
+  (w3-form-encode-make-mime-part): Create content-disposition header
+  instead of content-id and content-length
+  (w3-form-encode-multipart/x-www-form-data): Use CRLF instead of just LF
+  for separators.
+  (w3-form-encode-multipart/x-www-form-data): Don't forget to add in the
+  separator at the end of the message.
+
+1998-01-04  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-forms.el (w3-form-encode-multipart/x-www-form-data): Better
+  separator generation.
+
+1999-01-04  Laurent Martelli <martelli@iie.cnam.fr>
+
+* lisp/w3-hotindex.el: Added autoload statements.
+
+1999-01-04  Kenichi Handa  <handa@etl.go.jp>
+
+* lisp/Makefile.in (w3-auto.el): Generate w3-auto.el from
+  auto-autoloads.el just build in the current directory.
+
+1998-12-31  William M. Perry  <wmperry@aventail.com>
+
+* lisp/font.el: Various mergings with the XEmacs distributed version of
+  font.el.  Lots of byte-compile warnings squashed when not building with
+  Emacs/W3.
+
+1998-12-31  Jonathan Harris  <jhar@tardis.ed.ac.uk>
+
+* font.el: Split font-family-mappings into X and mswindows-specific
+  versions.  mswindows-font-create-[object|name]: Treat supplied size as a
+  pointsize. Added underline and strikethru handling.
+
+1998-12-30  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url.el (url-file-exists): If url-user is nil use anonymous ftp.
+  (url-file-size): Ditto.
+
+* lisp/w3.el (w3-find-this-file): Protect against sticking 'nil@' in the
+  filename spec when we go to retrieve something.
+
+1998-12-30  Milan Zamazal <pdm@pvt.net>
+
+* lisp/url-auth.el (url-basic-auth): Make sure to use base64-encode-string 
+  instead of base64-encode to work with new Emacs/XEmacs that have native
+  base64 encoding/decoding primitives.
+
 1998-12-29  William M. Perry  <wmperry@aventail.com>
 
 * Emacs/W3 4.0pre38 released

@@ -85,6 +85,8 @@
   (setq filename (byte-compiler-base-file-name filename))
   (setq filename (file-name-sans-versions filename))
   (setq filename (file-name-nondirectory filename))
+  (if (memq system-type '(win32 w32 mswindows windows-nt))
+      (setq filename (downcase filename)))
   (cond ((eq system-type 'vax-vms)
  	 (concat (substring filename 0 (string-match ";" filename)) "c"))
  	((string-match emacs-lisp-file-regexp filename)
@@ -112,7 +114,7 @@
 	form)))
 
 (defun compile-it ()
-  (let ((files (directory-files "." t ".*.el$" nil)))
+  (let ((files (directory-files "." t ".*.[eE][lL]$" nil)))
     (while files
       (if (and (not (file-directory-p (car files)))
 	       (not (string-match "w3-sysdp.el$" (car files))))
@@ -121,15 +123,35 @@
 
 (defun emacs-build-autoloads (dir autofile)
   (require 'autoload)
-  (let ((files (directory-files dir t ".*.el$" nil)))
-    (save-excursion
-      (find-file autofile)
-      (erase-buffer)
-      (mapcar 'generate-file-autoloads files)
-      (goto-char (point-max))
-      (insert "\n(provide 'w3-autoloads)\n")
-      (save-buffer)
-      (kill-buffer (current-buffer)))))
+
+  ;; First we need to build the autoloads.  This leaves an
+  ;; auto-autoloads.el file that the XEmacs package system expects.
+  (if (and (fboundp 'batch-update-directory)
+	   (fboundp 'update-autoloads-from-directory))
+      (let ((autoload-package-name "w3")
+	    (generated-autoload-file autofile))
+	(update-autoloads-from-directory dir)
+	(save-some-buffers t))
+    (let ((files (directory-files dir t ".*.[eE][lL]$" nil)))
+      (save-excursion
+	(find-file autofile)
+	(erase-buffer)
+	(mapcar 'generate-file-autoloads files)
+	(goto-char (point-max))
+	(insert "\n(provide 'w3-autoloads)\n")
+	(save-buffer)
+	(kill-buffer (current-buffer)))))
+
+  ;; Now we need to munge that file to deal with
+  (find-file "w3-auto.el")
+  (erase-buffer)
+  (insert-file-contents autofile)
+  (goto-char (point-min))
+  (while (re-search-forward "w3-autoloads" nil t)
+      (replace-match "w3-auto"))
+  (save-buffer)
+  (kill-buffer (current-buffer))
+  (kill-emacs))
 
 (defun emacs-batch-build-autoloads ()
   (emacs-build-autoloads (nth 0 command-line-args-left)

@@ -1,7 +1,7 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/26 14:50:05 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/01/05 12:41:57 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -138,7 +138,7 @@
     ;; Now, let's actually do something with it.
     (setq connection (ldap-open host (if binddn (list 'binddn binddn)))
 	  results (ldap-search-internal connection filter base-object scope attributes nil))
-
+    (ldap-close connection)
     (set-buffer (get-buffer-create url-working-buffer))
     (erase-buffer)
     (setq url-current-mime-type "text/html"

@@ -1,12 +1,12 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:12 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/01/05 12:41:59 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -809,7 +809,10 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 				  (insert-file-contents-literally fname)
 				(error (concat "Error accessing " fname))))
 			(cons (w3-form-element-name formobj)
-			      (buffer-string)))))
+			      (cons (list (cons
+					   "filename"
+					   (file-name-nondirectory fname)))
+				    (buffer-string))))))
 		   (option
 		    (cons (w3-form-element-name formobj)
 			  (cdr-safe
@@ -836,23 +839,32 @@ This can be used as the :help-echo property of all w3 form entry widgets."
     result))
 
 (defun w3-form-encode-make-mime-part (id data separator)
-  (concat separator "\nContent-id: " id
-	  "\nContent-length: " (length data)
-	  "\n\n" data))
+  (let (addons)
+    (if (listp data)
+	(progn
+	  (setq addons (mapconcat (lambda (x)
+				    (format "; %s=\"%s\"" (car x) (cdr x)))
+				  (car data) " "))
+	  (setq data (cdr data)))
+      (setq addons ""))
+    (format "%s\r\nContent-Disposition: form-data; name=\"%s\"%s\r\n\r\n%s"
+	    separator id addons data)))
 
 (defun w3-form-encode-multipart/x-www-form-data (formobjs)
   ;; Create a multipart form submission.
   ;; Returns a cons of two strings.  Car is the separator used.
   ;; cdr is the body of the MIME message."
-  (let ((separator "---some-separator-for-www-form-data"))
+  (let ((separator (format-time-string "---separator-%Y%j%H%M%S-for-www-form-data")))
     (cons separator
-	  (mapconcat
-	   (function
-	    (lambda (formobj)
-	      (w3-form-encode-make-mime-part (car formobj) (cdr formobj)
-					     separator)))
-	   (w3-form-encode-helper formobjs)
-	   "\n"))))
+	  (concat
+	   (mapconcat
+	    (function
+	     (lambda (formobj)
+	       (w3-form-encode-make-mime-part (car formobj) (cdr formobj)
+					      separator)))
+	    (w3-form-encode-helper formobjs)
+	    "\r\n")
+	   "\r\n" separator "--\r\n"))))
 
 (fset 'w3-form-encode-multipart/form-data
       'w3-form-encode-multipart/x-www-form-data)
@@ -891,6 +903,11 @@ This can be used as the :help-echo property of all w3 form entry widgets."
   "Escape characters in a string for application/x-www-form-urlencoded.
 Blasphemous crap because someone didn't think %20 was good enough for encoding
 spaces.  Die Die Die."
+  ;; This will get rid of the 'attributes' specified by the file type,
+  ;; which are useless for an application/x-www-form-urlencoded form.
+  (if (consp chunk)
+      (setq chunk (cdr chunk)))
+
   (mapconcat
    (function
     (lambda (char)
@@ -943,9 +960,9 @@ spaces.  Die Die Die."
      ((or (string= "POST" themeth)
 	  (string= "PUT" themeth))
       (if (consp query)
-	  (setq enctype (concat enctype "; separator=\""
-				(substring (car query) 3 nil)
-				"\"")
+	  (setq enctype (concat enctype "; boundary="
+				(substring (car query) 2 nil)
+				"")
 		query (cdr query)))
       (let ((url-request-method themeth)
 	    (url-request-data query)

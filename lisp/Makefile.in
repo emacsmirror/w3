@@ -65,11 +65,10 @@ EXTRAS = w3-sysdp.el docomp.el url-cid.el
 all:	$(AUTOSOURCES) w3
 
 w3-auto.el: auto-autoloads.el
-	$(RM) $@
-	cat $(srcdir)/auto-autoloads.el | sed 's/w3-autoloads/w3-auto/g' > $@
+	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) $(EMACS) $(BATCHFLAGS) -l $(srcdir)/docomp.el -f emacs-batch-build-autoloads $(srcdir) auto-autoloads.el
 
 auto-autoloads.el: $(SOURCES) $(URLSOURCES)
-	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) @REBUILD_AUTOLOADS@
+	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) $(EMACS) $(BATCHFLAGS) -l $(srcdir)/docomp.el -f emacs-batch-build-autoloads $(srcdir) auto-autoloads.el
 
 custom-load.el: $(SOURCES) $(URLSOURCES)
 	GNUSDIR=$(GNUSDIR) WIDGETDIR=$(WIDGETDIR) W3SRCDIR=$(srcdir) @REBUILD_CUSTOMLOADS@

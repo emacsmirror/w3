@@ -1082,72 +1082,21 @@ fi
    echo "$ac_t"""${GNUS}"" 1>&6
 
 
-echo $ac_n "checking how to rebuild autoloads""... $ac_c" 1>&6
-echo "configure:1087: checking how to rebuild autoloads" >&5
-
-
-
-if test -z ""noecho""; then
-	echo $ac_n "checking for batch-update-directory in autoload""... $ac_c" 1>&6
-echo "configure:1093: checking for batch-update-directory in autoload" >&5
-fi
-library=`echo autoload | tr _ -`
-
-elisp="(progn (fmakunbound 'batch-update-directory) (condition-case nil (progn (require '$library) (fboundp 'batch-update-directory)) (error nil)))"
-if test -z ""noecho""; then
-	echo $ac_n "checking for autoload""... $ac_c" 1>&6
-echo "configure:1100: checking for autoload" >&5
-fi
-
-
-	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))"  > /dev/null 2>&1 
-	retval=`cat ${OUTPUT}`
-	rm -f ${OUTPUT}
-	EMACS_cv_SYS_autoload=$retval
-
-
-autoload=${EMACS_cv_SYS_autoload}
-if test -z ""noecho""; then
-	echo "$ac_t""$autoload" 1>&6
-fi
-
-if test "${EMACS_cv_SYS_autoload}" = "nil"; then
-	EMACS_cv_SYS_autoload=no
-fi
-HAVE_autoload=${EMACS_cv_SYS_autoload}
-
-if test -z ""noecho""; then
-	echo "$ac_t""$HAVE_autoload" 1>&6
-fi
-
-EMACS_cv_REBUILD_AUTOLOADS=${HAVE_autoload}
-
-
-if test "${EMACS_cv_REBUILD_AUTOLOADS}" != "no"; then
-   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -eval "(setq autoload-package-name \"w3\")" -l autoload -f batch-update-directory $(srcdir)'
-else
-   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -l $(srcdir)/docomp.el -f emacs-batch-build-autoloads $(srcdir) auto-autoloads.el'
-fi
-echo "$ac_t"""${REBUILD_AUTOLOADS}"" 1>&6
-
-
-
 echo $ac_n "checking how to rebuild custom autoloads""... $ac_c" 1>&6
-echo "configure:1138: checking how to rebuild custom autoloads" >&5
+echo "configure:1087: checking how to rebuild custom autoloads" >&5
 
 
 
 if test -z ""noecho""; then
 	echo $ac_n "checking for Custom-make-dependencies in cus_dep""... $ac_c" 1>&6
-echo "configure:1144: checking for Custom-make-dependencies in cus_dep" >&5
+echo "configure:1093: checking for Custom-make-dependencies in cus_dep" >&5
 fi
 library=`echo cus_dep | tr _ -`
 
 elisp="(progn (fmakunbound 'Custom-make-dependencies) (condition-case nil (progn (require '$library) (fboundp 'Custom-make-dependencies)) (error nil)))"
 if test -z ""noecho""; then
 	echo $ac_n "checking for cus_dep""... $ac_c" 1>&6
-echo "configure:1151: checking for cus_dep" >&5
+echo "configure:1100: checking for cus_dep" >&5
 fi
 
 
@@ -1340,8 +1289,6 @@ s%@HAVE_wid_edit@%$HAVE_wid_edit%g
 s%@CUSTOM@%$CUSTOM%g
 s%@HAVE_mm_decode@%$HAVE_mm_decode%g
 s%@GNUS@%$GNUS%g
-s%@HAVE_autoload@%$HAVE_autoload%g
-s%@REBUILD_AUTOLOADS@%$REBUILD_AUTOLOADS%g
 s%@HAVE_cus_dep@%$HAVE_cus_dep%g
 s%@REBUILD_CUSTOMLOADS@%$REBUILD_CUSTOMLOADS%g
 s%@INSTALL@%$INSTALL%g

@@ -62,6 +62,7 @@ Returns a list of the keys appearing in HOTINDEX."
       (setq hotindex (cdr hotindex)))
     key-list))
 
+;;;###autoload
 (defun w3-hotindex-add-key (name keyword)
   "*Add a keyword to an item in w3-hotindex. Completion is done
 on the list of all keywords."
@@ -92,6 +93,7 @@ on the list of all keywords."
   ;; It would better to do this incrementally
   (setq w3-hotindex-key-list (w3-hotindex-build-key-list w3-hotindex)))
 
+;;;###autoload
 (defun w3-hotindex-rm-key (entry keyword)
   "*Remove a keyword from an item of w3-hotindex."
   (interactive (let ((entry nil)
@@ -113,6 +115,7 @@ on the list of all keywords."
   (setq w3-hotindex-key-list (w3-hotindex-build-key-list w3-hotindex))
   )
 
+;;;###autoload
 (defun w3-hotindex-rename-entry (old new)
   "Renames an entry in the HotIndex. Intended to be called from 
 w3-hotlist-rename-entry. OLD should equal the entry to be renamed.
@@ -122,6 +125,7 @@ Case is therefore important."
 	(progn (setcar entry new)
 	       (w3-hotindex-save nil)))))
 
+;;;###autoload
 (defun w3-hotindex-delete-entry (title)
   "Deletes an entry in the HotIndex. Intended to be called from 
 w3-hotlist-delete. OLD should equal the entry to be deleted.
@@ -133,6 +137,7 @@ Case is therefore important."
 					   w3-hotindex-key-list))
 	       (w3-hotindex-save nil)))))
 
+;;;###autoload
 (defun w3-hotindex-query (key)
   "Query the HotIndex for KEY."
   (interactive (list (let ((completion-ignore-case t))
@@ -196,7 +201,7 @@ Raises an error if some entries are unresolved."
 (defun w3-hotindex-load ()
   "Load the file containing the hotindex, and updates w3-hotindex-key-list."
   (interactive)
-  (load-file (concat w3-hotindex-file))
+  (load w3-hotindex-file t)
   (w3-hotindex-check)
   (setq w3-hotindex-key-list (w3-hotindex-build-key-list w3-hotindex))
   )
