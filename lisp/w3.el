@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/09/25 09:13:25 $
-;; Version: $Revision: 1.22 $
+;; Created: $Date: 2001/10/01 11:34:55 $
+;; Version: $Revision: 1.23 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -230,38 +230,107 @@ variable `http-header'."
 		  (goto-char (point-min))
 		  (insert http-header)))))))))
 
+(defun w3-setup-reload-timer (url must-be-viewing &optional time)
+  "Set up a timer to load URL at optional TIME.
+If TIME is unspecified, default to 5 seconds.  Only loads document if
+MUST-BE-VIEWING is the current URL when the timer expires."
+  (if (or (not time)
+	  (<= time 0))
+      (setq time 5))
+  (let ((func
+	 `(lambda ()
+	    (if (equal (url-view-url t) ,must-be-viewing)
+		(let ((w3-reuse-buffers 'no))
+		  (if (equal ,url (url-view-url t))
+		      (kill-buffer (current-buffer)))
+		  (w3-fetch ,url))))))
+    (cond
+     ((featurep 'itimer)
+      (start-itimer "reloader" func time))
+     ((fboundp 'run-at-time)
+      (run-at-time time nil func))
+     (t
+      (w3-warn 'url "Cannot set up timer for automatic reload, sorry!")))))
+
+(defun w3-handle-refresh-header (reload)
+  (if (and reload
+	   url-honor-refresh-requests
+	   (or (eq url-honor-refresh-requests t)
+	       (funcall url-confirmation-func "Honor refresh request? ")))
+      (let ((uri (url-view-url t)))
+	(if (string-match ";" reload)
+	    (progn
+	      (setq uri (substring reload (match-end 0) nil)
+		    reload (substring reload 0 (match-beginning 0)))
+	      (if (string-match
+		   "ur[li][ \t]*=[ \t]*\"*\\([^ \t\"]+\\)\"*"
+		   uri)
+		  (setq uri (match-string 1 uri)))
+	      (setq uri (url-expand-file-name uri (url-view-url t)))))
+	(w3-setup-reload-timer uri (url-view-url t)
+			       (string-to-int (or reload "5"))))))
+
 (defun w3-fetch-callback (url)
   (w3-nasty-disgusting-http-equiv-handling)
-  (let ((handle (mm-dissect-buffer t))
-	(buff nil))
-    (message "Downloading of `%s' complete." url)
-    (url-mark-buffer-as-dead (current-buffer))
-    ;; Fixme: can handle be null?
-    (cond
-     ((equal (mm-handle-media-type handle) "text/html")
-      ;; Special case text/html if it comes through w3-fetch
-      (set-buffer (generate-new-buffer " *w3-html*"))
-      (mm-disable-multibyte)
-      (mm-insert-part handle)
-      (w3-decode-charset handle)
-      (setq url-current-object (url-generic-parse-url url))
-      (w3-prepare-buffer)
-      (w3-notify-when-ready (current-buffer)))
-     ((equal (car-safe (mm-handle-type handle))
-	     "application/x-elisp-parsed-html")
+  ;; Process any cookie and refresh headers.
+  (let (headers)
+    (ignore-errors
+     (save-restriction
+       (mail-narrow-to-head)
+       (goto-char (point-min))
+       (unless (search-forward ":" (line-end-position) t)
+	 (forward-line))
+       (setq headers (mail-header-extract))
+       (let (refreshed)
+	 (dolist (header headers)
+	   ;; Act on multiple cookies if necessary, but only on a
+	   ;; single refresh request in case there's more than one.
+	   (case (cdr header)
+		 (set-cookie (url-cookie-handle-set-cookie (cdr header)))
+		 (refresh (unless refreshed
+			    (w3-handle-refresh-header (cdr header))
+			    (setq refreshed t))))))))
+    (let ((handle (mm-dissect-buffer t))
+	  (buff nil))
+      (message "Downloading of `%s' complete." url)
+      (url-mark-buffer-as-dead (current-buffer))
+      (unless headers
+	(setq headers (list (cons 'content-type (mm-handle-media-type handle)))))
+      ;; Fixme: can handle be null?
+      (cond
+       ((equal (mm-handle-media-type handle) "text/html")
+	;; Special case text/html if it comes through w3-fetch
+	(set-buffer (generate-new-buffer " *w3-html*"))
+	(mm-disable-multibyte)
+	(mm-insert-part handle)
+	(w3-decode-charset handle)
+	(setq url-current-object (url-generic-parse-url url))
+	(w3-prepare-buffer)
+	(setq url-current-mime-headers headers)
+	(w3-notify-when-ready (current-buffer))
+	(mm-destroy-parts handle))
+       ((equal (car-safe (mm-handle-type handle))
+	       "application/x-elisp-parsed-html")
       ;; Also need to special-case pre-parsed representations of HTML.
-      ;; Fixme: will this need decoding?
-      (w3-prepare-tree (read (set-marker (make-marker) 1
-					 (mm-handle-buffer handle)))))
-     ((mm-inlinable-p handle)
-      ;; We can view it inline!
-      (set-buffer (generate-new-buffer url))
-      (mm-display-part handle)
-      (w3-notify-when-ready (current-buffer)))
-     (t
-      ;; Must be an external viewer
-      (mm-display-part handle)))
-    (mm-destroy-parts handle)))
+	;; Fixme: will this need decoding?
+	(w3-prepare-tree (read (set-marker (make-marker) 1
+					   (mm-handle-buffer handle)))))
+       ((mm-inlinable-p handle)
+	;; We can view it inline!
+	(set-buffer (generate-new-buffer url))
+	(require 'mm-view)		; make sure methods are defined
+	(mm-display-part handle)
+	(set-buffer-modified-p nil)
+	(w3-mode)
+	(if (equal "image" (mm-handle-media-supertype handle))
+	    (setq cursor-type nil))
+	(setq url-current-mime-headers headers)
+	(w3-notify-when-ready (current-buffer)))
+       (t
+	;; Must be an external viewer
+	(mm-display-part handle)
+	;;(mm-destroy-parts handle)
+	)))))
 
 ;;;###autoload
 (defun w3-fetch (&optional url target)
@@ -399,15 +468,13 @@ the cdr is the 'next' node."
   (erase-buffer)
   (let (entity)
     (mapatoms
-     (function
-      (lambda (x)
-	(setq entity (get x 'html-entity-expansion))
-	(if entity
-	    (insert (format "<!entity %s %s \"%s\">\n" x (car entity)
-			    (cdr entity))))))))
+     (lambda (x)
+       (setq entity (get x 'html-entity-expansion))
+       (if entity
+	   (insert (format "<!entity %s %s \"%s\">\n" x (car entity)
+			   (cdr entity)))))))
   (goto-char (point-min)))
 
-;; FIXME!!! This is broken with the new URL package.
 (defun w3-document-information (&optional buff)
   "Display information on the document in buffer BUFF."
   (interactive)
@@ -423,73 +490,102 @@ the cdr is the 'next' node."
 	     (cur-links w3-current-links)
 	     (title (buffer-name))
 	     (case-fold-search t)
-	     (possible-lastmod (save-excursion
-				 (goto-char (point-min))
-				 (if (re-search-forward
-				      "^Last modified:\\(.*\\)" nil t)
-				     (buffer-substring (match-beginning 1)
-						       (match-end 1)))))
 	     (attributes (url-file-attributes url))
-	     (lastmod (or (cdr-safe (assoc "last-modified"
-					   url-current-mime-headers))
+	     (lastmod (or (cdr-safe (assq 'last-modified
+					  url-current-mime-headers))
 			  (nth 5 attributes)))
 	     (hdrs url-current-mime-headers)
-	     (size (or (cdr (assoc "content-length" url-current-mime-headers))
-		       (buffer-size)))
-	     (info w3-current-metainfo))
+	     (size (cdr (assq 'content-length url-current-mime-headers)))
+	     (info w3-current-metainfo)
+	     (links w3-current-links))
 	(set-buffer (get-buffer-create url-working-buffer))
 	(setq url-current-can-be-cached nil)
 	(erase-buffer)
-	(cond
-	 ((stringp lastmod) nil)
-	 ((equal '(0 . 0) lastmod) (setq lastmod possible-lastmod))
-	 ((consp lastmod) (setq lastmod (current-time-string lastmod)))
-	 (t (setq lastmod possible-lastmod)))
+	(if (consp lastmod)
+	    (if (equal '(0 . 0) lastmod)
+		(setq lastmod nil)
+	      (setq lastmod (current-time-string lastmod))))
 	(setq url-current-mime-type "text/html")
-	(insert "<html>\n"
-		" <head>\n"
-		"  <title>Document Information</title>\n"
-		" </head>\n"
-		" <body\n"
-		"  <table border>\n"
-		"   <tr><th colspan=2>Document Information</th></tr>\n"
-		"   <tr><td>Title:</td><td>" title "</td></tr>\n"
-		"   <tr><td>Location:</td><td>" url "</td></tr>\n"
-		"   <tr><td>Size:</td><td>" (url-pretty-length
-					     (if (stringp size)
-						 (string-to-int size)
-					       size)) "</td></tr>\n"
-		"   <tr><td>Last Modified:</td><td>" (or lastmod "None Given")
-		"</td></tr>\n")
-	(if hdrs
-	    (let* ((maxlength (car (sort (mapcar (function (lambda (x)
-							     (length (car x))))
-						 hdrs)
-					 '>)))
-		   (fmtstring (format "   <tr><td align=right>%%%ds:</td><td>%%s</td></tr>" maxlength)))
-	      (insert "  <tr><th colspan=2>MetaInformation</th></tr>\n"
-		      (mapconcat
-		       (function
-			(lambda (x)
-			  (if (/= (length (car x)) 0)
-			      (format fmtstring
-				      (url-insert-entities-in-string
-				       (capitalize (car x)))
-				      (url-insert-entities-in-string
-				       (if (numberp (cdr x))
-					   (int-to-string (cdr x))
-					 (cdr x)))))))
-		       (sort hdrs
-			     (function
-			      (lambda (x y) (string-lessp (car x) (car y)))))
-		       "\n"))))
-
-	;; FIXME!!! Need to reimplement showing rel/rev links for the new
-	;; storage format.
+	(insert "\
+Content-Type: text/html\n
+<html>
+ <head>
+  <title>Document Information</title>
+ </head>
+ <body
+  <table border>
+   <tr><th colspan=2>Document Information</th></tr>
+   <tr><td>Title:</td><td>" title "</td></tr>
+   <tr><td>Location:</td><td>" url "</td></tr>")
+	(if size (insert "\
+   <tr><td>Size:</td><td>" (url-pretty-length (if (stringp size)
+						  (string-to-int size)
+						size)) "</td></tr>"))
+	(insert "\
+   <tr><td>Last Modified:</td><td>" (or lastmod "None Given") "</td></tr>\n")
+	(when hdrs
+	  (setq hdrs (delete (assq 'last-modified hdrs) hdrs))
+	  (setq hdrs (delete (assq 'content-length hdrs) hdrs))
+	  (setq hdrs (mapcar (lambda (pair)
+			       (cons (symbol-name (car pair))
+				     (cdr pair)))
+			     hdrs)))
+	(let* ((maxlength (car (sort (mapcar (lambda (x)
+					       (length (car x)))
+					     hdrs)
+				     '>)))
+	       (fmtstring (format "\
+  <tr><td align=right>%%%ds:</td><td>%%s</td></tr>" maxlength)))
+	  (insert
+	   "\
+  <tr><th colspan=2>MetaInformation</th></tr>\n"
+	   (mapconcat
+	    (lambda (x)
+	      (if (/= (length (car x)) 0)
+		  (format fmtstring
+			  (url-insert-entities-in-string
+			   (capitalize (car x)))
+			  (url-insert-entities-in-string
+			   (if (numberp (cdr x))
+			       (int-to-string (cdr x))
+			     (cdr x))))))
+	    (sort hdrs
+		  (lambda (x y) (string-lessp (car x) (car y))))
+	    "\n")))
+	(when links
+	  ;; collapse `rel' and `rev' components
+	  (setq links (apply 'append (mapcar 'cdr links)))
+	  ;; extract
+	  (setq links (mapcar
+		       (lambda (elt)
+			 (cons (or (plist-get (cadr elt) 'title)
+				   (car elt))
+			       (plist-get (cadr elt) 'href)))
+		       links))
+	  (let* ((maxlength (car (sort (mapcar (lambda (x)
+						 (length (car x)))
+					       links)
+				       '>)))
+		 (fmtstring
+		  (format
+		   "   <tr><td>%%%ds:</td><td><a href='%%s'>%%s</a></td></tr>"
+		   maxlength)))
+	    (insert
+	     "   <tr><th colspan=2>Document Links</th></tr>\n")
+	    (while links
+	      (if (and (caar links) (cdar links))
+		  (insert (format fmtstring
+				  (url-insert-entities-in-string
+				   (capitalize (caar links)))
+				  (url-insert-entities-in-string
+				   (cdar links))
+				  (url-insert-entities-in-string
+				   (cdar links))) "\n"))
+	      (setq links (cdr links)))))
 	
 	(if info
-	    (let* ((maxlength (car (sort (mapcar (function (lambda (x)
-							     (length (car x))))
+	    (let* ((maxlength (car (sort (mapcar (lambda (x)
+						   (length (car x)))
 						 info)
 					 '>)))
 		   (fmtstring (format
@@ -504,13 +600,9 @@ the cdr is the 'next' node."
 				     (capitalize (caar info)))
 				    (url-insert-entities-in-string
 				     (cdar info))) "\n"))
-		(setq info (cdr info))
-		)
-	      )
-	  )
-	(insert "  </table>\n"
-		" </body>\n"
-		"</html>\n")))))
+		(setq info (cdr info)))))
+	(insert "  </table></body></html>\n")
+	(current-buffer)))))
 
 (defun w3-insert-formatted-url (p)
   "Insert a formatted url into a buffer.
@@ -885,18 +977,6 @@ even though the MIME type is nil or listed in `w3-mime-list-for-code-conversion'
 
 The global value is usually nil.  It will be bound locally if a user
 invokes some commands which read a coding system from the user.")
-
-;; Fixme: use skip-chars-forward.
-(defun w3-replace-invalid-chars ()
-  (let ((invalid-char-alist w3-invalid-sgml-char-replacement))
-    (while invalid-char-alist
-      (goto-char (point-min))
-      (if (< (caar invalid-char-alist) 256)
-	  (let ((str (char-to-string (caar invalid-char-alist)))
-		(repl (cdar invalid-char-alist)))
-	    (while (search-forward str nil t)
-	      (replace-match repl nil t))))
-      (setq invalid-char-alist (cdr invalid-char-alist)))))
 
 (defun w3-show-history-list ()
   "Format the url-history-list prettily and show it to the user."
@@ -1326,12 +1406,11 @@ as high as possible in w3-explicit-conversion-tree"
   (interactive "P")
   (if mega
       (mapcar
-       (function
-	(lambda (x)
-	  (save-excursion
-	    (set-buffer (get-buffer x))
-	    (if (eq major-mode 'w3-mode)
-		(w3-quit nil)))))
+       (lambda (x)
+	 (save-excursion
+	   (set-buffer (get-buffer x))
+	   (if (eq major-mode 'w3-mode)
+	       (w3-quit nil))))
        (buffer-list))
     (let ((x w3-current-last-buffer))
       (if w3-frame-name
@@ -1446,7 +1525,7 @@ No arg means whole window full.  Arg is number of lines to scroll."
       (move-to-window-line -1)
       (beginning-of-line))))
 
-;; FIXME!! This is broken for the new URL package
+
 (defun w3-mail-document-author ()
   "Send mail to the author of this document, if possible."
   (interactive)
@@ -1532,19 +1611,18 @@ BUFFER, the end of BUFFER, nil, and (current-buffer), respectively."
   (let ((parent)
 	(highly-unlikely-name-for-a-variable-holding-a-function function))
     (widget-map-buttons
-     (function
-      (lambda (widget arg)
-	(setq parent (and widget (widget-get widget :parent)))
-	;; Check to see if its got a URL tacked on it somewhere
-	(cond
-	 ((and widget (widget-get widget :href))
-	  (funcall highly-unlikely-name-for-a-variable-holding-a-function
-		   widget maparg))
-	 ((and parent (widget-get parent :href))
-	  (funcall highly-unlikely-name-for-a-variable-holding-a-function
-		   widget maparg))
-	 (t nil))
-	nil)))))
+     (lambda (widget arg)
+       (setq parent (and widget (widget-get widget :parent)))
+       ;; Check to see if its got a URL tacked on it somewhere
+       (cond
+	((and widget (widget-get widget :href))
+	 (funcall highly-unlikely-name-for-a-variable-holding-a-function
+		  widget maparg))
+	((and parent (widget-get parent :href))
+	 (funcall highly-unlikely-name-for-a-variable-holding-a-function
+		  widget maparg))
+	(t nil))
+       nil))))
 
 (defun w3-refresh-stylesheets ()
   "Reload all stylesheets."
@@ -1726,9 +1804,8 @@ Emacs."
 
 (defun w3-only-links ()
   (let* (result temp)
-    (w3-map-links (function
-		   (lambda (x y)
-		     (setq result (cons x result)))))
+    (w3-map-links (lambda (x y)
+		    (setq result (cons x result))))
     result))
 
 (defun w3-download-callback (fname)
@@ -1862,22 +1939,20 @@ With optional ARG, move across that many fields."
 			  (buffer-substring-no-properties
 			   (widget-get link-at-point :from)
 			   (widget-get link-at-point :to)))))
-    (w3-map-links (function
-		   (lambda (widget arg)
-		     (if (and (widget-get widget :from)
-			      (widget-get widget :to))
-			 (setq links-alist (cons
-					    (cons
-					     (w3-fix-spaces
-					      (buffer-substring-no-properties
-					       (widget-get widget :from)
-					       (widget-get widget :to)))
-					     (widget-get widget :href))
-					    links-alist))))))
+    (w3-map-links (lambda (widget arg)
+		    (if (and (widget-get widget :from)
+			     (widget-get widget :to))
+			(setq links-alist (cons
+					   (cons
+					    (w3-fix-spaces
+					     (buffer-substring-no-properties
+					      (widget-get widget :from)
+					      (widget-get widget :to)))
+					    (widget-get widget :href))
+					   links-alist)))))
     (if (not links-alist) (error "No links in current document"))
-    (setq links-alist (sort links-alist (function
-					 (lambda (x y)
-					   (string< (car x) (car y))))))
+    (setq links-alist (sort links-alist (lambda (x y)
+					  (string< (car x) (car y)))))
     ;; Destructively remove duplicate entries from links-alist.
     (let ((remaining-links links-alist))
       (while remaining-links
