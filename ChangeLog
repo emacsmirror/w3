@@ -1,3 +1,10 @@
+2003-01-12  Wolfgang Jenkner <wjenkner@inode.at>
+
+	* lisp/w3.el (w3-fetch-callback) 
+	(w3-nasty-disgusting-http-equiv-handling): When searching for the
+	':' meaning we are past the 'http/1.x' response, make sure that we
+	save-execursion around it, or bad things happen.
+
 2002-10-28  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-display.el (w3-display-node): Don't use

@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2002/10/28 02:32:11 $
-;; Version: $Revision: 1.31 $
+;; Created: $Date: 2003/01/12 22:10:25 $
+;; Version: $Revision: 1.32 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -248,7 +248,8 @@ Operate on BUFFER."
 			 (w3-parse-buffer)))))
 		(when http-header
 		  (goto-char (point-min))
-		  (unless (search-forward ":" (line-end-position) t)
+		  (unless (save-excursion
+			    (search-forward ":" (line-end-position) t))
 		    (forward-line))
 		  (insert http-header)))))))))
 
@@ -300,7 +301,8 @@ MUST-BE-VIEWING is the current URL when the timer expires."
       (save-restriction
 	(mail-narrow-to-head)
 	(goto-char (point-min))
-	(unless (search-forward ":" (line-end-position) t)
+	(unless (save-excursion
+		  (search-forward ":" (line-end-position) t))
 	  (forward-line))
 	(setq headers (mail-header-extract))
 	(let (refreshed)
