@@ -1,5 +1,14 @@
-2001-05-30  Dave Love  <fx@gnu.org>
+2001-05-31  Dave Love  <fx@gnu.org>
 
+	* lisp/w3-menu.el (w3-menu-file-menu): Fix
+	"---:shadowDoubleEtchedIn".  From Pavel Jan,Bm(Bk.
+
+	* lisp/w3-parse.el (decode-char): Define with older Mule-UCS.
+	(w3-expand-entity-at-point-maybe): Sanitize regexp for numeric
+	entity.  Don't lose trailing space.  Grok hex form.
+
+2001-05-30  Dave Love  <fx@gnu.org>
+	
 	* lisp/w3-menu.el: Require w3-sysdp.
 	(w3-popup-menu): Revert last change.
 
@@ -42,7 +51,7 @@
 	to work around a byte-optimizer bug in Emacs 21 that caused this
 	module to fail to byte-compile.
 
-2001-05-24  Pavel Janík <Pavel@janik.cz>
+2001-05-24  Pavel Jan,Bm(Bk <Pavel@janik.cz>
 
 	* lisp/w3-display.el (w3-resurrect-hyperlinks): Look for next
 	single property change from `st' instead of `nd' to avoid
@@ -377,3 +386,6 @@
 	* lisp/font.el (font-set-face-font-new-redisplay): Don't set the :family
 	face attribute if it is nil.  The new redisplay doesn't like that.
 
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
