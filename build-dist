@@ -23,7 +23,7 @@ if [ -z "${version}" ]; then
    exit
 fi
 
-CVSROOT=/usr/people/wmperry/.cvs/
+CVSROOT=:pserver:wmperry@cvs.gnu.org:/gd/gnu/cvsroot
 export CVSROOT
 
 ( cd .    ; cvs admin -s"p${version}" README )
