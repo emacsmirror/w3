@@ -12,7 +12,7 @@
 @c site: http://www.cs.indiana.edu/elisp/w3/docs.html
 @c
 @setfilename w3.info
-@settitle Emacs/W3 $State: v4.0pre.45 $ User's Manual
+@settitle Emacs/W3 $State: v4.0pre.46 $ User's Manual
 @iftex
 @c @finalout
 @end iftex
@@ -86,10 +86,10 @@ with the library.
 Emacs/W3 is completely customizable, both from Emacs-Lisp and from
 stylesheets @xref{Stylesheets}.  If there is any aspect of Emacs/W3 that
 cannot be modified to your satisfaction, please send mail to the
-@t{w3-beta@@indiana.edu} mailing list with any suggestions.
+@t{w3-beta@@xemacs.org} mailing list with any suggestions.
 @xref{Reporting Bugs}.
 
-This manual corresponds to Emacs/W3 $State: v4.0pre.45 $
+This manual corresponds to Emacs/W3 $State: v4.0pre.46 $
 
 @menu
 * Getting Started::             Getting up and running with Emacs/W3
@@ -4367,11 +4367,9 @@ Better integration with the parser
 @cindex Contacting the author
 
 If any bugs are discovered in Emacs/W3, please report them to the
-mailing list @t{w3-beta@@indiana.edu} --- this is where the brave souls
+mailing list @t{w3-beta@@xemacs.org} --- this is where the brave souls
 who beta test the latest versions of Emacs/W3 reside, and are generally
 very responsive to bug reports.
-@c gdj1: w3-submit-bug uses wmperry+w3@cs.indiana.edu rather than
-@c w3-beta@@indiana.edu, which is correct?
 @kindex w
 @findex w3-submit-bug
 Please make sure to use the bug submission feature of Emacs/W3, so that
