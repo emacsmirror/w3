@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/06/07 16:27:31 $
-;; Version: $Revision: 1.21 $
+;; Created: $Date: 2001/09/25 09:13:25 $
+;; Version: $Revision: 1.22 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -179,35 +179,56 @@ Return the coding system used for the decoding."
       (mm-enable-multibyte))
     coding-system))
 
+(defvar http-header)			; dynamically bound below
+
+(defun w3-http-equiv-headers (tree)
+  "Grovel parse TREE for <meta http-equiv...> elements.
+Concatenate the equivalent MIME header onto the dynamically-bound
+variable `http-header'."
+  (if (consp tree)
+      (dolist (node tree)
+	(if (consp node)
+	    (if (eq 'meta (car-safe node))
+		(let ((attrs (cadr node)))
+		  (if (assq 'http-equiv attrs)
+		      (if (assq 'content attrs)
+			  (setq http-header
+				(concat 
+				 http-header
+				 (format "%s: %s\n" 
+					 (cdr (assq 'http-equiv attrs))
+					 (cdr (assq 'content attrs))))))))
+	      (w3-http-equiv-headers (nth 2 node)))))))
+
 (defun w3-nasty-disgusting-http-equiv-handling (&optional buffer)
-  (let ((content-type nil)
-	(end-of-headers nil)
-	(extra-headers nil))
+  "Propagate information from <meta http-equiv...> elements to MIME headers."
+  (let (content-type end-of-headers extra-headers)
     (save-excursion
       (if buffer (set-buffer buffer))
       (goto-char (point-min))
       (mail-narrow-to-head)
       (setq content-type (mail-fetch-field "content-type"))
-      (goto-char (point-max))		; Make sure we are beyond the headers
+      (goto-char (point-max))	 ; Make sure we are beyond the headers
       (setq end-of-headers (point))
       (widen)
-      (if (and content-type (string-match "^text/html" content-type)
-	       (re-search-forward "</head" nil t))
-	  (let ((case-fold-search t)
-		(end-of-head (point)))
-	    ;; Need to find any <meta http-equiv> stuff in the head so
-	    ;; we can promote them into the headers before
-	    ;; mm-dissect-buffer looks for them.
-	    (goto-char end-of-headers)
-	    (while (re-search-forward "<meta[ \t\r\n]+http-equiv"
-				      end-of-head t)
-	      (forward-char 5)
-	      (skip-chars-forward " \t\r\n")
-	      ;; We should now be directly in front of the first
-	      ;; attribute name.  Need to parse the tag attributes and
-	      ;; push them up.
-	      (message "#*!#@*! - Need to promote a header.")
-	      (forward-char 1)))))))
+      (let ((case-fold-search t))
+	(if (and content-type (string-match "^text/html" content-type)
+		 ;; Try not to parse past the head element.
+		 (re-search-forward "</[ \n]*head\\|<[ \n]*body" nil t))
+	    (let ((end-of-head (point)))
+	      ;; Find any <meta http-equiv> stuff in the head so we
+	      ;; can promote it into the MIME headers before
+	      ;; mm-dissect-buffer looks at them.
+	      (let (http-header)
+		(save-restriction
+		  (narrow-to-region end-of-headers end-of-head)
+		  (goto-char (point-min))
+		  ;; Quick check before parsing.
+		  (if (search-forward "http-equiv=" nil t)
+		      (w3-http-equiv-headers (w3-parse-buffer))))
+		(when http-header
+		  (goto-char (point-min))
+		  (insert http-header)))))))))
 
 (defun w3-fetch-callback (url)
   (w3-nasty-disgusting-http-equiv-handling)
