@@ -1,7 +1,7 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 12:14:46 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1999/10/12 14:14:50 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,6 +36,7 @@
   (require 'w3-keyword)
   (require 'w3-mouse)
   (require 'w3-display)
+  (require 'url)
   (require 'widget)
   (condition-case nil
       (require 'wid-edit)

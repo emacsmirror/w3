@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:52 $
-;; Version: $Revision: 1.8 $
+;; Created: $Date: 1999/10/12 14:14:51 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -83,6 +83,7 @@
 (require 'cl)
 (require 'css)
 (require 'url-vars)
+(require 'url-parse)
 (require 'w3-vars)
 (eval-and-compile
   (require 'w3-display))

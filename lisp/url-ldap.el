@@ -1,7 +1,7 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/06/28 01:46:56 $
-;; Version: $Revision: 1.6 $
+;; Created: $Date: 1999/10/12 14:14:48 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,8 +91,37 @@
 	  "'>" dn "</a>"))
 
 (defun url-ldap-certificate-formatter (data)
-  (setq data (base64-encode-string data))
-  (format "<a title='certificate' href='data:application/octet-stream;base64,%s'>[certificate]</a>" (url-hexify-string data)))
+  (setq data (concat "-----BEGIN CERTIFICATE-----\n"
+		     (base64-encode-string data)
+		     "\n-----END CERTIFICATE-----\n"))
+  (save-excursion
+    (set-buffer (get-buffer-create " *openssl*"))
+    (erase-buffer)
+    (let ((proc (start-process "openssl" (current-buffer)
+			       "~/v330/x86/linux-libc6/debug/socks5/sdk/openssl/apps/openssl"
+			       "x509"
+			       "-subject" ; Print the subject DN
+			       "-issuer" ; Print the issuer DN
+			       "-dates"	; Both before and after dates
+			       "-serial" ; print out serial number
+			       "-noout"	; Don't spit out the certificate
+			       ))
+	  (vals nil))
+      (accept-process-output proc 1)
+      (process-send-string proc data)
+      (while (memq (process-status proc) '(run open))
+	(accept-process-output proc 1))
+      (goto-char (point-min))
+      (while (re-search-forward "^\\([^=\n\r]+\\)\s*=\s*\\(.*\\)" nil t)
+	(push (cons (match-string 1) (match-string 2)) vals))
+      (if (not vals)
+	  (concat "<pre>\n" (buffer-string) "</pre>\n")
+	(concat "<table border=0>\n"
+		(mapconcat
+		 (lambda (ava)
+		   (format "<tr><td>%s</td><td>%s</td></tr>\n" (car ava) (cdr ava)))
+		 vals "\n")
+		"</table>\n")))))
 
 (defun url-ldap-image-formatter (data)
   (format "<img alt='JPEG Photo' src='data:image/jpeg;base64,%s'>" 

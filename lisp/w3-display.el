@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 12:14:45 $
-;; Version: $Revision: 1.11 $
+;; Created: $Date: 1999/10/12 14:14:48 $
+;; Version: $Revision: 1.12 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -32,6 +32,7 @@
 (require 'w3-keyword)
 (require 'css)
 (require 'font)
+(require 'url-parse)
 (require 'w3-widget)
 (require 'w3-imap)
 
@@ -2659,7 +2660,7 @@ Format: (((image-alt row column) . offset) ...)")
   (let ((inhibit-read-only t))
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "[ \t]*\n[ \t]*" nil t)
+      (while (re-search-forward "\n" nil t)
 	(remove-text-properties (match-beginning 0) (match-end 0)
 				'(face nil mouse-face nil) nil)))))
 

@@ -1,14 +1,14 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:08 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/10/12 14:14:47 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'url-parse)
 (require 'md5)
 (require 'mule-sysdp)
 

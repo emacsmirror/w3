@@ -1,3 +1,16 @@
+1999-10-11  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-display.el (w3-fixup-eol-faces): only strip spaces off of
+  newlines, not the surrounding shitepsace.  This makes colorized table
+  cells look much better.
+
+1999-09-16  Michael Sperber [Mr. Preprocessor]  <sperber@informatik.uni-tuebingen.de>
+
+* lisp/url-cache.el: 
+* lisp/w3-display.el: 
+* lisp/w3.el: Added (require 'url-parse) because of the macros
+  defined there.
+
 1999-08-07  Bob Weiner  <weiner@beopen.com>
 
 * w3-menu.el (w3-menu-make-xemacs-menubar): Fixed to work with
