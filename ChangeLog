@@ -1,3 +1,9 @@
+1999-08-07  Bob Weiner  <weiner@beopen.com>
+
+* w3-menu.el (w3-menu-make-xemacs-menubar): Fixed to work with
+  BeOpen.com InfoDock.  Old code allowed multiple 'nil's to creep into the 
+  menubar which would cause a hang in the XEmacs menubar code.
+
 1999-08-04  William M. Perry  <wmperry@aventail.com>
 
 * lisp/url-cid.el (url-cid-gnus): Fixed so it will work in Emacs and

@@ -1,7 +1,7 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/23 19:34:05 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/08/09 13:47:56 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -591,11 +591,14 @@ on that platform."
 	(menubar nil)
 	(menu-list w3-use-menus))
     (while menu-list
-      (if (null (car menu-list))
-	  (setq menubar (cons nil menubar))
-	(setq cons (assq (car menu-list) menu-alist))
-	(if cons
-	    (setq menubar (cons (symbol-value (cdr cons)) menubar))))
+      (cond
+       ((and (featurep 'infodock)
+	     (memq (car menu-list) '(nil emacs))))
+       ((null (car menu-list))
+	(setq menubar (cons nil menubar)))
+       (t (setq cons (assq (car menu-list) menu-alist))
+	  (if cons
+	      (setq menubar (cons (symbol-value (cdr cons)) menubar)))))
       (setq menu-list (cdr menu-list)))
     (nreverse menubar)))
 
