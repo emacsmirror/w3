@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/05/16 19:11:12 $
-;; Version: $Revision: 1.18 $
+;; Created: $Date: 2001/05/29 16:07:02 $
+;; Version: $Revision: 1.19 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,7 +35,6 @@
 
 (require 'w3-sysdp)
 (require 'w3-cfg)
-(require 'widget)
 
 (or (featurep 'efs)
     (featurep 'efs-auto)
@@ -43,7 +42,7 @@
 	(require 'ange-ftp)
       (error nil)))
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'css)
 (require 'url-vars)
 (require 'url-parse)
@@ -87,7 +86,7 @@ See the variable `w3-notify' for the different notification behaviors."
 ;;;###autoload
 (defun w3-open-local (fname)
   "Find a local file, and interpret it as a hypertext document.
-It will prompt for an existing file or directory, and retrieve it as a
+Prompt for an existing file or directory, and retrieve it as a
 hypertext document."
   (interactive "FLocal file: ")
   (setq fname (expand-file-name fname))
@@ -97,7 +96,7 @@ hypertext document."
 ;;;###autoload
 (defun w3-find-file (fname)
   "Find a local file, and interpret it as a hypertext document.
-It will prompt for an existing file or directory, and retrieve it as a
+Prompt for an existing file or directory, and retrieve it as a
 hypertext document."
   (interactive "FLocal file: ")
   (w3-open-local fname))
@@ -192,11 +191,13 @@ Return the coding system used for the decoding."
 	    ;; we can promote them into the headers before
 	    ;; mm-dissect-buffer looks for them.
 	    (goto-char end-of-headers)
-	    (while (re-search-forward "<meta[ \t\r\n]+http-equiv" end-of-head t)
+	    (while (re-search-forward "<meta[ \t\r\n]+http-equiv"
+				      end-of-head t)
 	      (forward-char 5)
 	      (skip-chars-forward " \t\r\n")
-	      ;; We should now be directly in front of the first attribute name.
-	      ;; Need to parse the tag attributes and push them up.
+	      ;; We should now be directly in front of the first
+	      ;; attribute name.  Need to parse the tag attributes and
+	      ;; push them up.
 	      (message "#*!#@*! - Need to promote a header.")
 	      (forward-char 1)))))))
 
@@ -255,7 +256,8 @@ With prefix argument, use the URL of the hyperlink under point instead."
   (if (stringp target)
       (setq target (intern (downcase target))))
   (and target
-       (let ((window-distance (cdr-safe (assq target w3-target-window-distances))))
+       (let ((window-distance (cdr-safe (assq target
+					      w3-target-window-distances))))
 	 (if (numberp window-distance)
 	     (other-window window-distance)
 	   (case target
@@ -325,7 +327,7 @@ the cdr is the 'next' node."
 	  next)))
 
 (defun w3-history-forward ()
-  "Go forward in the history from this page"
+  "Go forward in the history from this page."
   (interactive)
   (let ((next (cadr (w3-history-find-url-internal (url-view-url t))))
 	(w3-reuse-buffers 'yes))
@@ -333,7 +335,7 @@ the cdr is the 'next' node."
 	(w3-fetch next))))
 
 (defun w3-history-backward ()
-  "Go backward in the history from this page"
+  "Go backward in the history from this page."
   (interactive)
   (let ((last (caar (w3-history-find-url-internal (url-view-url t))))
 	(w3-reuse-buffers 'yes))
@@ -378,7 +380,7 @@ the cdr is the 'next' node."
 
 ;; FIXME!!! This is broken with the new URL package.
 (defun w3-document-information (&optional buff)
-  "Display information on the document in buffer BUFF"
+  "Display information on the document in buffer BUFF."
   (interactive)
   (if (interactive-p)
       (let ((w3-notify 'friendly))
@@ -394,7 +396,8 @@ the cdr is the 'next' node."
 	     (case-fold-search t)
 	     (possible-lastmod (save-excursion
 				 (goto-char (point-min))
-				 (if (re-search-forward "^Last modified:\\(.*\\)" nil t)
+				 (if (re-search-forward
+				      "^Last modified:\\(.*\\)" nil t)
 				     (buffer-substring (match-beginning 1)
 						       (match-end 1)))))
 	     (attributes (url-file-attributes url))
@@ -460,8 +463,11 @@ the cdr is the 'next' node."
 							     (length (car x))))
 						 info)
 					 '>)))
-		   (fmtstring (format "   <tr><td>%%%ds:</td><td>%%s</td></tr>" maxlength)))
-	      (insert "   <tr><th colspan=2>Miscellaneous Variables</th></tr>\n")
+		   (fmtstring (format
+			       "   <tr><td>%%%ds:</td><td>%%s</td></tr>"
+			       maxlength)))
+	      (insert
+	       "   <tr><th colspan=2>Miscellaneous Variables</th></tr>\n")
 	      (while info
 		(if (and (caar info) (cdar info))
 		    (insert (format fmtstring
@@ -478,8 +484,8 @@ the cdr is the 'next' node."
 		"</html>\n")))))
 
 (defun w3-insert-formatted-url (p)
-  "Insert a formatted url into a buffer.  With prefix arg, insert the url
-under point."
+  "Insert a formatted url into a buffer.
+With prefix arg, insert the url under point."
   (interactive "P")
   (let (buff str)
     (cond
@@ -502,7 +508,7 @@ under point."
       (message "Cancelled."))))
 
 (defun w3-first-n-items (l n)
-  "Return the first N items from list L"
+  "Return the first N items from list L."
   (let ((x 0)
 	y)
     (if (> n (length l))
@@ -547,7 +553,7 @@ If there is no link under point, this will try using
 (defun w3-maybe-follow-link ()
   "Maybe follow a hypertext link under point.
 If there is no link under point, this will try using
-url-get-url-at-point"
+`url-get-url-at-point'"
   (interactive)
   (require 'w3)
   (w3-do-setup)
@@ -561,32 +567,31 @@ url-get-url-at-point"
 
 ;;;###autoload
 (defun w3-follow-url-at-point-other-frame (&optional pt)
-  "Follow the URL under PT, defaults to link under (point)"
+  "Follow the URL under PT, defaults to link under (point)."
   (interactive "d")
   (let ((url (url-get-url-at-point pt)))
     (and url (w3-fetch-other-frame url))))
 
 ;;;###autoload
 (defun w3-follow-url-at-point (&optional pt)
-  "Follow the URL under PT, defaults to link under (point)"
+  "Follow the URL under PT, defaults to link under (point)."
   (interactive "d")
   (let ((url (url-get-url-at-point pt)))
     (and url (w3-fetch url))))
 
-(defun w3-fix-spaces (x)
-  "Remove spaces/tabs at the beginning of a string,
-and convert newlines into spaces."
+(defun w3-fix-spaces (string)
+  "Remove spaces/tabs at beginning of STRING and convert newlines to spaces."
   ;(url-convert-newlines-to-spaces
    (url-strip-leading-spaces
-    (url-eat-trailing-space x)));)
+    (url-eat-trailing-space string)));)
 
 (defun w3-source-document-at-point ()
-  "View source to the document pointed at by link under point"
+  "View source to the document pointed at by link under point."
   (interactive)
   (w3-source-document t))
 
 (defun w3-source-document (under)
-  "View this document's source"
+  "View this document's source."
   (interactive "P")
   (let* ((url (if under (w3-view-this-url) (url-view-url t))))
     (set-buffer (generate-new-buffer (concat "Source of: " url)))
@@ -612,7 +617,7 @@ and convert newlines into spaces."
   (w3-mail-current-document t))
 
 (defun w3-mail-current-document (under &optional format)
-  "Mail the current-document to someone"
+  "Mail the current-document to someone."
   (interactive "P")
   (let* ((completion-ignore-case t)
 	 (format (or format
@@ -637,12 +642,14 @@ and convert newlines into spaces."
 	  (save-excursion
 	    (cond
 	     ((and (equal "HTML Source" format) under)
-	      (setq content-type (concat "text/html; charset=" content-charset))
+	      (setq content-type (concat "text/html; charset="
+					 content-charset))
 	      (let ((url-source t))
 		;; Fixme: this needs a callback -- which?
 		(url-retrieve url)))
 	     ((equal "HTML Source" format)
-	      (setq content-type (concat "text/html; charset=" content-charset))
+	      (setq content-type (concat "text/html; charset="
+					 content-charset))
 	      (if w3-current-source
 		  (let ((x w3-current-source))
 		    (set-buffer (get-buffer-create url-working-buffer))
@@ -668,10 +675,12 @@ and convert newlines into spaces."
 		(ps-spool-buffer-with-faces)
 		(set-buffer ps-spool-buffer-name)))
 	     ((and under (equal "Formatted Text" format))
-	      (setq content-type (concat "text/plain; charset=" content-charset))
+	      (setq content-type (concat "text/plain; charset="
+					 content-charset))
 	      (w3-fetch url))
 	     ((equal "Formatted Text" format)
-	      (setq content-type (concat "text/plain; charset=" content-charset))))
+	      (setq content-type (concat "text/plain; charset="
+					 content-charset))))
 	    (buffer-string))))
     (funcall url-mail-command)
     (mail-subject)
@@ -735,7 +744,7 @@ and convert newlines into spaces."
     (w3-fetch (url-expand-file-name url))))
 
 (defun w3-maybe-eval ()
-  ;; Maybe evaluate a buffer of emacs lisp code
+  "Maybe evaluate a buffer of Emacs Lisp code."
   (if (funcall url-confirmation-func "This is emacs-lisp code, evaluate it?")
       (eval-buffer (current-buffer))
     (emacs-lisp-mode)))
@@ -744,12 +753,12 @@ and convert newlines into spaces."
   "Select one of the <LINK> tags from this document and fetch it."
   (interactive)
   (and (not w3-current-links)
-       (error "No links defined for this document."))
+       (error "No links defined for this document"))
   (w3-fetch "about:document"))
 
 (defun w3-find-this-file ()
-  "Do a find-file on the currently viewed html document if it is a file: or
-ftp: reference"
+  "Do a `find-file' on the currently viewed html document.
+Do this if it is a file: or ftp: reference"
   (interactive)
   (or url-current-object
       (error "Not a URL-based buffer"))
@@ -767,8 +776,8 @@ ftp: reference"
      (t (message "Sorry, I can't get that file so you can alter it.")))))
 
 (defun w3-insert-this-url (pref-arg)
-  "Insert the current url in another buffer, with prefix ARG,
-insert URL under point"
+  "Insert the current url in another buffer.
+With prefix ARG, insert URL under point"
   (interactive "P")
   (let ((thebuf (get-buffer (read-buffer "Insert into buffer: ")))
 	(oldbuf (current-buffer))
@@ -781,7 +790,7 @@ insert URL under point"
       (message "Not on a link!"))))
 
 (defun w3-in-assoc (elt list)
-  "Check to see if ELT matches any of the regexps in the car elements of LIST"
+  "Check to see if ELT matches any of the regexps in the car elements of LIST."
   (let (rslt)
     (while (and list (not rslt))
       (and (car (car list))
@@ -793,7 +802,7 @@ insert URL under point"
     rslt))
 
 (defun w3-goto-last-buffer ()
-  "Go to last WWW buffer visited"
+  "Go to last WWW buffer visited."
   (interactive)
   (if w3-current-last-buffer
       (if w3-frame-name
@@ -816,7 +825,7 @@ ftp.w3.org:/pub/www/doc."
   (w3-fetch (concat "www://preview/" (buffer-name))))
 
 (defun w3-source ()
-  "Show the source of a file"
+  "Show the source of a file."
   (let ((tmp (buffer-name (generate-new-buffer "Document Source"))))
     (set-buffer url-working-buffer)
     (kill-buffer tmp)
@@ -834,8 +843,9 @@ ftp.w3.org:/pub/www/doc."
 
 (defvar w3-compression-encodings
   '("x-gzip" "gzip" "x-compress" "compress")
-  "List of MIME encodings that denote compression")
+  "List of MIME encodings that denote compression.")
 
+;; This looks bogus  -- fx
 (defvar w3-no-conversion-encodings
   w3-compression-encodings
   "List of MIME encodings that require Mule not to convert
@@ -860,12 +870,12 @@ invokes some commands which read a coding system from the user.")
       (setq invalid-char-alist (cdr invalid-char-alist)))))
 
 (defun w3-show-history-list ()
-  "Format the url-history-list prettily and show it to the user"
+  "Format the url-history-list prettily and show it to the user."
   (interactive)
   (w3-fetch "www://auto/history"))
 
 (defun w3-save-as (&optional type)
-  "Save a document to the local disk"
+  "Save a document to the local disk."
   (interactive)
   (save-excursion
     (let* ((completion-ignore-case t)
@@ -921,7 +931,7 @@ invokes some commands which read a coding system from the user.")
 	     (w3-log-bad-html type desc)))))
 
 (defun w3-log-bad-html (type desc)
-  ;; Log bad HTML to the buffer specified by w3-debug-buffer
+  "Log bad HTML to the buffer specified by w3-debug-buffer."
   (if w3-debug-html
       (save-excursion
 	(set-buffer (get-buffer-create w3-debug-buffer))
@@ -955,12 +965,12 @@ invokes some commands which read a coding system from the user.")
 ;;; Functions to handle formatting an html buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun w3-add-delayed-graphic (widget)
-  ;; Add a delayed image for the current buffer.
+  "Add a delayed image for the current buffer."
   (setq w3-delayed-images (cons widget w3-delayed-images)))
 
 
 (defun w3-load-flavors ()
-  ;; Load the correct emacsen specific stuff
+  "Load the correct emacsen specific stuff."
   (cond
    (w3-running-xemacs (require 'w3-xemac))
    (t					; Assume we are the FSF variant
@@ -978,7 +988,7 @@ invokes some commands which read a coding system from the user.")
 ;;; Automatic bug submission.                                               ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun w3-submit-bug ()
-  "Submit a bug on Emacs-w3"
+  "Submit a bug on Emacs-w3."
   (interactive)
   (require 'reporter)
   (and (yes-or-no-p "Do you really want to submit a bug on Emacs-w3? ")
@@ -1067,11 +1077,11 @@ invokes some commands which read a coding system from the user.")
   "Show the version number of W3 in the minibuffer.
 If optional argument HERE is non-nil, insert info at point."
   (interactive "P")
-  (let ((version-string 
-         (format "WWW %s, URL %s" 
-                 w3-version-number 
+  (let ((version-string
+         (format "WWW %s, URL %s"
+                 w3-version-number
                  url-version)))
-    (if here 
+    (if here
         (insert version-string)
       (if (interactive-p)
           (message "%s" version-string)
@@ -1083,7 +1093,7 @@ If optional argument HERE is non-nil, insert info at point."
 The World Wide Web is a global hypertext system started by CERN in
 Switzerland in 1991.
 
-The home page is specified by the variable w3-default-homepage.  The
+The home page is specified by the variable `w3-default-homepage'.  The
 document should be specified by its fully specified Uniform Resource
 Locator.  The document will be parsed as HTML (if appropriate) and
 displayed in a new buffer."
@@ -1110,8 +1120,8 @@ displayed in a new buffer."
 ;;; Stuff for good local file handling
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun w3-ff (file)
-  "Find a file in any window already displaying it, otherwise just as
-display-buffer, and using this function"
+  "Find a file in any window already displaying it.
+Otherwise just as `display-buffer', and using this function."
   (if (not (eq 'tty (device-type)))
       (let ((f (window-frame (display-buffer (find-file-noselect file)))))
 	(set-mouse-position f 1 0)
@@ -1157,8 +1167,8 @@ display-buffer, and using this function"
       (message "Link #%s not found." link))))
 
 (defun w3-force-reload-document ()
-  "Reload the current document.  Take it from the network, even if
-cached and in local mode."
+  "Reload the current document.
+Take it from the network, even if cached and in local mode."
   (let ((url-standalone-mode nil))
     (w3-reload-document)))
 
@@ -1183,22 +1193,24 @@ With prefix argument, it reads a coding system to decode the document."
     (set-window-start (selected-window) (min window-start (point-max)))))
 
 (defun w3-recall-explicit-coding-system (url)
-  "Find user-specified explicit coding system for this URL
-in w3-explicit-conversion-tree"
+  "Find user-specified explicit coding system for this URL.
+Look for it in `w3-explicit-conversion-tree'"
   (let* ((urlobj (if (stringp url)
 		     (url-generic-parse-url url)
 		   url))
 	 (hostname (or (url-host urlobj) "localhost"))
 	 (fname-list (split-string (url-filename urlobj) "\\/")))
     ;; now recurse
-    (w3-find-explicit-coding-system (cons hostname fname-list) w3-explicit-conversion-tree)))
+    (w3-find-explicit-coding-system (cons hostname fname-list)
+				    w3-explicit-conversion-tree)))
 
 (defun w3-find-explicit-coding-system (fname-list tree)
-  "Recall a user-specified explicit coding system"
+  "Recall a user-specified explicit coding system."
   (let ((branch (assoc (car fname-list) tree)))
     (and branch
 	 (or (and (cdr fname-list) (cddr branch)
-		  (w3-find-explicit-coding-system (cdr fname-list) (cddr branch)))
+		  (w3-find-explicit-coding-system (cdr fname-list)
+						  (cddr branch)))
 	     (cadr branch)))))
 
 (defun w3-record-explicit-coding-system (url coding-system)
@@ -1219,7 +1231,7 @@ as high as possible in w3-explicit-conversion-tree"
     (setq w3-explicit-encodings-changed-since-last-save t)))
 
 (defun w3-add-explicit-coding-system (fname-list coding-system tree)
-  "Memorize a user-specified explicit coding system"
+  "Memorize a user-specified explicit coding system."
   (if (and (cadr tree) (not (equal (cadr tree) coding-system)))
       (setcar (cdr tree) nil))
   (let ((branch (assoc (car fname-list) (cddr tree))))
@@ -1229,7 +1241,8 @@ as high as possible in w3-explicit-conversion-tree"
 		  (or (equal (cadr branch) coding-system)
 		      (null (cadr branch))
 		      (setcar (cdr branch) nil))
-		  (w3-add-explicit-coding-system (cdr fname-list) coding-system branch))
+		  (w3-add-explicit-coding-system (cdr fname-list)
+						 coding-system branch))
 		 (t
 		  (setcar (cdr branch) coding-system))))
 	  (t
@@ -1237,7 +1250,8 @@ as high as possible in w3-explicit-conversion-tree"
 	   (setcdr tree
 		   (if fname-list
 		       (let ((subbranch (list (car fname-list))))
-			 (w3-add-explicit-coding-system (cdr fname-list) coding-system subbranch)
+			 (w3-add-explicit-coding-system
+			  (cdr fname-list) coding-system subbranch)
 			 (cons (if (or (null (cddr tree))
 				       (equal coding-system (cadr tree)))
 				   coding-system)
@@ -1280,7 +1294,7 @@ as high as possible in w3-explicit-conversion-tree"
 	    (w3-notify-when-ready x))))))
 
 (defun w3-quit (&optional mega)
-  "Quit WWW mode"
+  "Quit WWW mode."
   (interactive "P")
   (if mega
       (mapcar
@@ -1328,7 +1342,7 @@ as high as possible in w3-explicit-conversion-tree"
 	(w3-leave-buffer)))))
 
 (defun w3-view-this-url (&optional no-show)
-  "View the URL of the link under point"
+  "View the URL of the link under point."
   (interactive)
   (let* ((widget (widget-at (point)))
 	 (parent (and widget (widget-get widget :parent)))
@@ -1357,12 +1371,12 @@ as high as possible in w3-explicit-conversion-tree"
       (setq todo (cdr todo)))))
 
 (defun w3-save-this-url ()
-  "Save url under point in the kill ring"
+  "Save url under point in the kill ring."
   (interactive)
   (w3-save-url t))
 
 (defun w3-save-url (under-pt)
-  "Save current url in the kill ring"
+  "Save current url in the kill ring."
   (interactive "P")
   (let ((x (cond
 	    ((stringp under-pt) under-pt)
@@ -1375,7 +1389,7 @@ as high as possible in w3-explicit-conversion-tree"
 	  (message "Stored URL in kill-ring.")
 	  (if (fboundp 'w3-store-in-clipboard)
 	      (w3-store-in-clipboard x)))
-      (error "No URL to store."))))
+      (error "No URL to store"))))
 
 (fset 'w3-end-of-document 'end-of-buffer)
 (fset 'w3-start-of-document 'beginning-of-buffer)
@@ -1438,9 +1452,9 @@ No arg means whole window full.  Arg is number of lines to scroll."
       (message "Could not automatically determine authors address, sorry."))))
 
 (defun w3-kill-emacs-func ()
-  "Routine called when exiting emacs.  Do miscellaneous clean up."
+  "Routine called when exiting Emacs.  Do miscellaneous clean up."
   (url-history-save-history)
-  (message "Cleaning up w3 storage...")
+  (message "Cleaning up w3 temporary files...")
   ;; FIXME!  This needs to be in the URL library now I guess?
   '(let ((x (nconc
 	    (and (file-exists-p w3-temporary-directory)
@@ -1457,7 +1471,7 @@ No arg means whole window full.  Arg is number of lines to scroll."
 	  (delete-file (car x))
 	(error nil))
       (setq x (cdr x))))
-  (message "Cleaning up w3 storage... done."))
+  (message "Cleaning up w3 temporary files... done."))
 
 (eval-and-compile
   (cond
@@ -1588,14 +1602,14 @@ BUFFER, the end of BUFFER, nil, and (current-buffer), respectively."
 
 ;;;###autoload
 (defun w3-do-setup ()
-  "Do setup - this is to avoid conflict with user settings when W3 is
-dumped with emacs."
-  (if w3-setup-done
-      nil
+  "Do setup.
+This is to avoid conflict with user settings when W3 is dumped with
+Emacs."
+  (unless w3-setup-done
     (url-do-setup)
     (w3-load-flavors)
     (w3-setup-version-specifics)
-    (setq w3-default-configuration-file (expand-file-name 
+    (setq w3-default-configuration-file (expand-file-name
 					 (or w3-default-configuration-file
 					     "profile")
 					 w3-configuration-directory))
@@ -1657,20 +1671,20 @@ dumped with emacs."
       (setq w3-hotlist-file (or w3-hotlist-file
 				(expand-file-name "~/mosaic.hotlist-default"))
 	    ))
-     (t 
+     (t
       (setq w3-hotlist-file (or w3-hotlist-file
 				(expand-file-name "~/.mosaic-hotlist-default"))
 	    )))
   
-					; Set up a hook that will save the history list when
-					; exiting emacs
+    ;; Set up a hook that will save the history list when exiting
+    ;; emacs
     (add-hook 'kill-emacs-hook 'w3-kill-emacs-func)
 
-					; Load in the hotlist if they haven't set it already
+    ;; Load in the hotlist if they haven't set it already
     (or w3-hotlist (w3-parse-hotlist))
 
-					; Set the default home page, honoring their defaults, then
-					; the standard WWW_HOME, then default to the documentation @ IU
+    ;; Set the default home page, honoring their defaults, then the
+    ;; standard WWW_HOME, then default to the documentation @ IU
     (or w3-default-homepage
 	(setq w3-default-homepage
 	      (or (getenv "WWW_HOME")
@@ -1679,7 +1693,7 @@ dumped with emacs."
     (run-hooks 'w3-load-hook)))
 
 (defun w3-mark-link-as-followed (ext dat)
-  ;; Mark a link as followed
+  "Mark a link as followed."
   (message "Reimplement w3-mark-link-as-followed"))
 
 (defun w3-only-links ()
@@ -1711,7 +1725,7 @@ dumped with emacs."
   (let ((x (if under-pt (w3-view-this-url t) (url-view-url t))))
     (if x
 	(w3-download-url x)
-      (error "No link found."))))
+      (error "No link found"))))
 	     
 (defun w3-download-url (url &optional file-name)
   (interactive (list (w3-read-url-with-default)))
@@ -1790,6 +1804,7 @@ to disk."
         (w3-fetch href)
       (error "No PREVIOUS document"))))
 
+;; Why are these defined?
 (defun w3-widget-forward (arg)
   "Move point to the next field or button.
 With optional ARG, move across that many fields."
@@ -1803,7 +1818,7 @@ With optional ARG, move across that many fields."
   (w3-widget-forward (- arg)))
 
 (defun w3-complete-link ()
-  "Choose a link from the current buffer and follow it"
+  "Choose a link from the current buffer and follow it."
   (interactive)
   (let (links-alist
 	link-at-point
@@ -1831,7 +1846,7 @@ With optional ARG, move across that many fields."
 					       (widget-get widget :to)))
 					     (widget-get widget :href))
 					    links-alist))))))
-    (if (not links-alist) (error "No links in current document."))
+    (if (not links-alist) (error "No links in current document"))
     (setq links-alist (sort links-alist (function
 					 (lambda (x y)
 					   (string< (car x) (car y))))))
@@ -1881,21 +1896,22 @@ With optional ARG, move across that many fields."
 	(goto-char (point-min))
 	(insert "\n" (car todo))
 	(setq todo (cdr todo)))
-      (if url
-	  (progn
-	    (goto-char (point-min))
-	    (insert (format "HTML Errors for: <URL:%s>\n" url))))
-      (set (make-local-variable 'font-lock-keywords) w3-html-errors-font-lock-keywords)
+      (when url
+	(goto-char (point-min))
+	(insert (format "HTML Errors for: <URL:%s>\n" url)))
+      (set (make-local-variable 'font-lock-keywords)
+	   w3-html-errors-font-lock-keywords)
       (set (make-local-variable 'font-lock-keywords-only) nil)
       (set (make-local-variable 'font-lock-keywords-case-fold-search) nil)
       (set (make-local-variable 'font-lock-syntax-table) nil)
-      (set (make-local-variable 'font-lock-beginning-of-syntax-function) 'beginning-of-line)
+      (set (make-local-variable 'font-lock-beginning-of-syntax-function)
+	   'beginning-of-line)
       (run-hooks 'w3-display-errors-hook))
     (w3-notify-when-ready buffer)))
 
 (defun w3-mode ()
-  "Mode for viewing HTML documents.  If called interactively, will
-display the current buffer as HTML.
+  "Mode for viewing HTML documents.
+If called interactively, will display the current buffer as HTML.
 
 Current keymap is:
 \\{w3-mode-map}"
@@ -1903,15 +1919,15 @@ Current keymap is:
   (w3-do-setup)
   (if (interactive-p)
       (w3-preview-this-buffer)
-    (let ((tmp (mapcar (function (lambda (x) (cons x (and (boundp x) (symbol-value x)))))
+    (let ((tmp (mapcar (lambda (x) (cons x (and (boundp x) (symbol-value x))))
 		       w3-persistent-variables)))
       ;; Oh gross, this kills buffer-local faces in XEmacs
       (unless (featurep 'xemacs)
 	(kill-all-local-variables))
       (use-local-map w3-mode-map)
       (setq mode-name "WWW")
-      (mapcar (function (lambda (x) (if (boundp (car x))
-					(set-variable (car x) (cdr x))))) tmp)
+      (mapcar (lambda (x) (if (boundp (car x))
+			      (set-variable (car x) (cdr x)))) tmp)
       (setq major-mode 'w3-mode)
       (w3-mode-version-specifics)
       (w3-menu-install-menus)
@@ -1930,3 +1946,5 @@ Current keymap is:
 (require 'w3-menu)
 (require 'w3-mouse)
 (provide 'w3)
+
+;;; w3.el ends here
