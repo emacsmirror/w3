@@ -1,7 +1,7 @@
 ;;; font.el --- New font model
 ;; Author: $Author: wmperry $
-;; Created: $Date: 2001/11/24 20:59:52 $
-;; Version: $Revision: 1.8 $
+;; Created: $Date: 2001/11/24 21:07:38 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -992,7 +992,8 @@ for use in the 'weight' field of an mswindows font string.")
 				    'normal))
     (if (font-find-available-family font)
 	(set-face-attribute :family (font-find-available-family font)))
-    (if (not (eq (font-size font) 0))
+    (if (and (font-size font)
+	     (/= 0 (font-size font)))
 	(set-face-attribute face nil
 			    :height (* 10 (font-spatial-to-canonical (font-size font))))))
    (t

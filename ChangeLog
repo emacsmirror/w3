@@ -1,5 +1,8 @@
 2001-11-24  William M. Perry  <wmperry@gnu.org>
 
+	* lisp/font.el (font-set-face-font-new-redisplay): Doh!  Fix my
+	last font-size checking screwup.  *sigh*
+
 	* lisp/ssl.el (ssl-get-command): New routine to handle wrapping
 	the ssl program inside something that will redirect stderr to
 	/dev/null.  Do this only on non-dos, non-windows, and non-vms
