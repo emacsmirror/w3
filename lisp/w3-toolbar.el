@@ -1,7 +1,7 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/10/16 15:25:47 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/01/04 12:50:00 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: mouse, toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -346,16 +346,19 @@ not `none'.")
 	  (set-specifier toolbar (cons (current-buffer) w3-toolbar))))
     (set-specifier toolbar-buttons-captioned-p
 		   (cons (current-buffer) (eq w3-toolbar-type 'both))))
-   ((featurep 'tool-bar)
+   ((and (featurep 'tool-bar) 
+	 (display-graphic-p)
+	 (> (frame-parameter nil 'tool-bar-lines) 0))
     ;; Emacs 21.x way of doing things
     (let ((toolbar-map (make-sparse-keymap)))
-      (mapcar (lambda (desc)
-		(if (and desc (not (keywordp (aref desc 0))))
-		    (tool-bar-add-item (symbol-value (aref desc 0)) ; image
-				       (aref desc 1) ; binding
-				       (intern (aref desc 3)) ; key
-				       toolbar-map ; keymap
-				       :enable (aref desc 2)))) w3-toolbar)
+      (mapc (lambda (desc)
+	      (if (and desc (not (keywordp (aref desc 0))))
+		  (tool-bar-add-item (symbol-value (aref desc 0)) ; image
+				     (aref desc 1) ; binding
+				     (intern (aref desc 3)) ; key
+				     toolbar-map ; keymap
+				     :enable (aref desc 2))))
+	      w3-toolbar)
       (define-key w3-mode-map [tool-bar] toolbar-map)))
    (t
     nil)))
