@@ -193,9 +193,10 @@ find-file-hooks, etc.
 		 ;; We can use HIGHEST arg t for faster detection.
 		 (detect-coding-region st nd t))
 		(otherwise nil))))
-    (if (mule-coding-system-p coding-system)
-	coding-system
-      mule-no-coding-system)))
+    (if (and (not (listp coding-system))
+	     (not (mule-coding-system-p coding-system)))
+	(setq coding-system mule-no-coding-system))
+    coding-system))
 
 (defun mule-code-convert-region (code)
   (if (and (listp code) (car code))
