@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/06/01 18:46:30 $
-;; Version: $Revision: 1.20 $
+;; Created: $Date: 2001/06/07 16:27:31 $
+;; Version: $Revision: 1.21 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -979,10 +979,9 @@ invokes some commands which read a coding system from the user.")
 
 (defun w3-load-flavors ()
   "Load the correct emacsen specific stuff."
-  (cond
-   (w3-running-xemacs (require 'w3-xemac))
-   (t					; Assume we are the FSF variant
-    (require (intern (format "w3-e%d" emacs-major-version)))))
+  (if (featurep 'xemacs)
+      (require 'w3-xemac)
+    (require 'w3-emacs))
   (if (featurep 'emacspeak)
       (condition-case ()
 	  (progn
