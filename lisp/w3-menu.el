@@ -1,6 +1,6 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.12 $
+;; Version: $Revision: 1.13 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -128,7 +128,7 @@ on that platform."
     (list "Ignored" (vector item nil nil))))
       
 (defun w3-menu-hotlist-constructor (menu-items)
-  (require 'w3-hotlist)
+  (require 'w3-hot)
   (easy-menu-define
    w3-menu-hotlist-menu nil "Emacs/W3 Dynamic menu"
    (or (cdr w3-html-bookmarks)
