@@ -157,7 +157,7 @@ Case is therefore important."
       (setq index (cdr index)))
     (let ((w3-hotlist result)
 	  (w3-reuse-buffers 'no))
-      (w3-show-hotlist))))
+      (w3-hotlist-view))))
 
 (defun w3-hotindex-save (filename)
   "*Save the index structure in filename. If filename is nil, 
