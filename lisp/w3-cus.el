@@ -1,12 +1,12 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/23 14:19:56 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -36,6 +36,8 @@
       nil)
     (defmacro defcustom (var value doc &rest args) 
       (` (defvar (, var) (, value) (, doc))))))
+
+(require 'mule-sysdp)
 
 (defgroup w3 '((url custom-group))
   "Emacs-W3 - the web browser of choice."
@@ -82,10 +84,12 @@
   :group 'w3-files
   :type 'directory)  
 
-(defcustom w3-default-configuration-file nil
-  "*Where per-user customizations of w3 are kept."
+(defcustom w3-default-configuration-file "profile"
+  "*Base filename where per-user customizations are kept.
+This filename is relative to `w3-configuration-directory' if
+not fully specified."
   :group 'w3-files
-  :type 'file)
+  :type 'string)
 
 (defcustom w3-default-homepage nil
   "*The url to open at startup.  It can be any valid URL.
@@ -98,7 +102,8 @@ default to  the hypertext documentation for W3 at Indiana University."
 (defcustom w3-default-stylesheet nil
   "*The filename of the users default stylesheet."
   :group 'w3-files
-  :type 'file)
+  :type '(choice (const :tag "None" :value nil)
+		 (file)))
 
 (defcustom w3-hotlist-file nil
   "*Hotlist filename.
@@ -141,7 +146,9 @@ t		display frame hyperlinks and fetch them."
   "*An assoc list of unordered list types mapping to characters to use
 as the bullet character."
   :group 'w3-display
-  :type 'list)
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Type")
+		       (character :tag "Character"))))
 
 (defcustom w3-echo-link '(title url text name)
   "*Whether to display the URL of a link when tabbing through links.
@@ -174,7 +181,8 @@ If nil W3 will use a terminal graphic character if possible."
 (defcustom w3-force-conversion-alist nil
   "*An assoc list of URL host/filename regexps and coding systems in which to force conversion in Mule"
   :group 'w3-display
-  :type 'list)
+  :type `(repeat (cons (string :tag "Host / filename")
+		       (symbol :tag "Coding system" :value ,mule-no-coding-system))))
 
 ;;; these three variables control how w3-setup-terminal-chars works
 (defcustom w3-use-terminal-characters t
@@ -387,7 +395,7 @@ of the menu."
 	"%p" "  " global-mode-string))
   "*The modeline format string when in w3 mode"
   :group 'w3-advanced
-  :type 'list)
+  :type 'sexp)
 
 (defcustom w3-netscape-compatible-comments t
   "*Whether to honor netscape-style <! > comments.
@@ -467,7 +475,8 @@ and used as the new fill-column."
   "*Maximum length of a line.
 If nil, then lines can extend all the way to the window margin."
   :group 'w3-display
-  :type 'integer)
+  :type '(radio (const :tag "Use all available space" :value nil)
+		(integer :tag "Limit to")))
 
 (defcustom w3-track-mouse t
   "*Whether to track the mouse and message the url under the mouse."
@@ -543,7 +552,7 @@ Certain fonts can cause problems under Emacs."
     ("\\*ERROR\\*" 0 font-lock-keyword-face t))
   "*Font locking keywords used for HTML error display"
   :group 'w3
-  :type 'list)
+  :type 'sexp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Internationalization
