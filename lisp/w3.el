@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/10/11 12:57:16 $
-;; Version: $Revision: 1.24 $
+;; Created: $Date: 2001/10/31 16:17:21 $
+;; Version: $Revision: 1.25 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -163,9 +163,9 @@ Return the coding system used for the decoding."
 		      "iso-8859-1"))
 	 (type (mm-handle-media-type handle))
 	 (coding-system (mm-charset-to-coding-system charset)))
-    (if (and (not coding-system)
-	     (not (equal charset "ascii")))
-	;; Does this work for XEmacs?  Should we guess anyhow (which
+    (if (or (not coding-system)
+	    (eq coding-system 'ascii))
+	;; Does this work for XEmacs?  Should we actually guess (which
 	;; is what `undecided' involves)?  In Emacs 20 we'll get
 	;; byte-combination anyhow when switching to multibyte below,
 	;; but we can't leave the buffer as unibyte, or we can't deal
