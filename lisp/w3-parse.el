@@ -259,12 +259,77 @@ which must be a string to use as the error message."
 
 ;; *** I18N HTML support?
 
+
+(defconst w3-invalid-sgml-char-replacement
+  `((128 "euro" 8364) ;; U+20AC  EURO SIGN
+    (130 "," 8218) ;; U+201A  SINGLE LOW-9 QUOTATION MARK
+    (131 "_f" 402) ;; U+0192  LATIN SMALL LETTER F WITH HOOK
+    (132 ",,"8222) ;; U+201E  DOUBLE LOW-9 QUOTATION MARK
+    (133 "..." 8230) ;; U+2026  HORIZONTAL ELLIPSIS
+    (134 "(dagger)" 8224) ;; U+2020  DAGGER
+    (135 "(double dagger)" 8225) ;; U+2021  DOUBLE DAGGER
+    (136 ?^ 710) ;; U+02C6  MODIFIER LETTER CIRCUMFLEX ACCENT
+    (137 "%o" 8240) ;; U+2030  PER MILLE SIGN
+    (138 "S\\v" 352) ;; U+0160  LATIN CAPITAL LETTER S WITH CARON
+    (139 ?\< 8249) ;; U+2039  SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+    (140 "OE" 338) ;; U+0152  LATIN CAPITAL LIGATURE OE
+    (142 "Z\\v" 381) ;; U+017D  LATIN CAPITAL LETTER Z WITH CARON
+    (145 ?\` 8216) ;; U+2018  LEFT SINGLE QUOTATION MARK
+    (146 ?\' 8217) ;; U+2019  RIGHT SINGLE QUOTATION MARK
+    (147 "``" 8220) ;; U+201C  LEFT DOUBLE QUOTATION MARK
+    (148 "''" 8221) ;; U+201D  RIGHT DOUBLE QUOTATION MARK
+    (149 ?o 8226) ;; U+2022  BULLET
+    (150 ?- 8211) ;; U+2013  EN DASH
+    (151 "--" 8212) ;; U+2014  EM DASH
+    (152 ?~ 732) ;; U+02DC  SMALL TILDE
+    (153 "(TM)" 8482) ;; U+2122  TRADE MARK SIGN
+    (154 "s\\v" 353) ;; U+0161  LATIN SMALL LETTER S WITH CARON
+    (155 ?\> 8250) ;; U+203A  SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+    (156 "oe" 339) ;; U+0153  LATIN SMALL LIGATURE OE
+    (158 "z\\v" 382) ;; U+017E  LATIN SMALL LETTER Z WITH CARON
+    (159 "Y\\.." 376) ;; U+0178  LATIN CAPITAL LETTER Y WITH DIAERESIS
+    )
+  "Replacements for SGML numeric entities between 128 and 159.
+\(Such entities are not valid graphic charcters and are assumed to
+come from the cp1252 character set rather than Unicode.)  This is an
+alist indexed by numeric code.  The cdr of each element is a list of
+an ASCII substitute and the Unicode for the cp1252 character.")
+
+(eval-and-compile
+  (if (fboundp 'int-to-char)            ; XEmacs
+      (defalias 'w3-int-to-char 'int-to-char)
+    (defalias 'w3-int-to-char 'identity)))
+
+(defun w3-resolve-numeric-entity (code)
+  "Return a representation of the numeric entity CODE.
+This may be a string or a character.  CODE is always interpreted as a
+Unicode.  A Unicode character is returned if function `decode-char' is
+available.  Codes in the range [128,160] are substituted using
+`w3-invalid-sgml-char-replacement'."
+  ;; Maybe fall back to something like `(format "&%d;" code)' instead
+  ;; of ?~.
+  (if (fboundp 'decode-char)
+    (progn (if (and (< code 160) (> code 128))
+               (setq code
+                     (or (nth 2 (assq code w3-invalid-sgml-char-replacement))
+                         code)))
+           (or (decode-char 'ucs code) ?~))
+    (w3-int-to-char (cond ((<= code 127)
+                           code)
+                          ((<= code 255)
+                           (if (fboundp 'make-char)
+                               (make-char 'latin-iso8859-1 (- code 128))
+                             code))
+                          (t ?~)))))
+
 (let ((html-entities w3-html-entities))
   (while html-entities
     (put (car (car html-entities)) 'html-entity-expansion
 	 (cons 'CDATA (if (integerp (cdr (car html-entities)))
-                          (char-to-string
-                           (mule-make-iso-character (cdr (car html-entities))))
+                          (let ((ent (w3-resolve-numeric-entity
+                                      (cdr (car html-entities)))))
+                            (unless (stringp ent)
+                              (char-to-string ent)))
 			(cdr (car html-entities)))))
     (setq html-entities (cdr html-entities))))
 
@@ -356,6 +421,7 @@ which must be a string to use as the error message."
              ;; *** We don't handle external entities yet.
              (error "[Unimplemented entity: \"%s\"]" w3-p-s-entity))))
    
+     ;; Fixme: do &#x<n>; too.
      ((looking-at "&#[0-9][0-9]*\\([\   ;\n]?\\)") ; \n should be \r
       ;; We are looking at a numeric character reference.
       ;; Ensure the number is already terminated by a semicolon or carriage
@@ -373,18 +439,10 @@ which must be a string to use as the error message."
       ;; Always leave point after the expansion of a numeric
       ;; character reference, like it were a CDATA entity.
       (replace-match "")
-      ;; char-to-string will hopefully do something useful with characters
-      ;; larger than 255.  I think in MULE it does.  Is this true?
-      ;; Bill wants to call w3-resolve-numeric-entity here, but I think
-      ;; that functionality belongs in char-to-string.
-      ;; The largest valid character in the I18N version of HTML is 65533.
-      ;; ftp://ds.internic.net/internet-drafts/draft-ietf-html-i18n-01.txt
-      ;; wrongo!  Apparently, mule doesn't do sane things with char-to-string
-      ;; -wmp 7/9/96
-      (let ((repl (cdr-safe (assq w3-p-s-num w3-invalid-sgml-char-replacement))))
-        (condition-case ()
-            (insert (or repl (mule-make-iso-character w3-p-s-num)))
-          (error (insert "~")))))
+      ;; The condition-case is probably not necessary now.
+      (condition-case ()
+          (insert (w3-resolve-numeric-entity w3-p-s-num))
+        (error (insert "~"))))
      ((looking-at "&#\\(re\\|rs\\|space\\|tab\\)[\ ;\n]?") ; \n should be \r
       (replace-match (assq (upcase (char-after (+ 3 (point))))
                            '(;; *** Strictly speaking, record end should be
@@ -1879,36 +1937,6 @@ skip-chars-forward."
   "Used for debugging only.  Stores the most recently computed parse tree
 \(a tree, not a parse tag stream\).")
 
-(defvar w3-invalid-sgml-char-replacement
-  '(
-    ;; These characters are apparently from an M$ character set (cp1252)
-    (130 . ",")		      ; single low-9 quotation mark
-    (131 . "_f")	      ; latin small letter f with hook
-    (132 . ",,")	      ; double low-9 quotation mark
-    (133 . "...")	      ; horizontal ellipsis
-    (134 . "(dagger)")	      ; dagger
-    (135 . "(double dagger)") ; double dagger
-    (136 . "^")		      ; modifier letter circumflex accent
-    (137 . "%o")	      ; per mille sign
-    (138 . "S\\v")	      ; latin capital letter S with caron
-    (139 . "<")		      ; single left-pointing angle quotation mark
-    (140 . "OE")	      ; latin capital ligature OE
-    (145 . "`")		      ; left single quotation mark
-    (146 . "'")		      ; right single quotation mark
-    (147 . "``")	      ; left double quotation mark
-    (148 . "''")	      ; right double quotation mark
-    (149 . "o")		      ; bullet
-    (150 . "--")	      ; en dash
-    (151 . "---")	      ; em dash
-    (152 . "~")		      ; small tilde
-    (153 . "(TM)")	      ; trade mark sign
-    (154 . "s\\v")	      ; latin small letter s with caron
-    (155 . ">")		      ; single right-pointing angle quotation mark
-    (156 . "oe")	      ; latin small ligature oe
-    (157 . "Y\\..")	      ; latin capital letter Y with diaeresis
-    )
-  "Replacement for invalid SGML characters")
-
 (defun w3-display-parse-tree (&optional ptree)
   (interactive)
   (with-output-to-temp-buffer "W3 HTML Parse Tree"
@@ -1923,10 +1951,11 @@ skip-chars-forward."
 (defalias 'w3-preparse-buffer 'w3-parse-buffer)
 
 (defcustom w3-parse-hooks nil
+  "*List of hooks to be run before parsing."
   :type 'hook
   :group 'w3-display
-  :options '(w3-parse-munge-ethiopic-text)
-  "*List of hooks to be run before parsing.")
+  :options '(w3-parse-munge-ethiopic-text) ; too exotic for a default
+  )
 
 (defun w3-parse-munge-ethiopic-text ()
   "Treat marked-up regions using `ethio-sera-to-fidel-marker'.
