@@ -1,7 +1,7 @@
 ;;; css.el -- Cascading Style Sheet parser
-;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:52:38 $
-;; Version: $Revision: 1.5 $
+;; Author: $Author: wmperry $
+;; Created: $Date: 2001/05/22 19:03:20 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -733,9 +733,8 @@ For a terminal frame, the value is always 1."
 	   (save-excursion
 	     (set-buffer (generate-new-buffer " *styleimport*"))
 	     ;; ftp/file URLs can signal an error.
-	     (condition-case ()
-		 (url-insert-file-contents url)
-	       (error nil))
+	     (ignore-errors
+	       (url-insert-file-contents url))
 	     (css-clean-buffer)
 	     (setq sheet (buffer-string))
 	     (set-buffer-modified-p nil)
@@ -934,7 +933,8 @@ For a terminal frame, the value is always 1."
       (setq url-current-object pobj)
       (set-syntax-table css-syntax-table)
       (erase-buffer)
-      (if url (url-insert-file-contents url))
+      (ignore-errors
+	(if url (url-insert-file-contents url)))
       (goto-char (point-max))
       (if string (insert string))
       (css-clean-buffer)

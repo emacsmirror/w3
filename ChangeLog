@@ -1,3 +1,12 @@
+2001-05-22  William M. Perry  <wmperry@gnu.org>
+
+	* lisp/css.el (css-handle-import): Use ignore-errors around url
+	loading.
+	(css-parse): Ditto.
+
+	* lisp/docomp.el: Remove a bunch of the autoloading crap - it
+	isn't needed anymore.
+
 2001-05-17  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3-parse.el w3-int-to-char: Deal with XEmacs more nicely.

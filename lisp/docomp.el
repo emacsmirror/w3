@@ -86,13 +86,3 @@
 
 (defun emacs-batch-build-custom-load ()
   (emacs-build-custom-load (car command-line-args-left)))
-
-(provide 'w3-auto)
-(autoload 'w3-load-flavors "w3")
-
-(w3-load-flavors)
-(w3-setup-version-specifics)
-
-(require 'w3-sysdp)
-(require 'w3-vars)
-(require 'url)
