@@ -1,13 +1,13 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 16:30:47 $
-;; Version: $Revision: 1.6 $
+;; Created: $Date: 1998/12/29 17:43:31 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;; LCD Archive Entry:
 ;;; url|William M. Perry|wmperry@cs.indiana.edu|
 ;;; Functions for retrieving/manipulating URLs|
-;;; $Date: 1998/12/28 16:30:47 $|$Revision: 1.6 $|Location Undetermined
+;;; $Date: 1998/12/29 17:43:31 $|$Revision: 1.7 $|Location Undetermined
 ;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -581,9 +581,12 @@ If file does not exist, returns nil."
 	  ((member type '("ftp" "file"))
 	   (let ((fname (if (url-host urlobj)
 			    (concat "/"
-				    (if (url-user urlobj)
-					(concat (url-user urlobj) "@")
-				      "")
+				    (cond
+				     ((url-user urlobj)
+				      (concat (url-user urlobj) "@"))
+				     ((member type '("ftp"))
+				      "ftp@")
+				     (t ""))
 				    (url-host urlobj) ":"
 				    (url-filename urlobj))
 			  (url-filename urlobj))))
