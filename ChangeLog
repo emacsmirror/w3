@@ -1,3 +1,8 @@
+2001-07-19  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-toolbar.el (w3-toolbar-map): Don't lose on non-graphical
+	display with tool-bar-mode t.
+
 2001-06-21  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-menu.el (w3-menu-hotlist-constructor): Require w3-hot,
