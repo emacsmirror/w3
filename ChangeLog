@@ -1,3 +1,10 @@
+1998-12-29  William M. Perry  <wmperry@aventail.com>
+
+* Emacs/W3 4.0pre38 released
+
+* lisp/url.el (url-file-attributes): use 'anonymous' instead of 'ftp' as
+  the username if none specified.
+
 1998-12-29  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
 * url.el (url-file-attributes): If url-user is nil use anonymous ftp.
