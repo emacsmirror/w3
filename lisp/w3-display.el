@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 16:33:58 $
-;; Version: $Revision: 1.6 $
+;; Created: $Date: 1998/12/28 16:38:40 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -165,7 +165,8 @@
      (w3-running-xemacs
       (if (and (not (sit-for 0)) (input-pending-p))
 	  (condition-case ()
-	      (dispatch-event (next-command-event))
+	      (let ((buffer-read-only t))
+		(dispatch-event (next-command-event)))
 	    (error nil))))
      (t
       (if (and (not (sit-for 0)) (input-pending-p))
