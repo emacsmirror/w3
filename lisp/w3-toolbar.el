@@ -1,7 +1,7 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
 ;; Author: William M. Perry <wmperry@gnu.org>
-;; Created: $Date: 2001/06/07 13:44:51 $
-;; Version: $Revision: 1.7 $
+;; Created: $Date: 2001/07/19 14:15:52 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: mouse, toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -364,31 +364,31 @@ not `none'.")
 		 ["Cancel" (beep) t])))
     (popup-dialog-box descr)))
 
-(eval-and-compile
-  (if (featurep 'tool-bar)
 (defvar w3-toolbar-map
-  (progn
-    (if (not w3-toolbar-icon-directory)
-	(setq w3-toolbar-icon-directory
-	      (file-name-as-directory
-	       (expand-file-name "w3" data-directory))))
-    (let ((tool-bar-map (make-sparse-keymap))
-	  ;; Add to normal image search path:
-	  (load-path (cons w3-toolbar-icon-directory load-path)))
-    (dolist (desc w3-toolbar)
-      (when desc
-	(let ((sym (aref desc 0)))
-	  ;; w3-toolbar contains `toolbar-' symbols as well as
-	  ;; `w3-toolbar-'.
-	  (unless (boundp sym)
-	    (setq sym (intern (format "w3-%s" sym))))
-	  (if (and desc (not (keywordp (aref desc 0))))
-	      (tool-bar-add-item (symbol-value sym) ; image
-				 (aref desc 1) ; binding
-				 (intern (aref desc 3)) ; key
-				 :help (aref desc 3)
-				 :enable (aref desc 2))))))
-    tool-bar-map)))))
+  (if (and (featurep 'tool-bar)
+	   (display-graphic-p))		; would lose on tty
+      (progn
+	(if (not w3-toolbar-icon-directory)
+	    (setq w3-toolbar-icon-directory
+		  (file-name-as-directory
+		   (expand-file-name "w3" data-directory))))
+	(let ((tool-bar-map (make-sparse-keymap))
+	      ;; Add to normal image search path:
+	      (load-path (cons w3-toolbar-icon-directory load-path)))
+	  (dolist (desc w3-toolbar)
+	    (when desc
+	      (let ((sym (aref desc 0)))
+		;; w3-toolbar contains `toolbar-' symbols as well as
+		;; `w3-toolbar-'.
+		(unless (boundp sym)
+		  (setq sym (intern (format "w3-%s" sym))))
+		(if (and desc (not (keywordp (aref desc 0))))
+		    (tool-bar-add-item (symbol-value sym) ; image
+				       (aref desc 1) ; binding
+				       (intern (aref desc 3)) ; key
+				       :help (aref desc 3)
+				       :enable (aref desc 2))))))
+	  tool-bar-map))))
 
 (defun w3-add-toolbar-to-buffer ()
   (cond
