@@ -1,14 +1,14 @@
 ;;; url-file.el --- File retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:08 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/28 16:29:16 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -215,6 +215,13 @@ and exchanges any | in the drive identifier with a :."
 	   (efs-set-passwd site user pass))
 	  (t
 	   nil)))
+
+    (if (and url-current-object
+	     (file-directory-p filename)
+	     (not (string-match (format "%c$" directory-sep-char) filename)))
+	(url-set-filename url-current-object
+			  (format "%s%c" filename directory-sep-char)))
+
     (if (and pos-index
 	     (file-exists-p pos-index)
 	     (file-readable-p pos-index))
