@@ -1,7 +1,7 @@
 ;;; css.el -- Cascading Style Sheet parser
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/05/22 19:03:20 $
-;; Version: $Revision: 1.6 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/06/05 16:02:18 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,8 +29,11 @@
 
 (eval-and-compile
   (require 'cl)
-  (require 'font)
-  )
+  (require 'font))
+(require 'w3-sysdp)			; for copy-tree
+(autoload 'url-expand-file-name "url-expand")
+(autoload 'url-insert-file-contents "url-handlers")
+(autoload 'url-view-url "url-util")
 
 (if (not (fboundp 'frame-char-height))
     (defun frame-char-height (&optional frame)
@@ -213,10 +216,6 @@ For a terminal screen, the value is always 1."
   (defvar css-scratch-current-rule nil)
   (defvar css-scratch-current-value nil)
   )
-
-(defconst css-running-xemacs
-  (string-match "XEmacs" (emacs-version))
-  "Whether we are running in XEmacs or not.")
 
 (defsubst css-replace-regexp (regexp to-string)
   (goto-char (point-min))
@@ -724,6 +723,7 @@ For a terminal frame, the value is always 1."
 	  (insert data)))))
 
 (defun css-handle-import (data)
+  (declare (special url-current-object))
   (let (url purl)
     (setq purl url-current-object)
     (setq url (css-expand-value 'url data))
@@ -758,7 +758,7 @@ For a terminal frame, the value is always 1."
   (css-replace-regexp "[ \t\r]+$" "")	; Nuke whitespace at end of line
   (goto-char (point-min)))
 
-(if css-running-xemacs
+(if (featurep 'xemacs)
     (defun css-color-light-p (color-or-face)
       (let (face color)
 	(cond
@@ -812,8 +812,10 @@ For a terminal frame, the value is always 1."
 
 (defun css-active-device-types (&optional device)
   (let ((types (list 'all
-		     (if css-running-xemacs 'xemacs 'emacs)
-		     (if (or css-running-xemacs font-running-emacs-new-redisplay)
+		     (if (featurep 'xemacs) 'xemacs 'emacs)
+		     (if (or (featurep 'xemacs)
+			     (if (fboundp 'display-multi-font-p)
+				 (display-multi-font-p)))
 			 'multifont 'unifont)
 		     (if (css-color-light-p 'default) 'light 'dark)))
 	(type (device-type device)))
@@ -912,6 +914,7 @@ For a terminal frame, the value is always 1."
   )
 
 (defun css-parse (url &optional string inherit)
+  (declare (special url-current-object))
   (let (
 	(url-mime-accept-string
 	 "text/css ; level=2")
