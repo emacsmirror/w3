@@ -6,9 +6,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1994, 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@
 (modify-syntax-entry ?{ "(" mm-parse-args-syntax-table)
 (modify-syntax-entry ?} ")" mm-parse-args-syntax-table)
 
-(defvar mm-mime-data
+(defvar mm-mime-data-default
   '(
     ("multipart"   . (
 		      ("alternative". (("viewer" . mm-multipart-viewer)
@@ -295,6 +295,10 @@ viewer specified is always valid.  If it is a list of strings,
 these are used to determine whether a viewer passes the 'test' or
 not.")
 
+(defvar mm-mime-data ()
+  "Parsed mailcap entries.
+It has the same format as `mm-mime-data-default'.")
+
 (defvar mm-content-transfer-encodings
   '(("base64"     . base64-decode-region)
     ("7bit"       . ignore)
@@ -441,7 +445,10 @@ not.")
 	fname)
     (while fnames
       (setq fname (car fnames))
-      (if (and (file-exists-p fname) (file-readable-p fname))
+      (if (and fname
+	       (file-exists-p fname)
+	       (file-readable-p fname)
+	       (file-regular-p fname))
 	  (mm-parse-mailcap (car fnames)))
       (setq fnames (cdr fnames)))))
 
@@ -661,7 +668,7 @@ not.")
        ((string-match (car (car major)) minor)
 	(setq wildcard (cons (cdr (car major)) wildcard))))
       (setq major (cdr major)))
-    (nconc (nreverse exact) (nreverse wildcard))))
+    (nconc exact wildcard)))
 
 (defun mm-unescape-mime-test (test type-info)
   (let ((buff (get-buffer-create " *unescape*"))
@@ -796,10 +803,13 @@ viewer is returned."
 	info				; Other info
 	save-pos			; Misc. position during parse
 	major-info			; (assoc major mm-mime-data)
+	major-info-default		; (assoc major mm-mime-data-default)
 	minor-info			; (assoc minor major-info)
 	test				; current test proc.
 	viewers				; Possible viewers
+	viewers-default			; Possible W3 default viewers
 	passed				; Viewers that passed the test
+	passed-default			; W3 viewers that passed the test
 	viewer				; The one and only viewer
 	)
     (save-excursion
@@ -826,15 +836,22 @@ viewer is returned."
 	      (skip-chars-forward "^/")
 	      (downcase-region save-pos (point))
 	      (setq major (buffer-substring save-pos (point)))
-	      (if (not (setq major-info (cdr (assoc major mm-mime-data))))
+	      (setq major-info (cdr (assoc major mm-mime-data))
+		    major-info-default (cdr (assoc major
+						   mm-mime-data-default)))
+	      (if (and (not major-info)
+		       (not major-info-default))
 		  (throw 'mm-exit nil))
 	      (skip-chars-forward "/ \t\n")
 	      (setq save-pos (point))
 	      (skip-chars-forward "^ \t\n;")
 	      (downcase-region save-pos (point))
 	      (setq minor (buffer-substring save-pos (point)))
-	      (if (not
-		   (setq viewers (mm-possible-viewers major-info minor)))
+	      (setq viewers (mm-possible-viewers major-info minor)
+		    viewers-default (mm-possible-viewers
+				     major-info-default minor))
+	      (if (and (not viewers)
+		       (not viewers-default))
 		  (throw 'mm-exit nil))
 	      (skip-chars-forward "; \t")
 	      (if (eolp)
@@ -848,7 +865,21 @@ viewer is returned."
 		    (setq passed (cons (car viewers) passed)))
 		(setq viewers (cdr viewers)))
 	      (setq passed (sort (nreverse passed) 'mm-viewer-lessp))
-	      (car passed)))
+	      (while viewers-default
+		(if (mm-viewer-passes-test (car viewers-default) info)
+		    (setq passed-default
+			  (cons (car viewers-default) passed-default)))
+		(setq viewers-default (cdr viewers-default)))
+	      (setq passed-default (sort (nreverse passed-default)
+					 'mm-viewer-lessp))
+	      (if (or (not passed)
+		      (and passed-default
+			   (not (stringp
+				 (or (cdr-safe (assoc
+						"viewer" (car passed-default)))
+				     "")))))
+		  (car passed-default)
+		(car passed))))
       (if (and (stringp (cdr (assoc "viewer" viewer)))
 	       passed)
 	  (setq viewer (car passed)))
