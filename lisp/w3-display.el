@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 19:58:38 $
-;; Version: $Revision: 1.20 $
+;; Created: $Date: 1999/12/11 00:54:44 $
+;; Version: $Revision: 1.21 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2748,7 +2748,16 @@ Format: (((image-alt row column) . offset) ...)")
     (set-buffer-modified-p nil)
     (goto-char (min origin (point-max)))))
 
-(defun w3-prepare-buffer (&rest args)
+(defun w3-prepare-tree (parse)
+  (w3-draw-tree parse)
+  (set-buffer-modified-p nil)
+  (setq w3-current-parse parse
+	w3-current-source nil)
+  (w3-finish-drawing)
+  (w3-mode)
+  (w3-maybe-fetch-frames))
+
+(defun w3-prepare-buffer ()
   ;; The text/html viewer - does all the drawing and displaying of the buffer
   ;; that is necessary to go from raw HTML to a good presentation.
   (let* ((source (buffer-string))
