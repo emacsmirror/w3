@@ -124,23 +124,15 @@
 (defun emacs-build-autoloads (dir autofile)
   (require 'autoload)
 
-  ;; First we need to build the autoloads.  This leaves an
-  ;; auto-autoloads.el file that the XEmacs package system expects.
-  (if (and (fboundp 'batch-update-directory)
-	   (fboundp 'update-autoloads-from-directory))
-      (let ((autoload-package-name "w3")
-	    (generated-autoload-file autofile))
-	(update-autoloads-from-directory dir)
-	(save-some-buffers t))
-    (let ((files (directory-files dir t ".*.[eE][lL]$" nil)))
-      (save-excursion
-	(find-file autofile)
-	(erase-buffer)
-	(mapcar 'generate-file-autoloads files)
-	(goto-char (point-max))
-	(insert "\n(provide 'w3-autoloads)\n")
-	(save-buffer)
-	(kill-buffer (current-buffer)))))
+  (let ((files (directory-files dir t ".*.[eE][lL]$" nil)))
+    (save-excursion
+      (find-file autofile)
+      (erase-buffer)
+      (mapcar 'generate-file-autoloads files)
+      (goto-char (point-max))
+      (insert "\n(provide 'w3-autoloads)\n")
+      (save-buffer)
+      (kill-buffer (current-buffer))))
 
   ;; Now we need to munge that file to deal with
   (find-file "w3-auto.el")
