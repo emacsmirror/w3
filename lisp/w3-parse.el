@@ -1940,8 +1940,9 @@ skip-chars-forward."
              (ethio-sera-to-fidel-marker)))))
     (error nil)))
 
-(if (not (fboundp 'char-int))
-    (defalias 'char-int 'identity))
+(if (fboundp 'char-int)
+    (defalias 'w3-char-int 'char-int)
+  (defalias 'w3-char-int 'identity))
 
 ;; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ;; %                                                    %
@@ -2618,7 +2619,7 @@ Returns a data structure containing the parsed information."
              ;; encodings?  Mislabeled MIME with no charset?
              ;;
              ;; FIXME FIXME FIXME!!!!!
-             (insert (or (cdr-safe (assq (char-int (char-after (point)))
+             (insert (or (cdr-safe (assq (w3-char-int (char-after (point)))
                                          w3-invalid-sgml-char-replacement)) ""))
              (delete-char 1))
             ((eobp)
