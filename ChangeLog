@@ -1,3 +1,7 @@
+2001-10-31  Dave Love  <fx@gnu.org>
+
+	* lisp/w3.el (w3-decode-charset): DTRT for explicit ascii charset.
+
 2001-10-11  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-style.el (cl): Require only when compiling.
