@@ -1,7 +1,7 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
 ;; Author: $Author: fx $
-;; Created: $Date: 2001/06/07 16:38:25 $
-;; Version: $Revision: 1.8 $
+;; Created: $Date: 2001/10/11 12:59:46 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -67,27 +67,27 @@
 
 ;;; File related variables
 (defcustom w3-configuration-directory "~/.w3/"
-  "*Directory where Emacs-w3 can find its configuration files"
+  "Directory where Emacs-w3 can find its configuration files."
   :group 'w3-files
-  :type 'directory)  
+  :type 'directory)
 
 (defcustom w3-default-configuration-file "profile"
-  "*Base filename where per-user customizations are kept.
+  "Base filename where per-user customizations are kept.
 This filename is relative to `w3-configuration-directory' if
 not fully specified."
   :group 'w3-files
   :type 'string)
 
 (defcustom w3-default-homepage nil
-  "*The url to open at startup.  It can be any valid URL.
+  "The url to open at startup.  It can be any valid URL.
 This will default to the environment variable WWW_HOME if you do not
-set it in your .emacs file. If WWW_HOME is undefined, then it will
+set it in your .emacs file.  If WWW_HOME is undefined, then it will
 default to  the hypertext documentation for W3 at Indiana University."
   :group 'w3-files
   :type 'string)
 
 (defcustom w3-default-stylesheet nil
-  "*The filename of the users default stylesheet."
+  "The filename of the users default stylesheet."
   :group 'w3-files
   :type '(choice (const :tag "None" :value nil)
 		 (file)))
@@ -102,14 +102,14 @@ menus to get to them."
   :type 'file)
 
 (defcustom w3-explicit-encodings-file nil
-  "*Explicit encodings filename.
+  "Explicit encodings filename.
 This should be the name of a file that is used to keep user-specified
 explicit encodings for URLs."
   :group 'w3-files
   :type 'file)
 
 (defcustom w3-documentation-root "http://www.cs.indiana.edu/elisp/w3/"
-  "*Where the w3 documentation lives.  This MUST end in a slash."
+  "Where the w3 documentation lives.  This MUST end in a slash."
   :group 'w3-files
   :type 'string)
 
@@ -132,8 +132,8 @@ t		display frame hyperlinks and fetch them."
     (square . ?#)
     (none   . ? )
     )
-  "*An assoc list of unordered list types mapping to characters to use
-as the bullet character."
+  "An alist of unordered list types.
+This maps to characters to use as the bullet character."
   :group 'w3-display
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Type")
@@ -159,7 +159,7 @@ in menus, etc."
 		     :value name)))
 
 (defcustom w3-horizontal-rule-char nil
-  "*The character to use to create a horizontal rule.
+  "The character to use to create a horizontal rule.
 Must be the character's code, not a string.  This character is
 replicated across the screen to create a division.
 If nil W3 will use a terminal graphic character if possible."
@@ -174,34 +174,41 @@ If nil W3 will use a terminal graphic character if possible."
 		       ;; Fixme: Emacs 21 has coding-system :type.
 		       (symbol :tag "Coding system" :value binary))))
 
-;;; these three variables control how w3-setup-terminal-chars works
+;;; these four variables control how w3-setup-terminal-chars works
 (defcustom w3-use-terminal-characters nil
-  "*Use terminal graphics characters for drawing tables and rules if available"
+  "*Use terminal graphics characters for drawing tables and rules if available."
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-use-terminal-characters-on-tty nil
   "*Use terminal graphics characters for tables and rules even on a tty.
-This triggers display bugs on both FSF Emacs and XEmacs. 
-(Though it's usually tolerable at least on FSF Emacs.)"
+This triggers display bugs on both Emacs and XEmacs.
+\(Though it's usually tolerable at least in Emacs.)"
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-use-terminal-glyphs nil
-  "*Use glyphs if possible rather than properties for terminal graphics characters
+  "*Use glyphs if possible rather than properties for terminal graphics characters.
 
 Glyphs are probably more efficient but don't work with the most recent versions
 of XEmacs and there are some cute tricks we can play with text-properties that
 glyphs won't let us do. It may be possible someday to make XEmacs automagically
 translate the characters back to ascii characters when pasted into another
-buffer. (On the other hand, right now w3-excise-terminal-characters doesn't
+buffer. (On the other hand, right now `w3-excise-terminal-characters' doesn't
 work at all if we're using text-properties)."
   :group 'w3-display
   :type '(choice (const :tag "Use Glyphs" :value t)
 		 (const :tag "Use Text Properties" :value nil)))
 
+(defcustom w3-use-unicode-table-characters nil
+  "*Non-nil means use Unicode box-drawing characters for tables if avilable.
+This only works for Emacs 21.  You might wat to turn this off if your
+Unicode font isn't available in appropriate sizes."
+  :group 'w3-display
+  :type 'boolean)
+
 (defcustom w3-do-incremental-display nil
-  "*Whether to do incremental display of pages or not."
+  "*Non-nil means do incremental display of pages."
   :group 'w3-display
   :type 'boolean)
 
@@ -214,29 +221,29 @@ work at all if we're using text-properties)."
   ;; Alternate, Stylesheet, Start, Next, Prev, Contents, Index,
   ;; Glossary, Copyright, Chapter, Section, Subsection, Appendix,
   ;; Help, Bookmark
-  "A list of the (lower-case) names which have special significance
-as the values of REL or REV attributes of <link> elements.  They will
-be presented on the toolbar or the links menu, for instance."
+  "A list of the (lower-case) names which have special significance.
+The significance is when they are used as the values of REL or REV
+attributes of <link> elements.  They will be presented on the toolbar
+or the links menu, for instance."
   :group 'w3-display
   :type '(repeat string))
 
 ;;; Parsing related variables
 (defcustom w3-debug-html nil
-  "*Whether to gripe about bad HTML or not."
+  "*Non-nil means to gripe about bad HTML."
   :group 'w3-parsing
   :type '(choice (const :tag "HTML Errors" :value t)
 		 (const :tag "Errors and stylistic issues" :value style)
 		 (const :tag "None" :value nil)))
 
 (defcustom w3-debug-buffer "*HTML Debug*"
-  "*Name of buffer to store debugging information in."
+  "Name of buffer to store debugging information in."
   :group 'w3-parsing
   :type 'string)
 
 ;;; Image related variables
 (defcustom w3-auto-image-alt 'w3-default-image-alt-func
-  "*Whether emacs-w3 should create an alt attribute for an image that
-is missing it.
+  "*Whether to create an alt attribute for an image that is missing it.
 If nil, Emacs-W3 will not automatically create an ALT attribute.
 
 If a string, it should be a string suitable for running through format,
@@ -244,19 +251,20 @@ with only one %s, which will be replaced with just the filename of the
 graphic that is not loaded.
 
 Otherwise, it is considered a function and is passed a single
-argument, the filename of the graphic that is not loaded.
-"
+argument, the filename of the graphic that is not loaded."
   :group 'w3-images
   :type '(choice (const :tag "None" :value nil)
 		 (const :tag "Default" :value "[IMAGE(%s)]")
 		 (string :tag "Format string")
 		 (sexp :tag "Function" :value nil)))
 
-(defcustom w3-delay-image-loads (not (or (featurep 'gif)
+(defcustom w3-delay-image-loads (not (or (and (fboundp 'display-images-p)
+					      (display-images-p))
+					 (featurep 'gif)
 					 (featurep 'jpeg)
 					 (featurep 'imagick)
 					 (featurep 'png)))
-  "*Whether to delay image loading, or automatically retrieve them."
+  "*Non-nil means delay loading images, not automatically retrieve them."
   :group 'w3-images
   :type 'boolean)
 
@@ -283,7 +291,7 @@ argument, the filename of the graphic that is not loaded.
     ("image/x-targa"          . tga)
     ("image/tiff"             . tiff)
     )
-  "*How to map MIME types to image types for the `image' package.
+  "How to map MIME types to image types for the `image' package.
 Each entry is a cons cell of MIME types and image-type symbols."
   :group 'w3-images
   :type '(repeat (cons :format "%v"
@@ -292,9 +300,9 @@ Each entry is a cons cell of MIME types and image-type symbols."
 
 ;;; Menus
 (defcustom w3-max-menu-length 35
-  "*The maximum length of a pulldown menu before it will be split into
-smaller chunks, with the first part as a submenu, followed by the rest
-of the menu."
+  "The maximum length of a pulldown menu.
+This is the length before it will be split into smaller chunks, with
+the first part as a submenu, followed by the rest of the menu."
   :group 'w3-menus
   :type 'integer)
 
@@ -316,7 +324,7 @@ of the menu."
 	(w3-current-isindex "[Searchable]  ")
 	(w3-current-badhtml "[BAD HTML]  ")
 	"%p" "  " global-mode-string))
-  "*The modeline format string when in w3 mode"
+  "The modeline format string when in w3 mode."
   :group 'w3-advanced
   :type 'sexp)
 
@@ -364,11 +372,12 @@ A nil value means W3 should not change the binding of mouse-3."
   :type 'boolean)
 
 (defcustom w3-reuse-buffers 'yes
-  "What to do when following a link will re-fetch a document that has
-already been fetched into a W3 buffer.  Possible values are: nil,
-'yes, and 'no.  Nil means ask the user if we should reuse the buffer.
- A value of 'yes means assume the user wants us to reuse the buffer.
-A value of 'no means assume the user wants us to re-fetch the document.
+  "What to do when following a link will re-fetch a document.
+This means a document that has already been fetched into a W3 buffer.
+Possible values are: nil, `yes', and `no'.  Nil means ask the user if
+we should reuse the buffer.  A value of 'yes means assume the user
+wants us to reuse the buffer.  A value of 'no means assume the user
+wants us to re-fetch the document.
 
 This will also accept:
 'no	==> always reload
@@ -382,7 +391,7 @@ This will also accept:
 (defcustom w3-right-margin 2
   "*Default right margin for Emacs-W3 buffers.
 This amount is subtracted from (window-width) for each new WWW buffer
-and used as the new fill-column."
+and used as the new fill column."
   :group 'w3-display
   :type 'integer)
 
@@ -394,7 +403,7 @@ If nil, then lines can extend all the way to the window margin."
 		(integer :tag "Limit to")))
 
 (defcustom w3-track-mouse t
-  "*Whether to track the mouse and message the url under the mouse."
+  "*Non-nil means track the mouse and message the url under the mouse."
   :group 'w3-display
   :type 'boolean)
 
@@ -404,36 +413,36 @@ If nil, then lines can extend all the way to the window margin."
   :type 'boolean)
 
 (defcustom w3-user-colors-take-precedence nil
-  "*Whether to let a document define certain colors about itself.
+  "*Non-nil means don't let a document define certain colors itself.
 Like foreground and background colors and pixmaps, color of links and
 visited links, etc."
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-user-fonts-take-precedence nil
-  "*Whether to let a document define certain fonts.
+  "*Non-nil means don't let a document define certain fonts.
 Certain fonts can cause problems under Emacs."
   :group 'w3-display
   :type 'boolean)
 
 ;;; Hook Variables
 (defcustom w3-load-hook nil
-  "*Hooks to be run after loading w3."
+  "Hook run after loading w3."
   :group 'w3-hooks
   :type 'hook)
 
 (defcustom w3-mode-hook nil
-  "*Hooks to be run after entering w3-mode."
+  "Hook run after entering W3 mode."
   :group 'w3-hooks
   :type 'hook)
 
 (defcustom w3-source-file-hook nil
-  "*Hooks to be run after getting document source."
+  "Hook run after getting document source."
   :group 'w3-hooks
   :type 'hook)
 
 (defcustom w3-display-errors-hook nil
-  "*Hooks to be run after displaying HTML errors for a page."
+  "Hook run after displaying HTML errors for a page."
   :group 'w3-hooks
   :type 'hook)
 
@@ -465,31 +474,8 @@ Certain fonts can cause problems under Emacs."
     ("^  [A-Z][a-zA-Z0-9 ]*: .*" . font-lock-comment-face)
     ("^  [A-Z][a-zA-Z0-9 ]*: " . font-lock-comment-face)
     ("\\*ERROR\\*" 0 font-lock-keyword-face t))
-  "*Font locking keywords used for HTML error display"
+  "Font locking keywords used for HTML error display."
   :group 'w3
   :type 'sexp)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Internationalization
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defconst w3-mule-charset-to-coding-alist
-  '(
-    ("us-ascii"	  . no-conversion)
-    ("iso-8859-1" . no-conversion)
-    ("iso-8859-2" . iso-8859-2)
-    ("iso-8859-3" . iso-8859-3)
-    ("iso-8859-4" . iso-8859-4)
-    ("iso-8859-5" . iso-8859-5)
-    ("iso-8859-6" . iso-8859-6)
-    ("iso-8859-7" . iso-8859-7)
-    ("iso-8859-8" . iso-8859-8)
-    ("iso-8859-9" . iso-8859-9)
-    ("iso-2022-jp" . iso-2022-jp)
-    ;; probably not correct, but probably better than nothing.
-    ("iso-2022-jp-2" . iso-2022-jp)
-    ("iso-2022-int-1" . iso-2022-int-1)
-    ("iso-2022-kr"    . iso-2022-kr)
-    ("euc-kr"         . iso-2022-kr)
-    ))
   
 (provide 'w3-cus)
