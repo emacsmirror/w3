@@ -1,3 +1,47 @@
+1998-12-28  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-display.el (w3-prepare-buffer): Use an unwind-protect form
+  around w3-draw-tree.  This means that even if something in the drawing
+  causes an error, the buffer will still be thrown into w3-mode
+  (w3-region): Make w3-region interactive and give it a doc string.
+  (w3-pause): Mark the buffer as temporarily read-only, so that
+  self-inserting keystrokes will signal an error, which will be caught and 
+  ignored by the condition-case.
+
+* lisp/url-file.el (url-file): Modify the filename in the URL if we are
+  actually visiting a directory without a trailing '/' or '\', and we do
+  the auto-find of the index.html file.
+
+* lisp/url.el (url-looks-like-html): New function that determines whether
+  a document looks like HTML or not.  This is for ancient HTTP/0.9
+  responses for things without a file extension (ie: /, /a/b/, etc)
+  (url-retrieve-internally): Use it if we cannot find a content-type any
+  other way.
+
+* lisp/url-cid.el: Try to avoid compile-time-errors when gnus' mm-decode
+  cannot be found.
+
+1998-12-26  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url.el (url-expand-file-name): Make sure to normalize the 'default' 
+  value before we get to the point of bailing out if we get the empty
+  string, otherwise the vector-ized version of the URL could sneak out,
+  and the 'nil' default case would screw us too.
+
+1998-12-26  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
+
+* w3-display.el (w3-display-get-cookie): No buffer-file-name for "
+  *cookie*" buffers.
+
+1998-12-26  William M. Perry  <wmperry@aventail.com>
+
+* lisp/base64.el: Added alias for base64-encode-string -> base64-encode
+  and base64-decode-string -> base64-decode, for compatibility with
+  Emacs/XEmacs with native base64 support.
+
+* lisp/w3-about.el: Use base64-encode-string instead of base64-encode, for 
+  compatibility with Emacs/XEmacs with native base64 support.
+
 1998-12-25  William M. Perry  <wmperry@aventail.com>
 
 * lisp/url-ldap.el: New file to implement LDAP support ala RFC2255

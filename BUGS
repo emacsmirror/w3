@@ -22,10 +22,10 @@ under NeXTstep or OS/2.
 If the problem is actually causing Emacs to crash, then you will need
 to also mail the maintainers of the various Emacs distributions with
 the bug.  Please use the 'gnu.emacs.bug' newgroup for reporting bugs
-with GNU Emacs, and 'comp.emacs.xemacs' for reporting bugs with XEmacs
-.  I am actively involved with the beta testing of the latest versions
-of both branches of Emacs, and if I can reproduce the problem, I will
-do my best to see it gets fixed in the next release.
+with GNU Emacs, and 'comp.emacs.xemacs' for reporting bugs with
+XEmacs.  I am actively involved with the beta testing of the latest
+versions of both branches of Emacs, and if I can reproduce the
+problem, I will do my best to see it gets fixed in the next release.
 
 It is also important to always maintain as much context as possible in
 your responses.  I get so much email from my various Emacs-activities

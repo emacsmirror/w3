@@ -1,24 +1,12 @@
 BUGS (4.0):
-- need to support HTTP/0.9 (http://c2.com:8080) responses
-- When auto-loading the index.html file out of a directory, if the
-  directory does not have the trailing '/', relative URL references
-  are wrong.
 - /etc/mailcap cannot overide builtin mm-mime-data stuff?
 - try to protect people from using '~' in file URLs
-- keystrokes entered while in w3-pause self-insert under XEmacs - the
-  loop around dispatch-event needs to be smarter about what it
-  swallows.
 - border-color can have multiple color specifications, but we
   currently choke with 'args out of range' when we see this.
 - widget appears to be stealing button3 to mean 'activate' - this is
   bogus!  We lose all context-sensitive menus because of this.
 - We still seem to be growing the line size under Emacs 19.x/20.x
-- It would be really nice if w3 buffers were put into w3-mode as soon
-  as they were created. Then if the rendering craps out somehow then
-  the buffer could be browsed such as it was. Ideally, links and
-  widgets would be functional.
 - document how to translate Netscape foo.pac files to emacs lisp
-- Should we stop using reporter.el?
 
 BUGS (4.1):
 - background colors are not heeded on table rows (<tr>).  Same
@@ -58,7 +46,6 @@ FEATURES (4.1)
   people to use HTTP PUT to upload documents to HTTP servers, etc.
 - cache a formatted version of documents, with enough info to recreate
   the widgets in them.
-- w3-preview-region command
 - keystrokes and supporting infrastructure to prefetch URLs from
   within a document that you are likely to read next.  Don't even parse
   or render them David Kastrup <dak@neuroinformatik.ruhr-uni-bochum.de>
