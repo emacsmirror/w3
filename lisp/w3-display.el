@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/24 12:16:35 $
-;; Version: $Revision: 1.22 $
+;; Created: $Date: 2000/07/10 14:43:33 $
+;; Version: $Revision: 1.23 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,7 +29,6 @@
 (require 'cl)
 (eval-when-compile
   (require 'w3-props))
-(require 'w3-keyword)
 (require 'css)
 (require 'font)
 (require 'url-parse)
@@ -209,6 +208,43 @@
 		       'html
 		       "Runaway indentation!  Too deep for window width!")
 		      fill-prefix)))
+
+(defsubst w3-decimal-to-roman (n)
+  ;; Convert from decimal to roman numerals
+  (let ((curmod 1000)
+	(str "")
+	(j 7)
+	i2 k curcnt)
+    (while (>= curmod 1)
+      (if (>= n curmod)
+	  (progn
+	    (setq curcnt (/ n curmod)
+		  n (- n (* curcnt curmod)))
+	    (if (= 4 (% curcnt 5))
+		(setq i2 (+ j (if (> curcnt 5) 1 0))
+		      str (format "%s%c%c" str
+				  (aref w3-roman-characters (1- j))
+				  (aref w3-roman-characters i2)))
+	      (progn
+		(if (>= curcnt 5)
+		    (setq str (format "%s%c" str (aref w3-roman-characters j))
+			  curcnt (- curcnt 5)))
+		(setq k 0)
+		(while (< k curcnt)
+		  (setq str (format "%s%c" str
+				    (aref w3-roman-characters (1- j)))
+			k (1+ k)))))))
+      (setq curmod (/ curmod 10)
+	    j (- j 2)))
+    str))
+
+(defsubst w3-decimal-to-alpha (n)
+  ;; Convert from decimal to alphabetical (a, b, c, ..., aa, ab,...)
+  (cond
+   ((< n 1) (char-to-string ?Z))
+   ((<= n 26) (char-to-string (+ ?A (1- n))))
+   (t (concat (char-to-string (+ ?A (1- (/ n 27))))
+	      (w3-decimal-to-alpha (% n 26))))))
 
 (defsubst w3-get-style-info (info node &optional default)
   (or (cdr-safe (assq info w3-display-css-properties)) default))

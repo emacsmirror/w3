@@ -1,7 +1,7 @@
 ;;; w3-vars.el,v --- All variable definitions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:11 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 2000/07/10 14:43:36 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,7 +42,7 @@
      (function (lambda (x) (if (= x ?-) "." (char-to-string x)))) x ""))
   "Version # of w3-mode.")
 
-(defconst w3-version-date (let ((x "$Date: 1999/12/05 08:36:11 $"))
+(defconst w3-version-date (let ((x "$Date: 2000/07/10 14:43:36 $"))
 			    (if (string-match "Date: \\([^ \t\n]+\\)" x)
 				(substring x (match-beginning 1) (match-end 1))
 			      x))
@@ -439,5 +439,4 @@ for a charset indication")
 (make-variable-buffer-local 'w3-table-structure)
 
 (require 'w3-keymap)
-(require 'w3-keyword)
 (provide 'w3-vars)

@@ -38,7 +38,6 @@ W3_SOURCES =								\
 	w3-imap.el							\
 	w3-java.el							\
 	w3-keymap.el							\
-	w3-keyword.el							\
 	w3-menu.el							\
 	w3-mouse.el							\
 	w3-parse.el							\

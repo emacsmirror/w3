@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/11 00:54:09 $
-;; Version: $Revision: 1.13 $
+;; Created: $Date: 2000/07/10 14:43:37 $
+;; Version: $Revision: 1.14 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -53,89 +53,6 @@
   (require 'w3-display))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Code for printing out roman numerals
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun w3-decimal-to-roman (n)
-  ;; Convert from decimal to roman numerals
-  (let ((curmod 1000)
-	(str "")
-	(j 7)
-	i2 k curcnt)
-    (while (>= curmod 1)
-      (if (>= n curmod)
-	  (progn
-	    (setq curcnt (/ n curmod)
-		  n (- n (* curcnt curmod)))
-	    (if (= 4 (% curcnt 5))
-		(setq i2 (+ j (if (> curcnt 5) 1 0))
-		      str (format "%s%c%c" str
-				  (aref w3-roman-characters (1- j))
-				  (aref w3-roman-characters i2)))
-	      (progn
-		(if (>= curcnt 5)
-		    (setq str (format "%s%c" str (aref w3-roman-characters j))
-			  curcnt (- curcnt 5)))
-		(setq k 0)
-		(while (< k curcnt)
-		  (setq str (format "%s%c" str
-				    (aref w3-roman-characters (1- j)))
-			k (1+ k)))))))
-      (setq curmod (/ curmod 10)
-	    j (- j 2)))
-    str))
-
-(defun w3-decimal-to-alpha (n)
-  ;; Convert from decimal to alphabetical (a, b, c, ..., aa, ab,...)
-  (cond
-   ((< n 1) (char-to-string ?Z))
-   ((<= n 26) (char-to-string (+ ?A (1- n))))
-   (t (concat (char-to-string (+ ?A (1- (/ n 27))))
-	      (w3-decimal-to-alpha (% n 26))))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Functions to pass files off to external viewers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun w3-start-viewer (fname cmd &optional view)
-  "Start a subprocess, named FNAME, executing CMD.
-If third arg VIEW is non-nil, show the output in a buffer when
-the subprocess exits."
-  (if view (save-excursion
-	     (set-buffer (get-buffer-create view))
-	     (erase-buffer)))
-  (start-process fname view shell-file-name shell-command-switch cmd))
-
-(defun w3-viewer-filter (proc string)
-  ;; A process filter for asynchronous external viewers
-  (if (= (length string) 0)
-      nil
-    (let ((buff (get-buffer-create (generate-new-buffer-name
-				    (symbol-name
-				     (read (nth 2 (process-command proc))))))))
-      (save-excursion
-	(set-buffer buff)
-	(erase-buffer)
-	(insert string)
-	(set-process-buffer proc buff)
-	(w3-notify-when-ready buff)
-	(set-process-filter proc nil)))))
-
-(defun w3-viewer-sentinel (proc string)
-  ;; Delete any temp files left from a viewer process.
-  (let ((fname (process-name proc))
-	(buffr (process-buffer proc))
-	(status (process-exit-status proc)))
-    (and (/= 0 status)
-	 (funcall url-confirmation-func
-		  (format "Viewer for %s failed... save to disk? " fname))
-	 (copy-file fname (read-file-name "Save as: ") t))
-    (if (and (file-exists-p fname)
-	     (file-writable-p fname))
-	(delete-file fname)))
-  ;; FSF Emacs doesn't do this after calling a process-sentinel
-  (set-buffer (window-buffer (selected-window))))
-
 (defun w3-notify-when-ready (buff)
   "Notify the user when BUFF is ready.
 See the variable `w3-notify' for the different notification behaviors."
@@ -188,9 +105,7 @@ hypertext document."
  
 ;;;###autoload
 (defun w3-fetch-other-frame (&optional url)
-  "Attempt to follow the hypertext reference under point in a new frame.
-With prefix-arg P, ignore viewers and dump the link straight
-to disk."
+  "Attempt to follow the hypertext reference under point in a new frame."
   (interactive (list (w3-read-url-with-default)))
   (cond
    ((and (fboundp 'make-frame)
@@ -203,9 +118,7 @@ to disk."
    (t (w3-fetch url))))
 
 (defun w3-fetch-other-window (&optional url)
-  "Attempt to follow the hypertext reference under point in a new window.
-With prefix-arg P, ignore viewers and dump the link straight
-to disk."
+  "Attempt to follow the hypertext reference under point in a new window."
   (interactive (list (w3-read-url-with-default)))
   (split-window)
   (w3-fetch url))
@@ -267,7 +180,36 @@ If PROMPT (the prefix), prompt for a coding system to use."
 	 (car ctl))))
     (widen)))
 
+(defun w3-nasty-disgusting-http-equiv-handling (&optional buffer)
+  (let ((content-type nil)
+	(end-of-headers nil)
+	(extra-headers nil))
+    (save-excursion
+      (if buffer (set-buffer buffer))
+      (goto-char (point-min))
+      (mail-narrow-to-head)
+      (setq content-type (mail-fetch-field "content-type"))
+      (goto-char (point-max))		; Make sure we are beyond the headers
+      (setq end-of-headers (point))
+      (widen)
+      (if (and content-type (string-match "^text/html" content-type)
+	       (re-search-forward "</head" nil t))
+	  (let ((case-fold-search t)
+		(end-of-head (point)))
+	    ;; Need to find any <meta http-equiv> stuff in the head so
+	    ;; we can promote them into the headers before
+	    ;; mm-dissect-buffer looks for them.
+	    (goto-char end-of-headers)
+	    (while (re-search-forward "<meta[ \t\r\n]+http-equiv" end-of-head t)
+	      (forward-char 5)
+	      (skip-chars-forward " \t\r\n")
+	      ;; We should now be directly in front of the first attribute name.
+	      ;; Need to parse the tag attributes and push them up.
+	      (message "#*!#@*! - Need to promote a header.")
+	      (forward-char 1)))))))
+
 (defun w3-fetch-callback (url)
+  (w3-nasty-disgusting-http-equiv-handling)
   (let ((handle (mm-dissect-buffer t))
 	(buff nil))
     (message "Downloading of `%s' complete." url)
@@ -539,11 +481,6 @@ the cdr is the 'next' node."
 	(insert "  </table>\n"
 		" </body>\n"
 		"</html>\n")))))
-
-(defun w3-truncate-menu-item (string)
-  (if (<= (length string) w3-max-menu-width)
-      string
-    (concat (substring string 0 w3-max-menu-width) "$")))
 
 (defun w3-insert-formatted-url (p)
   "Insert a formatted url into a buffer.  With prefix arg, insert the url

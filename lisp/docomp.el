@@ -8,8 +8,8 @@
 (push (or (getenv "GNUSDIR") (expand-file-name "../gnus/lisp/" srcdir)) load-path)
 (push (or (getenv "URLDIR") (expand-file-name "../url/lisp/" srcdir)) load-path)
 
-(setq max-specpdl-size (* 10 max-specpdl-size)
-      max-lisp-eval-depth (* 10 max-lisp-eval-depth))
+(setq max-specpdl-size (* 1000 max-specpdl-size)
+      max-lisp-eval-depth (* 1000 max-lisp-eval-depth))
 
 ;; If we are building w3 in a different directory than the source
 ;; directory, we must read *.el from source directory and write *.elc

@@ -1,7 +1,7 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:08 $
-;; Version: $Revision: 1.5 $
+;; Created: $Date: 2000/07/10 14:43:35 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,7 +29,6 @@
 (require 'w3-vars)
 (require 'w3-mouse)
 (require 'widget)
-(require 'w3-keyword)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; InfoDock stuff
@@ -115,6 +114,11 @@ on that platform."
 			  (w3-menu-breakup (nthcdr max-len menu-desc) max-len))))
     menu-desc))
 
+(defun w3-menu-truncate-item (string)
+  (if (<= (length string) w3-max-menu-width)
+      string
+    (concat (substring string 0 w3-max-menu-width) "$")))
+
 (defun w3-menu-dummy-menu (item)
   (if w3-running-xemacs
       (list (vector item nil nil))
@@ -128,7 +132,7 @@ on that platform."
 	     (hot w3-hotlist))
 	 (while hot
 	   (setq hot-menu (cons (vector
-				 (w3-truncate-menu-item (car (car hot)))
+				 (w3-menu-truncate-item (car (car hot)))
 				 (list 'w3-fetch (car (cdr (car hot))))
 				 t) hot-menu)
 		 hot (cdr hot)))
@@ -179,7 +183,7 @@ on that platform."
 	    widgets (cdr widgets)
 	    href (widget-get widget :href)
 	    menu (cons
-		  (vector (w3-truncate-menu-item
+		  (vector (w3-menu-truncate-item
 			   (or (widget-get widget :title)
 			       (w3-fix-spaces
 				(buffer-substring-no-properties

@@ -1,7 +1,7 @@
 ;;; w3-widget.el --- An image widget
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:12 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 2000/07/10 14:43:37 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces, images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -53,7 +53,6 @@
 (require 'cl)
 (require 'widget)
 (require 'url-util)
-(require 'w3-keyword)
 
 (defvar widget-image-keymap (make-sparse-keymap)
   "Keymap used over glyphs in an image widget")

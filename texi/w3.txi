@@ -98,7 +98,7 @@ This manual corresponds to Emacs/W3 $State: Exp $
                                 other browsers.
 * Display Variables::           How to control Emacs/W3's look.
 * Stylesheets::                 How to control the look of web pages
-* Supported URLs::              What @sc{URL} schemes are supported.
+* Supported URLs::              What @sc{url} schemes are supported.
 * MIME Support::                Support for @sc{mime}
 * Security::                    Various security methods supported
 * Cookies::                     Emacs/W3 and cookies.
@@ -661,7 +661,7 @@ This (@code{w3-leave-buffer}) is similar to @code{w3-quit}, but the
 buffer is not killed, it is moved to the bottom of the buffer list (so
 it is the least likely to show up as the default with switch-to-buffer).
 This is different from @code{w3-goto-last-buffer} in that it does not
-return to the last @sc{WWW} page visited --- it is the same as using
+return to the last @sc{www} page visited --- it is the same as using
 @code{switch-to-buffer} --- the buffer left in the window is fairly
 random.
 @end table
@@ -4580,11 +4580,11 @@ Thiss the default server, it take the form (@samp{"Default server"}
 
 @item socks-server-aliases
 This a list of server aliases.  It is a list of aliases of the form
-@var{(alias hostname port version)}.
+@code{(alias hostname port version)}.
 
 @item socks-network-aliases
 This a list of network aliases.  Each entry in the list takes the form
-@var{(alias (network))} where @var{alias} is a string that names the
+@code{(alias (network))} where @var{alias} is a string that names the
 @var{network}.  The networks can contain a pair (not a dotted pair) of
 @sc{ip} addresses which specify a range of @sc{ip} addresses, an @sc{ip}
 address and a netmask, a domain name or a unique hostname or @sc{ip}
@@ -4592,7 +4592,7 @@ address.
 
 @item socks-redirection-rules
 This a list of redirection rules.  Each rule take the form
-@var{(Destination network Connection type)} where @var{Destination
+@code{(Destination network Connection type)} where @var{Destination
 network} is a network alias from @code{socks-network-aliases} and
 @var{Connection type} can be @code{nil} in which case a direct
 connection is used, or it can be an alias from
