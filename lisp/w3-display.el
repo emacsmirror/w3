@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/28 15:11:01 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1998/12/28 16:28:37 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2699,13 +2699,14 @@ Format: (((image-alt row column) . offset) ...)")
 	 (source-buf (current-buffer))
 	 (parse (w3-parse-buffer source-buf)))
     (set-buffer-modified-p nil)
-    (w3-draw-tree parse)
-    (kill-buffer source-buf)
-    (set-buffer-modified-p nil)
-    (setq w3-current-source source
-	  w3-current-parse parse)
-    (w3-finish-drawing)
-    (w3-mode)
+    (unwind-protect
+	(w3-draw-tree parse)
+      (kill-buffer source-buf)
+      (set-buffer-modified-p nil)
+      (setq w3-current-source source
+	    w3-current-parse parse)
+      (w3-finish-drawing)
+      (w3-mode))
     (set-buffer-modified-p nil)
     (if url-keep-history
 	(let ((url (url-view-url t)))
