@@ -1,7 +1,7 @@
 ;;; w3-hot.el --- Main functions for emacs-w3 on all platforms/versions
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:06 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/05/14 15:51:54 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -39,6 +39,7 @@
 (require 'w3-vars)
 (require 'w3-parse)
 (require 'url-parse)
+(eval-when-compile (require 'cl))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Hotlist Handling Code
