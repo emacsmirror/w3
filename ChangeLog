@@ -1,3 +1,13 @@
+2001-06-21  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-menu.el (w3-menu-hotlist-constructor): Require w3-hot,
+	not w3-hotlist.
+
+2001-06-14  Dave Love  <fx@gnu.org>
+
+	* lisp/Makefile.in (W3_SOURCES): Add w3-emacs.el, remove files it
+	obsoletes.
+
 2001-06-07  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-print.el (mule-sysdp): Don't require.
