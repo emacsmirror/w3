@@ -1,3 +1,13 @@
+;;; First things first - if they do not have the WIDGETDIR environment
+;;; variable set, choke, scream, and die.
+(if (or (not (getenv "WIDGETDIR"))
+	(string= (getenv "WIDGETDIR") "no"))
+    (progn
+      (message "Could not find custom libraries.")
+      (message "Please rerun `configure' in the top level directory, and")
+      (message "provide the `--with-custom=XXX' flag.")
+      (kill-emacs 1)))
+
 (setq load-path (append (list (expand-file-name 
 			       (or (getenv "W3SRCDIR") "./"))
 			      "."
@@ -126,10 +136,15 @@
 			 (nth 1 command-line-args-left)))
 
 (defun emacs-build-custom-load (dir)
-  (save-excursion
-    (load-library "cus-dep")
-    (let ((command-line-args-left (list dir)))
-      (custom-make-dependencies))))
+  (let ((foundit t))
+    (save-excursion
+      (condition-case ()
+	  (load-library "cus-dep")
+	(error (setq foundit nil)))
+      (if foundit
+	  (let ((command-line-args-left (list dir)))
+	    (custom-make-dependencies))
+	(write-region "\n" nil "cus-dep.el")))))
 
 (defun emacs-batch-build-custom-load ()
   (emacs-build-custom-load (car command-line-args-left)))
