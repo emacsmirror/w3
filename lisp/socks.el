@@ -1,7 +1,7 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/09 14:52:16 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:53:17 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: comm, firewalls
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -39,8 +39,9 @@
 (require 'custom)
 
 ;; For non-MULE
-(if (not (fboundp 'char-int))
-    (fset 'char-int 'identity))
+(if (fboundp 'char-int)
+    (defalias 'socks-char-int 'char-int)
+  (defalias 'socks-char-int 'identity))
 
 (if (not (fboundp 'split-string))
     (defun split-string (string &optional pattern)
@@ -268,39 +269,39 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defmacro socks-wait-for-state-change (proc htable cur-state)
   (`
-   (while (and (= (cl-gethash 'state (, htable)) (, cur-state))
+   (while (and (= (gethash 'state (, htable)) (, cur-state))
 	       (memq (process-status (, proc)) '(run open)))
      (accept-process-output (, proc) socks-timeout))))
 
 (defun socks-filter (proc string)
-  (let ((info (cl-gethash proc socks-connections))
+  (let ((info (gethash proc socks-connections))
 	state desired-len)
     (or info (error "socks-filter called on non-SOCKS connection %S" proc))
-    (setq state (cl-gethash 'state info))
+    (setq state (gethash 'state info))
     (cond
      ((= state socks-state-waiting-for-auth)
-      (cl-puthash 'scratch (concat string (cl-gethash 'scratch info)) info)
-      (setq string (cl-gethash 'scratch info))
+      (puthash 'scratch (concat string (gethash 'scratch info)) info)
+      (setq string (gethash 'scratch info))
       (if (< (length string) 2)
 	  nil				; We need to spin some more
-	(cl-puthash 'authtype (char-int (aref string 1)) info)
-	(cl-puthash 'scratch (substring string 2 nil) info)
-	(cl-puthash 'state socks-state-submethod-negotiation info)))
+	(puthash 'authtype (socks-char-int (aref string 1)) info)
+	(puthash 'scratch (substring string 2 nil) info)
+	(puthash 'state socks-state-submethod-negotiation info)))
      ((= state socks-state-submethod-negotiation)
       )
      ((= state socks-state-authenticated)
       )
      ((= state socks-state-waiting)
-      (cl-puthash 'scratch (concat string (cl-gethash 'scratch info)) info)
-      (setq string (cl-gethash 'scratch info))
-      (case (cl-gethash 'server-protocol info)
+      (puthash 'scratch (concat string (gethash 'scratch info)) info)
+      (setq string (gethash 'scratch info))
+      (case (gethash 'server-protocol info)
 	(http
 	 (if (not (string-match "\r\n\r\n" string))
 	     nil			; Need to spin some more
 	   (debug)
-	   (cl-puthash 'state socks-state-connected info)
-	   (cl-puthash 'reply 0 info)
-	   (cl-puthash 'response string info)))
+	   (puthash 'state socks-state-connected info)
+	   (puthash 'reply 0 info)
+	   (puthash 'response string info)))
 	(4
 	 (if (< (length string) 2)
 	     nil			; Can't know how much to read yet
@@ -311,29 +312,29 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 		    ))
 	   (if (< (length string) desired-len)
 	       nil			; need to spin some more
-	     (let ((response (char-int (aref string 1))))
+	     (let ((response (socks-char-int (aref string 1))))
 	       (if (= response 90)
 		   (setq response 0))
-	       (cl-puthash 'state socks-state-connected info)
-	       (cl-puthash 'reply response info)
-	       (cl-puthash 'response string info)))))
+	       (puthash 'state socks-state-connected info)
+	       (puthash 'reply response info)
+	       (puthash 'response string info)))))
 	(5
 	 (if (< (length string) 4)
 	     nil
 	   (setq desired-len
 		 (+ 6			; Standard socks header
 		    (cond
-		     ((= (char-int (aref string 3)) socks-address-type-v4) 4)
-		     ((= (char-int (aref string 3)) socks-address-type-v6) 16)
-		     ((= (char-int (aref string 3)) socks-address-type-name)
+		     ((= (socks-char-int (aref string 3)) socks-address-type-v4) 4)
+		     ((= (socks-char-int (aref string 3)) socks-address-type-v6) 16)
+		     ((= (socks-char-int (aref string 3)) socks-address-type-name)
 		      (if (< (length string) 5)
 			  255
-			(+ 1 (char-int (aref string 4))))))))
+			(+ 1 (socks-char-int (aref string 4))))))))
 	   (if (< (length string) desired-len)
 	       nil			; Need to spin some more
-	     (cl-puthash 'state socks-state-connected info)
-	     (cl-puthash 'reply (char-int (aref string 1)) info)
-	     (cl-puthash 'response string info))))))
+	     (puthash 'state socks-state-connected info)
+	     (puthash 'reply (socks-char-int (aref string 1)) info)
+	     (puthash 'response string info))))))
      ((= state socks-state-connected)
       )
      )
@@ -353,11 +354,11 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       ;; Initialize process and info about the process
       (set-process-filter proc 'socks-filter)
       (process-kill-without-query proc)
-      (cl-puthash proc info socks-connections)
-      (cl-puthash 'state socks-state-waiting-for-auth info)
-      (cl-puthash 'authtype socks-authentication-failure info)
-      (cl-puthash 'server-protocol (nth 3 server-info) info)
-      (cl-puthash 'server-name (nth 1 server-info) info)
+      (puthash proc info socks-connections)
+      (puthash 'state socks-state-waiting-for-auth info)
+      (puthash 'authtype socks-authentication-failure info)
+      (puthash 'server-protocol (nth 3 server-info) info)
+      (puthash 'server-name (nth 1 server-info) info)
       (case (nth 3 server-info)
 	(http
 	 ;; Don't really have to do any connection setup under http
@@ -373,14 +374,14 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 	 ;; Basically just do a select() until we change states.
 	 (socks-wait-for-state-change proc info socks-state-waiting-for-auth)
-	 (setq authtype (cl-gethash 'authtype info))
+	 (setq authtype (gethash 'authtype info))
 	 (cond
 	  ((= authtype socks-authentication-null)
 	   (and socks-debug (message "No authentication necessary")))
 	  ((= authtype socks-authentication-failure)
 	   (error "No acceptable authentication methods found."))
 	  (t
-	   (let* ((auth-type (cl-gethash 'authtype info))
+	   (let* ((auth-type (gethash 'authtype info))
 		  (auth-handler (assoc auth-type socks-authentication-methods))
 		  (auth-func (and auth-handler (cdr (cdr auth-handler))))
 		  (auth-desc (and auth-handler (car (cdr auth-handler)))))
@@ -394,7 +395,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	     )
 	   )
 	  )
-	 (cl-puthash 'state socks-state-authenticated info)
+	 (puthash 'state socks-state-authenticated info)
 	 (set-process-filter proc 'socks-filter)))
       proc)))
 
@@ -407,12 +408,12 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 		(format "%c%s" (length address) address))
 	       (t
 		(error "Unkown address type: %d" atype))))
-	(info (cl-gethash proc socks-connections))
+	(info (gethash proc socks-connections))
 	request version)
     (or info (error "socks-send-command called on non-SOCKS connection %S"
 		    proc))
-    (cl-puthash 'state socks-state-waiting info)
-    (setq version (cl-gethash 'server-protocol info))
+    (puthash 'state socks-state-waiting info)
+    (setq version (gethash 'server-protocol info))
     (case version
       (http
        (setq request (format (eval-when-compile
@@ -452,10 +453,10 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (process-send-string proc request)
     (socks-wait-for-state-change proc info socks-state-waiting)
     (process-status proc)
-    (if (= (or (cl-gethash 'reply info) 1) socks-response-success)
+    (if (= (or (gethash 'reply info) 1) socks-response-success)
 	nil				; Sweet sweet success!
       (delete-process proc)
-      (error "SOCKS: %s" (nth (or (cl-gethash 'reply info) 1) socks-errors)))
+      (error "SOCKS: %s" (nth (or (gethash 'reply info) 1) socks-errors)))
     proc))
 
 
@@ -482,10 +483,10 @@ version.")
 
 (if (fboundp 'socks-original-open-network-stream)
     nil					; Do nothing, we've been here already
-  (fset 'socks-original-open-network-stream
+  (defalias 'socks-original-open-network-stream
 	(symbol-function 'open-network-stream))
   (if socks-override-functions
-      (fset 'open-network-stream 'socks-open-network-stream)))
+      (defalias 'open-network-stream 'socks-open-network-stream)))
 
 (defvar socks-services-file "/etc/services")
 (defvar socks-tcp-services (make-hash-table :size 13 :test 'equal))
@@ -517,7 +518,7 @@ version.")
 	(setq name (downcase (match-string 1))
 	      port (string-to-int (match-string 2))
 	      type (downcase (match-string 3)))
-	(cl-puthash name port (if (equal type "udp")
+	(puthash name port (if (equal type "udp")
 			       socks-udp-services
 			     socks-tcp-services))))))
 
@@ -525,7 +526,7 @@ version.")
   "Return the port # associated with SERVICE"
   (if (= (hash-table-count socks-tcp-services) 0)
       (socks-parse-services))
-  (cl-gethash (downcase service)
+  (gethash (downcase service)
 	      (if udp socks-udp-services socks-tcp-services)))
 
 (defun socks-open-network-stream (name buffer host service)
@@ -534,8 +535,8 @@ version.")
     (if (not route)
 	(socks-original-open-network-stream name buffer host service)
       (setq proc (socks-open-connection route)
-	    info (cl-gethash proc socks-connections)
-	    version (cl-gethash 'server-protocol info))
+	    info (gethash proc socks-connections)
+	    version (gethash 'server-protocol info))
       (case version
 	(4
 	 (setq host (socks-nslookup-host host))
@@ -552,9 +553,9 @@ version.")
 			  (if (stringp service)
 			      (socks-find-services-entry service)
 			    service))
-      (cl-puthash 'buffer buffer info)
-      (cl-puthash 'host host info)
-      (cl-puthash 'service host info)
+      (puthash 'buffer buffer info)
+      (puthash 'host host info)
+      (puthash 'service host info)
       (set-process-filter proc nil)
       (set-process-buffer proc (if buffer (get-buffer-create buffer)))
       proc)))
@@ -567,31 +568,28 @@ version.")
 
 (defconst socks-username/password-auth-version 1)
 
-(if (not (fboundp 'char-int))
-    (fset 'char-int 'identity))
-
 (defun socks-username/password-auth-filter (proc str)
-  (let ((info (cl-gethash proc socks-connections))
+  (let ((info (gethash proc socks-connections))
 	state desired-len)
     (or info (error "socks-filter called on non-SOCKS connection %S" proc))
-    (setq state (cl-gethash 'state info))
-    (cl-puthash 'scratch (concat (cl-gethash 'scratch info) str) info)
-    (if (< (length (cl-gethash 'scratch info)) 2)
+    (setq state (gethash 'state info))
+    (puthash 'scratch (concat (gethash 'scratch info) str) info)
+    (if (< (length (gethash 'scratch info)) 2)
 	nil
-      (cl-puthash 'password-auth-status (char-int
-					 (aref (cl-gethash 'scratch info) 1))
+      (puthash 'password-auth-status (socks-char-int
+					 (aref (gethash 'scratch info) 1))
 		  info)
-      (cl-puthash 'state socks-state-authenticated info))))
+      (puthash 'state socks-state-authenticated info))))
 
 (defun socks-username/password-auth (proc)
-  (let* ((info (cl-gethash proc socks-connections))
-	 (state (cl-gethash 'state info)))
+  (let* ((info (gethash proc socks-connections))
+	 (state (gethash 'state info)))
     (if (not socks-password)
 	(setq socks-password (read-passwd
 			      (format "Password for %s@%s: "
 				      socks-username
-				      (cl-gethash 'server-name info)))))
-    (cl-puthash 'scratch "" info)
+				      (gethash 'server-name info)))))
+    (puthash 'scratch "" info)
     (set-process-filter proc 'socks-username/password-auth-filter)
     (process-send-string proc
 			 (format "%c%c%s%c%s"
@@ -601,7 +599,7 @@ version.")
 				 (length socks-password)
 				 socks-password))
     (socks-wait-for-state-change proc info state)
-    (= (cl-gethash 'password-auth-status info) 0)))
+    (= (gethash 'password-auth-status info) 0)))
 
 
 ;; More advanced GSS/API stuff, not yet implemented - volunteers?
