@@ -1,5 +1,22 @@
 1998-12-19  William M. Perry  <wmperry@aventail.com>
 
+* lisp/mule-sysdp.el (mule-coding-system-p-version): Renamed and fixed
+  mule-coding-system-p for non-MULE Emacs/XEmacs.
+
+1998-12-18  Kenichi Handa  <handa@etl.go.jp>
+
+* lisp/mule-sysdp.el (mule-coding-system-p-version): New function.
+  (mule-coding-system-version): Use mule-coding-system-p-version.
+  (mule-detect-coding-version): Likewise.
+  (mule-invalid-char-coding-systems): Change iso-latin-1 to iso-8859-1.
+  (mule-coding-system-with-invalid-chars): Check mule-sysdep-version
+  for XEmacs.
+
+* lisp/w3.el (w3-convert-code-for-mule): Use mule-coding-system-p-version.
+  (w3-coding-system-for-mime-charset): Likewise.
+
+1998-12-19  William M. Perry  <wmperry@aventail.com>
+
 * configure.in: Ditto
 
 * aclocal.m4: Added appropriate magic to run autoconf whenever aclocal.m4

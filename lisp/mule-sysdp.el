@@ -36,11 +36,21 @@
 ;; Emacs 20.x   - 3.0
 ;; Emacs 20.3+  - 4.0 (with character encapsulation)
 
+;; Return non-nil if CODING-SYSTEM is a valid coding system system.
+(defun mule-coding-system-p (coding-system)
+  (case mule-sysdep-version
+    (xemacs
+     (find-coding-system coding-system))
+    (0
+     nil)
+    (otherwise
+     (coding-system-p coding-system))))
+
 ;; Return the first valid coding system in the list ARGS.
 (defun mule-coding-system-version (&rest args)
   (if (featurep 'mule)
       (progn
-	(while (and args (not (coding-system-p (car args))))
+	(while (and args (not (mule-coding-system-p (car args))))
 	  (setq args (cdr args)))
 	(car args))))
 
@@ -119,21 +129,22 @@ find-file-hooks, etc.
 ;; w3-replace-invalid-chars after decoding a text by them.
 (defconst mule-invalid-char-coding-systems
   (list (mule-coding-system-version 'raw-text '*noconv*)
-	(mule-coding-system-version 'iso-latin-1 '*ctext*)))
+	(mule-coding-system-version 'iso-8859-1 '*ctext*)))
 
 ;; Return non-nil if CODING-SYSTEM requires calling
 ;; w3-replace-invalid-chars after decoding a text.
 (defun mule-coding-system-with-invalid-chars (coding-system)
   (or (null coding-system)
-      (let (base)
+      (progn
 	(if (listp coding-system)
 	    (setq coding-system (car coding-system)))
-	(if (fboundp 'coding-system-base)
-	    (setq base (coding-system-base coding-system))
-	  (while (not (vectorp (get coding-system 'coding-system)))
-	    (setq coding-system (get coding-system 'coding-system)))
-	  (setq base coding-system))
-	(memq base mule-invalid-char-coding-systems))))
+	(case mule-sysdep-version
+	  ((2.3 2.4)
+	   (while (not (vectorp (get coding-system 'coding-system)))
+	     (setq coding-system (get coding-system 'coding-system))))
+	  (3.0
+	   (setq coding-system (coding-system-base coding-system))))
+	(memq coding-system mule-invalid-char-coding-systems))))
 
 (defun mule-detect-coding-version (host st nd)
   "Return a coding system of the current data."
@@ -158,7 +169,8 @@ find-file-hooks, etc.
 	(let ((l w3-url-domain-coding-alist))
 	  (while l
 	    (if (string-match (car (car l)) host)
-		(setq coding-system (if (coding-system-p (cdr (car l)))
+		(setq coding-system (if (mule-coding-system-p
+					 (cdr (car l)))
 					(cdr (car l)))
 		      l nil)
 	      (setq l (cdr l))))))
