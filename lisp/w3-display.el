@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.26 $
+;; Version: $Revision: 1.27 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,11 +34,12 @@
 (require 'mailcap)
 (require 'w3-widget)
 (require 'w3-imap)
+(require 'w3-sysdp)
 
 (autoload 'sentence-ify "flame")
 (autoload 'string-ify "flame")
 (autoload '*flame "flame")
-(if (not (fboundp 'flatten)) (autoload 'flatten "flame"))
+(autoload 'flatten "flame")
 (defvar w3-cookie-cache nil)
 
 (defmacro w3-d-s-var-def (var)
