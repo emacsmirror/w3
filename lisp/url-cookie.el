@@ -1,14 +1,14 @@
 ;;; url-cookie.el --- Netscape Cookie support
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:08 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/24 19:29:26 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -285,7 +285,7 @@
 	(last nil)
 	(case-fold-search t)
 	(mindots 3))
-    (while (setq last (string-match "\\." host last))
+    (while (setq last (string-match "\\." domain last))
       (setq numdots (1+ numdots)
 	    last (1+ last)))
     (if (string-match url-cookie-two-dot-domains domain)
@@ -293,10 +293,12 @@
     (cond
      ((string= host domain)		; Apparently netscape lets you do this
       t)
-     ((< numdots mindots)		; Not enough dots in domain name!
-      nil)
+     ((>= numdots mindots)		; We have enough dots in domain name
+      ;; Need to check and make sure the host is actually _in_ the
+      ;; domain it wants to set a cookie for though.
+      (string-match (concat (regexp-quote domain) "$") host))
      (t
-      (string-match (concat (regexp-quote domain) "$") host)))))
+      nil))))
 
 (defun url-header-comparison (x y)
   (string= (downcase x) (downcase y)))
