@@ -1,4 +1,5 @@
-(setq load-path (append (list (expand-file-name "./")
+(setq load-path (append (list (expand-file-name 
+			       (or (getenv "W3SRCDIR") "./"))
 			      (or (getenv "WIDGETDIR")
 				  (expand-file-name "../widget"))
 			      (or (getenv "GNUSDIR")
@@ -106,6 +107,31 @@
 	       (not (string-match "w3-sysdp.el$" (car files))))
 	  (byte-compile-file (car files)))
       (setq files (cdr files)))))
+
+(defun emacs-build-autoloads (dir autofile)
+  (require 'autoload)
+  (let ((files (directory-files "." t ".*.el$" nil)))
+    (save-excursion
+      (find-file autofile)
+      (erase-buffer)
+      (mapcar 'generate-file-autoloads files)
+      (save-buffer)
+      (kill-buffer (current-buffer)))))
+
+(defun emacs-batch-build-autoloads ()
+  (emacs-build-autoloads (nth 0 command-line-args-left)
+			 (nth 1 command-line-args-left)))
+
+(defun emacs-build-custom-load (dir)
+  (save-excursion
+    (load-library "cus-dep")
+    (let ((command-line-args-left (list dir)))
+      (custom-make-dependencies)
+      (if (file-exists-p "cus-load.el")
+	  (rename-file "cus-load.el" "custom-load.el")))))
+
+(defun emacs-batch-build-custom-load ()
+  (emacs-build-custom-load (car command-line-args-left)))
 
 (autoload 'w3-load-flavors "w3")
 
