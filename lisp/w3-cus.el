@@ -1,7 +1,7 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
-;; Author: $Author: wmperry $
-;; Created: $Date: 2001/05/24 16:45:40 $
-;; Version: $Revision: 1.7 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/06/07 16:38:25 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -25,8 +25,6 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(require 'mule-sysdp)
 
 (defgroup w3 '((url custom-group))
   "Emacs-W3 - the web browser of choice."
@@ -170,10 +168,11 @@ If nil W3 will use a terminal graphic character if possible."
 		 (character)))
 
 (defcustom w3-force-conversion-alist nil
-  "*An assoc list of URL host/filename regexps and coding systems in which to force conversion in Mule"
+  "*An alist of URL host/filename regexps and coding systems to use for them."
   :group 'w3-display
   :type `(repeat (cons (string :tag "Host / filename")
-		       (symbol :tag "Coding system" :value ,mule-no-coding-system))))
+		       ;; Fixme: Emacs 21 has coding-system :type.
+		       (symbol :tag "Coding system" :value binary))))
 
 ;;; these three variables control how w3-setup-terminal-chars works
 (defcustom w3-use-terminal-characters nil
