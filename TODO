@@ -54,11 +54,16 @@ FEATURES (4.1)
     additional methods to automatically index documents.
 
     * Multi keyword search
+- w3-(un)?plugged, w3-toggle-plugged to control url-standalone-mode in
+  a convenient, user-friendly way.
 - Nice custom-y way to create an HTTP request.  This would allow
   people to use HTTP PUT to upload documents to HTTP servers, etc.
 - cache a formatted version of documents, with enough info to recreate
   the widgets in them.
 - w3-preview-region command
+- keystrokes and supporting infrastructure to prefetch URLs from
+  within a document that you are likely to read next.  Don't even parse
+  or render them David Kastrup <dak@neuroinformatik.ruhr-uni-bochum.de>
 - LDAP support (XEmacs)
 - New proxy type for sending requests via mail to a mail->web->mail gateway.
 - Emacspeak Interaction

@@ -1,3 +1,46 @@
+1998-12-22  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3.el (w3-reload-document): Avoid using interactive spec 'Z', since 
+  it doesn't exist in older versions of Emacs (19.xx)
+
+* lisp/w3-parse.el (w3-parse-buffer): Add ',' to the `whitespace' at the
+  front of an attribute that we should skip over.  This is so that people
+  can do horrible nasty things like <input type="foo", name="bar"> and
+  still have it work.  Sometimes I feel so... unclean.
+
+* lisp/url-news.el (url-check-gnus-version): Use gnus-continuum-version if 
+  at all possible.  This way I will never have to add another string-match 
+  to the list of acceptable versions (at least not until another 15
+  releases of Gnus.
+
+1998-12-22  Dave Love <d.love@dl.ac.uk>
+
+* lisp/w3-display.el (w3-image-alt): Pay better attention to the alt
+  specified by the document.  Don't try to special case the empty string
+  so much.
+
+1998-12-22  William Perry  <wmperry@aventail.com>
+
+* lisp/css.el (css-parse): Wrap the calls to forward sexp in
+  condition-case so that an invalid stylesheet does not completely choke.
+
+1998-12-22  Milan Zamazal <pdm@pvt.net>
+
+* lisp/w3.el (w3-replace-invalid-chars): Make sure we tell replace-regexp
+  to be 'literal' so that somet hings in the invalid chars table don't
+  signal an error (ie: S\\v was looking for the regexp quote match, etc)
+
+1998-12-22  William Perry  <wmperry@aventail.com>
+
+* lisp/w3-display.el (w3-display-table): Backed out old change to use less 
+  space for borderless tables - it was screwing up spacing at the
+  beginning of celles.
+
+1998-12-22  Thierry Emery <Thierry.Emery@nmu.alcatel.fr>
+
+* lisp/url.el (url-expand-file-name): Do not remove blanks from target
+  anchors (#xxx).
+
 1998-12-21  William M. Perry  <wmperry@aventail.com>
 
 * lisp/docomp.el: If WIDGETDIR is not set, or set to `no', then scream and 
