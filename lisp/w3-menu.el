@@ -1,7 +1,7 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:40:37 $
-;; Version: $Revision: 1.7 $
+;; Created: $Date: 2001/05/10 18:33:02 $
+;; Version: $Revision: 1.8 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -344,7 +344,7 @@ on that platform."
    ["Forward" w3-history-forward (cdr (w3-history-find-url-internal (url-view-url t)))]
    ["Back" w3-history-backward (car (w3-history-find-url-internal (url-view-url t)))]
    ["Home" w3 w3-default-homepage]
-   ["View History..." w3-show-history-list url-keep-history]
+   ["View History..." w3-show-history-list url-history-track]
    "----"
    (if w3-menu-filters-supported-p
        '("Links" :filter w3-menu-links-constructor)
