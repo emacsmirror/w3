@@ -1,7 +1,7 @@
 ;;; w3-print.el --- Printing support for emacs-w3
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:10 $
-;; Version: $Revision: 1.2 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/06/07 17:16:57 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: faces, help, printing, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,8 +31,6 @@ This should take no arguments, and act on the current buffer.
 Possible values include:
 ps-print-buffer-with-faces   - print immediately
 ps-spool-buffer-with-faces   - spool for later")
-
-(require 'mule-sysdp)
 
 ;;;###autoload
 (defun w3-print-this-url (&optional url format)

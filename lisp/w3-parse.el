@@ -56,7 +56,6 @@
 (require 'w3-vars)
 (require 'url-parse)
 (require 'url-history)
-(require 'mule-sysdp)
 (autoload 'url-expand-file-name "url-expand")
 
 (eval-when-compile (require 'cl))
