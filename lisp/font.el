@@ -1,7 +1,7 @@
 ;;; font.el --- New font model
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/31 10:04:21 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/04/29 15:46:58 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -954,6 +954,7 @@ for use in the 'weight' field of an mswindows font string.")
 		     (font-family default)
 		     (x-font-families-for-device device)))
 	 (cur-family nil)
+	 (font-name nil)
 	 (done nil))
     (if (stringp family)
 	(setq family (list family)))
@@ -974,8 +975,9 @@ for use in the 'weight' field of an mswindows font string.")
 	    (if (= ?- (aref cur-family (1- x)))
 		(aset cur-family (1- x) ? ))
 	    (setq x (1- x))))
-	(setq done (try-font-name (format "-*-%s-*-*-*-*-*-*-*-*-*-*-*-*" family) device))))
-    (and done family)))
+	(setq font-name (format "-*-%s-*-*-*-*-*-*-*-*-*-*-*-*" cur-family)
+	      done (try-font-name font-name device))))
+    (and done cur-family)))
 
 (defun font-set-face-font-new-redisplay (&optional face font &rest args)
   (cond
