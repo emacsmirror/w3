@@ -290,7 +290,7 @@ which must be a string to use as the error message."
     (158 "z\\v" 382) ;; U+017E  LATIN SMALL LETTER Z WITH CARON
     (159 "Y\\.." 376) ;; U+0178  LATIN CAPITAL LETTER Y WITH DIAERESIS
     )
-  "Replacements for SGML numeric entities between 128 and 159.
+  "Replacements for SGML numeric character references between 128 and 159.
 \(Such entities are not valid graphic charcters and are assumed to
 come from the cp1252 character set rather than Unicode.)  This is an
 alist indexed by numeric code.  The cdr of each element is a list of
@@ -331,8 +331,8 @@ is used."
           (setq fs (cdr fs)))
         ret)))
 
-(defun w3-resolve-numeric-entity (code)
-  "Return a representation of the numeric entity CODE.
+(defun w3-resolve-numeric-char (code)
+  "Return a representation of the numeric character reference CODE.
 This may be a string or a character.  CODE is always interpreted as a
 Unicode.  A Unicode character is returned if function `decode-char' is
 available.  Codes in the range [128,160] are substituted using
@@ -357,7 +357,7 @@ available.  Codes in the range [128,160] are substituted using
   (while html-entities
     (put (car (car html-entities)) 'html-entity-expansion
 	 (cons 'CDATA (if (integerp (cdr (car html-entities)))
-                          (let ((ent (w3-resolve-numeric-entity
+                          (let ((ent (w3-resolve-numeric-char
                                       (cdr (car html-entities)))))
                             (unless (stringp ent)
                               (char-to-string ent)))
@@ -477,7 +477,7 @@ available.  Codes in the range [128,160] are substituted using
         (backward-char 1))
       ;; The condition-case is probably not necessary now.
       (condition-case ()
-          (insert (w3-resolve-numeric-entity w3-p-s-num))
+          (insert (w3-resolve-numeric-char w3-p-s-num))
         (error (insert "~"))))
      ((looking-at "&#x\\([0-9a-f]+\\)\\([ ;\n]?\\)")
       ;; Similarly to above, but for hex numbers.
@@ -492,7 +492,7 @@ available.  Codes in the range [128,160] are substituted using
         (replace-match (match-string 2))
         (backward-char 1))
       (condition-case ()
-          (insert (w3-resolve-numeric-entity w3-p-s-num))
+          (insert (w3-resolve-numeric-char w3-p-s-num))
         (error (insert "~"))))
      ((looking-at "&#\\(re\\|rs\\|space\\|tab\\)[\ ;\n]?") ; \n should be \r
       (replace-match (assq (upcase (char-after (+ 3 (point))))
@@ -2688,7 +2688,7 @@ Returns a data structure containing the parsed information."
              (w3-debug-html
               (format "Invalid SGML character: %c" (char-after (point))))
              ;; Probably cp1252 or some such without proper MIME spec...
-             (insert (w3-resolve-numeric-entity
+             (insert (w3-resolve-numeric-char
                       (w3-char-int (char-after (point)))))
              (delete-char 1))
             ((eobp)
