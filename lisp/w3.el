@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/20 02:03:30 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1998/12/21 16:26:41 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -475,7 +475,8 @@ With prefix argument, use the URL of the hyperlink under point instead."
 		  (w3-history-push x url)
 		  (w3-sentinel lastbuf)))
 	      (w3-history-push x url)))
-	(with-current-buffer buf
+	(save-excursion
+	  (set-buffer buf)
 	  (setq w3-current-last-buffer lastbuf))
 	(w3-history-push x url)
 	(if w3-track-last-buffer
@@ -1178,7 +1179,7 @@ invokes some commands which read a coding system from the user.")
        (let (charset-symbol coding-system)
 	 (cond (;; explicit coding system ? (through C-u [w3-reload-document])
 		(and w3-explicit-coding-system
-		     (mule-coding-system-p-version w3-explicit-coding-system))
+		     (mule-coding-system-p w3-explicit-coding-system))
 		(setq coding-system w3-explicit-coding-system))
 	       (;; explicit charset ? (through MIME headers or META tag)
 		(and (stringp mmcharset)
@@ -1207,7 +1208,7 @@ invokes some commands which read a coding system from the user.")
 	(l w3-mime-charset-coding-alist))
     (while l
       (if (string-match (car (car l)) mmcharset)
-	  (setq coding-system (if (mule-coding-system-p-version (cdr (car l)))
+	  (setq coding-system (if (mule-coding-system-p (cdr (car l)))
 				  (cdr (car l)))
 		l nil)
 	(setq l (cdr l))))
