@@ -1,7 +1,6 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
-;; Author: $Author: fx $
-;; Created: $Date: 2001/05/10 18:33:02 $
-;; Version: $Revision: 1.8 $
+;; Author: Bill Perry <wmperry@gnu.org>
+;; Version: $Revision: 1.9 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,6 +28,7 @@
 (require 'w3-vars)
 (require 'w3-mouse)
 (require 'widget)
+(eval-when-compile (require 'cl))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; InfoDock stuff
@@ -40,7 +40,7 @@
 ;;; Spiffy new menus (for both Emacs and XEmacs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar w3-menu-filters-supported-p
-  (or w3-running-xemacs (and (= emacs-major-version 20)
+  (or (featurep 'xemacs) (and (= emacs-major-version 20)
 			     (>= emacs-minor-version 3))))
 
 (defvar w3-menu-fsfemacs-bookmark-menu nil)
@@ -120,7 +120,7 @@ on that platform."
     (concat (substring string 0 w3-max-menu-width) "$")))
 
 (defun w3-menu-dummy-menu (item)
-  (if w3-running-xemacs
+  (if (featurep 'xemacs)
       (list (vector item nil nil))
     (list "Ignored" (vector item nil nil))))
       
@@ -143,6 +143,7 @@ on that platform."
   (let ((links (mapcar 'cdr w3-current-links))
 	(menu nil))
     (if links
+	;; Fixme: delete*, reduce runtime cl dependency.
 	(setq links (delete*
 		     nil
 		     (reduce 'append links)
@@ -198,7 +199,7 @@ on that platform."
 (defun w3-toggle-minibuffer ()
   (interactive)
   (cond
-   (w3-running-xemacs
+   ((featurep 'xemacs)
     (if (equal (frame-property (selected-frame) 'minibuffer) t)
  
 	;; frame has a minibuffer, so remove it
@@ -220,7 +221,7 @@ on that platform."
 (defun w3-toggle-location ()
   (interactive)
   (cond
-   (w3-running-xemacs
+   ((featurep 'xemacs)
     (let ((on (specifier-instance has-modeline-p (selected-window))))
       (set-specifier has-modeline-p (not on) (selected-window))))
    (t nil)))
@@ -229,7 +230,7 @@ on that platform."
   (interactive)
   (cond
    ;; XEmacs style
-   (w3-running-xemacs
+   ((featurep 'xemacs)
     (set-specifier menubar-visible-p (cons (current-buffer)
 					   (not (specifier-instance
 						 menubar-visible-p)))))
@@ -238,17 +239,17 @@ on that platform."
     (menu-bar-mode (if (w3-menubar-active) -1 1)))))
 
 (defun w3-location-active ()
-  (if w3-running-xemacs
+  (if (featurep 'xemacs)
       (specifier-instance has-modeline-p (selected-window))
     t))
 
 (defun w3-menubar-active ()
-  (if w3-running-xemacs
+  (if (featurep 'xemacs)
       (and (featurep 'menubar) (specifier-instance menubar-visible-p))
     (and (boundp 'menu-bar-mode) menu-bar-mode)))
 
 (defun w3-menu-global-menubar ()
-  (if w3-running-xemacs
+  (if (featurep 'xemacs)
       (default-value 'default-menubar)
     (lookup-key (current-global-map) [menu-bar])))
 
@@ -281,7 +282,7 @@ on that platform."
     ["Formatted Text" (w3-mail-current-document nil "Formatted Text") t]
     ["PostScript" (w3-mail-current-document nil "PostScript") t]
     )
-   (if w3-running-xemacs
+   (if (or (featurep 'xemacs) (>= emacs-major-version 21))
        "---:shadowDoubleEtchedIn"
      "---")
    ["Close" delete-frame (not (eq (next-frame) (selected-frame)))]
@@ -380,15 +381,16 @@ on that platform."
 	"---"
 	["Show Menubar" w3-toggle-menubar
 	 :style toggle :selected (w3-menubar-active)]
-	(if (and w3-running-xemacs (featurep 'toolbar))
+	;; Fixme: should work in Emacs 21.
+	(if (and (featurep 'xemacs) (featurep 'toolbar))
 	    ["Show Toolbar" w3-toggle-toolbar
 	     :style toggle :selected (w3-toolbar-active)]
 	  ["Show Toolbar" w3-toggle-toolbar nil])
-	(if w3-running-xemacs
+	(if (featurep 'xemacs)
 	    ["Show Location" w3-toggle-location
 	     :style toggle :selected (w3-location-active)]
 	  ["Show Location" w3-toggle-location nil])
-	(if w3-running-xemacs
+	(if (featurep 'xemacs)
 	    ["Show Status Bar" w3-toggle-minibuffer
 	     :style toggle
 	     :selected (eq (frame-property (selected-frame) 'minibuffer) t)
@@ -403,9 +405,9 @@ on that platform."
 	 :style toggle :selected (not w3-delay-image-loads)]
 	["Flush Image Cache" (setq w3-graphics-list nil) w3-graphics-list]
 	"----"
-	["Download to disk" (setq w3-dump-to-disk (not w3-dump-to-disk))
-	 :style toggle :selected w3-dump-to-disk]
-	["Caching" (setq url-automatic-caching (not url-automatic-caching))
+;; 	["Download to disk" (setq w3-dump-to-disk (not w3-dump-to-disk))
+;; 	 :style toggle :selected w3-dump-to-disk]
+	["caching" (setq url-automatic-caching (not url-automatic-caching))
 	 :style toggle :selected url-automatic-caching]
 	["Use Cache Only"
 	 (setq url-standalone-mode (not url-standalone-mode))
@@ -433,7 +435,7 @@ on that platform."
   "W3 menu style list.")
 
 (defconst w3-menu-buffer-menu
-  (if w3-running-xemacs
+  (if (featurep 'xemacs)
       '("Buffers"
 	:filter buffers-menu-filter
 	["List All Buffers" list-buffers t]
@@ -455,7 +457,7 @@ on that platform."
 
 (defconst w3-menu-emacs-button
   (vector
-   (if w3-running-xemacs "XEmacs" "Emacs") 'w3-menu-toggle-menubar t))
+   (if (featurep 'xemacs) "XEmacs" "Emacs") 'w3-menu-toggle-menubar t))
 
 (defconst w3-menu-help-menu
   (list
@@ -600,7 +602,7 @@ on that platform."
 
 (defun w3-menu-install-menubar ()
   (cond
-   (w3-running-xemacs
+   ((featurep 'xemacs)
     (cond
      ((not (featurep 'menubar)) nil)	; No menus available
      ((featurep 'infodock) nil)		; InfoDock does it automatically
@@ -614,7 +616,7 @@ on that platform."
 
 (defun w3-menu-install-menubar-item ()
   (cond
-   (w3-running-xemacs
+   ((featurep 'xemacs)
     (if (not (featurep 'menubar))
 	nil				; No menus available
       (set-buffer-menubar (copy-sequence (w3-menu-global-menubar)))
@@ -635,7 +637,7 @@ on that platform."
 	(t nil)))
 
 (defun w3-menu-set-menubar-dirty-flag ()
-  (cond (w3-running-xemacs
+  (cond ((featurep 'xemacs)
 	 (set-menubar-dirty-flag))
 	(t
 	 (force-mode-line-update))))
@@ -645,7 +647,7 @@ on that platform."
   (cond
    ;;((eq w3-use-menus 1)
    ;;nil)
-   (w3-running-xemacs
+   ((featurep 'xemacs)
     (if (null (car (find-menu-item current-menubar '("XEmacs"))))
 	(set-buffer-menubar w3-menu-w3-menubar)
       (set-buffer-menubar (copy-sequence (w3-menu-global-menubar)))
@@ -778,7 +780,7 @@ on that platform."
   (defalias 'w3-event-glyph 'ignore))
 
 (defun w3-menu-popup-menu (e menu)
-  (if w3-running-xemacs
+  (if (fboundp 'popup-menu)
       (popup-menu menu)
     (let ((bogus-menu nil))
       (easy-menu-define bogus-menu nil nil menu)
@@ -798,6 +800,7 @@ on that platform."
 		     (and parent (widget-get parent :href))))
 	   (imag (or (and widget (widget-get widget :src))
 		     (and parent (widget-get parent :src))))
+	   ;; Fixme: runtime dependency on cl through copy-tree.
 	   (menu (copy-tree w3-popup-menu))
 	   url val trunc-url)
       (if href
