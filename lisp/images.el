@@ -1,7 +1,7 @@
 ;;; images.el --- Automatic image converters
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/09 14:52:10 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/06/07 16:36:27 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,7 +29,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; The emacsen compatibility package - load it up before anything else
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'mule-sysdp)
 
 (eval-and-compile
   (if (not (and (string-match "XEmacs" emacs-version)
@@ -156,7 +155,7 @@ to a suitable internal image format will be carried out."
 	      (while chain
 		(cond
 		 ((stringp (car chain))
-		  (let ((file-coding-system mule-no-coding-system))
+		  (let ((file-coding-system 'binary))
 		    (call-process-region
 		     (point-min) (point-max)
 		     shell-file-name t
