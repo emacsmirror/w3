@@ -1,7 +1,7 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/08/09 13:47:56 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/11/11 01:36:11 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -461,11 +461,6 @@ on that platform."
    "Help"
    ["About Emacs-w3" (w3-fetch "about:") t]
    ["Manual" (w3-fetch (concat w3-documentation-root "docs/w3_toc.html")) t]
-   "---"
-   ["Version Information..."
-    (w3-fetch
-     (concat w3-documentation-root "help/version_" w3-version-number ".html"))
-    t]
    ["On FAQ" (w3-fetch (concat w3-documentation-root "help/FAQ.html")) t]
    "---"
    ["Mail Developer(s)" w3-submit-bug t]

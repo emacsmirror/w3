@@ -1,5 +1,31 @@
 1999-11-10  William M. Perry  <wmperry@aventail.com>
 
+* lisp/w3-parse.el (textarea content model): Changed content model to
+  XCDATA so that markup can be included in the default text.
+
+* lisp/w3-menu.el (w3-menu-help-menu): Remove version information menu
+  item.  It hasn't been updated in years.
+
+1999-11-10  "T. V. Raman" <raman@cs.cornell.edu>
+
+* lisp/w3-display.el (widget-convert-text): Added advice around this
+  function to preserve the 'personality' text property, otherwise
+  hyperlinks did not get the correct aural properties applied.
+
+1999-11-10  Thierry Emery <Thierry.Emery@nmu.alcatel.fr>
+
+* lisp/w3-display.el (w3-maybe-start-image-download): typo.
+  (w3-handle-image): include row and column in hyperimage-info, to be used
+  in `w3-resurrect-images'.
+  (w3-resurrect-images): if `to-cut' gets negative, insert blanks.
+  (w3-display-node): in case of a frameset, checks rows as well.
+  (w3-frameset-dimensions-p): disregard anything containing "100%", such as
+  "100%,0".
+  (w3-display-frameset): Do not zap frameset-cardinal when computing
+  default dimensions. Memorize next window before drawing a frame, as its
+  HTML page may contain yet another (nested) frameset. Call `w3-warn' and
+  inhibit splitting the window when there is not enough room left.
+
 * lisp/mm.el (mm-parse-mailcap): Fix bad regexp for Emacs 21
 
 1999-11-09  William M. Perry  <wmperry@aventail.com>

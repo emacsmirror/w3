@@ -1440,7 +1440,7 @@ skip-chars-forward."
        ;; TEXTAREA - - (#PCDATA) -(INPUT|TEXTAREA|KEYGEN|SELECT)
        ((textarea)
         ;; Same comment as for OPTION about RCDATA.
-        (content-model . [((*data) include-space nil nil)])
+        (content-model . XCDATA) ;;;[((*data) include-space nil nil)])
         (exclusions . (input select label keygen textarea)))
        ((hr br img isindex input keygen overlay wbr spot tab
             %headempty %mathdelims)

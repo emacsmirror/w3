@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/10 15:28:58 $
-;; Version: $Revision: 1.14 $
+;; Created: $Date: 1999/11/11 01:36:09 $
+;; Version: $Revision: 1.15 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,6 +139,17 @@
 (defvar w3-image-widgets-waiting nil)
 
 (make-variable-buffer-local 'w3-last-fill-pos)
+
+(defadvice widget-convert-text (around emacspeak pre act comp)
+  "Protect value of personality if set originally"
+  (let ((start (ad-get-arg 1))
+        (end (ad-get-arg 2))
+        (orig nil ))
+    (setq orig (get-text-property start 'personality))
+    ad-do-it 
+    (and orig 
+         (put-text-property start end 
+                            'personality orig))))
 
 (defconst w3-fill-prefixes-vector
   (let ((len 0)
@@ -782,7 +793,7 @@ If the face already exists, it is unmodified."
 	  (eq (device-type) 'tty))	; Why bother?
       (w3-add-delayed-graphic widget))
      ((not (w3-image-loadable-p src nil)) ; Hey, we can't load it!
-      (mesage "Skipping image %s" (url-basepath src t))
+      (message "Skipping image %s" (url-basepath src t))
       (w3-add-delayed-graphic widget))
      (t					; Grab the images
       (let (
@@ -990,6 +1001,8 @@ If the face already exists, it is unmodified."
 			 :href href	   ; Hyperlink destination
 			 :target target	   ; target frame
 			 :button-face face ; img:link or img:visited entry in stylesheet
+			 'row w3-display-current-row
+			 'column w3-display-current-col
 			 )))
        (setq widget (apply (function widget-create) (cadr hyperimage-info)))
        (widget-put widget 'buffer (current-buffer))
@@ -1951,14 +1964,16 @@ Format: (((image-alt row column) . offset) ...)")
 		  (delete-region st (+ st offset)))
 	      (setq to-cut (- (point-max) max)
 		    new-offset (1+ (- nd st)))
-	      (cond ((not (zerop to-cut))
+	      (cond ((> to-cut 0)
 		     ;; cut end of drawn-alt if too long after resurrection
 		     (delete-region nd (+ nd to-cut))
 		     (if offset-elt
 			 (setcdr offset-elt (+ offset new-offset))
 		       (setq w3-resurrect-images-offset
 			     (cons (cons (list drawn-alt row col) new-offset)
-				   w3-resurrect-images-offset))))))
+				   w3-resurrect-images-offset))))
+		    ((< to-cut 0)
+		     (insert (make-string (- to-cut) ? )))))
 	    (widget-put widget 'buffer (current-buffer))
 	    (w3-maybe-start-image-download widget)
 	    (if (widget-get widget :from)
@@ -2212,7 +2227,8 @@ Format: (((image-alt row column) . offset) ...)")
 	     (if w3-display-frames
 		 (let ((frames (nth 2 node))
 		       (frameset-cardinal 0)
-		       (cols (cdr-safe (assq 'cols args))))
+		       (cols (cdr-safe (assq 'cols args)))
+		       (rows (cdr-safe (assq 'rows args))))
 		   (while (and frames (memq (car (car frames)) '(frame frameset)))
 		      (setq frameset-cardinal (1+ frameset-cardinal)
 			    frames (cdr frames)))
@@ -2220,7 +2236,8 @@ Format: (((image-alt row column) . offset) ...)")
 			       frameset-cardinal
 			       (if (w3-frameset-dimensions-p cols)
 				   (assq 'cols args)
-				 (assq 'rows args)))
+				 (if (w3-frameset-dimensions-p rows)
+				     (assq 'rows args))))
 			 w3-frameset-structure)
 		   (w3-handle-content node))
 	       (w3-handle-content node)))
@@ -2784,7 +2801,7 @@ Format: (((image-alt row column) . offset) ...)")
       (setq-default url-be-asynchronous old-asynch))))
 
 (defun w3-frameset-dimensions-p (str)
-  (and str (not (string-equal str "*")) (not (string-equal str "100%"))))
+  (and str (not (string-equal str "*")) (not (string-match "100%" str))))
 
 (defun w3-display-frameset (frameset-structure)
   (let* ((structure frameset-structure)
@@ -2797,7 +2814,8 @@ Format: (((image-alt row column) . offset) ...)")
 			w3-tty-char-width))
 	 (char-height (if (> (frame-char-height) 1)
 			  (frame-char-height)
-			w3-tty-char-height)))
+			w3-tty-char-height))
+	 (inhibit-frame nil))
     (pop structure)
     ;; columns ?
     (if (w3-frameset-dimensions-p cols)
@@ -2808,32 +2826,58 @@ Format: (((image-alt row column) . offset) ...)")
 	  (setq rows (w3-decode-frameset-dimensions
 		      rows (window-height) window-min-height char-height))
 	;; default: columns of equal width
-	(let ((fwidth (/ (window-width) frameset-cardinal)))
-	  (while (> frameset-cardinal 0)
+	(let ((fwidth (/ (window-width) frameset-cardinal))
+	      (cardinal frameset-cardinal))
+	  (while (> cardinal 0)
 	    (push fwidth cols)
-	    (setq frameset-cardinal (1- frameset-cardinal))))))
+	    (setq cardinal (1- cardinal))))))
     (while (> frameset-cardinal 0)
       (cond ((cdr cols)
-	     (split-window-horizontally (car cols))
+	     (if (or (< (car cols) window-min-width)
+		     (< (- (window-width) (car cols)) window-min-width))
+		 (setq inhibit-frame (format "Width %d" (window-width)))
+	       (split-window-horizontally (car cols)))
 	     (pop cols))
 	    ((cdr rows)
-	     (split-window-vertically (car rows))
+	     (if (or (< (car rows) window-min-height)
+		     (< (- (window-height) (car rows)) window-min-height))
+		 (setq inhibit-frame (format "Height %d" (window-height)))
+	       (split-window-vertically (car rows)))
 	     (pop rows)))
       (cond ((eq (car (car structure)) 'frame)
 	     (let ((href (nth 2 (car structure)))
 		   (name (nth 1 (car structure)))
 		   (url-working-buffer url-default-working-buffer) ; in case url-multiple-p is t
-		   (w3-notify 'semibully))
+		   (w3-notify 'semibully)
+		   (next-frame-window (next-window)))
 	       (pop structure)
-	       (w3-fetch href)
-	       (let ((buf (current-buffer)))
-		 (set-buffer (url-buffer-visiting href))
-		 (setq w3-frame-name name
-		       w3-target-window-distances nil)
-		 (set-buffer buf))
-	       (other-window 1)))
+	       (cond (inhibit-frame
+		      (w3-warn 'html (format "%s insufficient to split windows for HTML frame \"%s\""
+					     inhibit-frame name))
+		      (setq inhibit-frame nil
+			    next-frame-window (selected-window)))
+		     (t
+		      (w3-fetch href)))
+	       (let ((buf (current-buffer))
+		     (framebuf (url-buffer-visiting href)))
+		 (cond (framebuf
+			(set-buffer framebuf)
+			(setq w3-frame-name name
+			      w3-target-window-distances nil)
+			(set-buffer buf)
+			(select-window next-frame-window))))))
 	    ((eq (car (car structure)) 'frameset)
-	     (setq structure (w3-display-frameset structure))))
+	     (cond (inhibit-frame
+		    (w3-warn 'html (format "%s insufficient to split windows for HTML frameset"
+					   inhibit-frame))
+		    (let ((sub-frameset-cardinal (cadr (car structure))))
+		      (pop structure)
+		      (while (> sub-frameset-cardinal 0)
+			(pop structure)
+			(setq sub-frameset-cardinal (1- sub-frameset-cardinal))))
+		    (setq inhibit-frame nil))
+		   (t
+		    (setq structure (w3-display-frameset structure))))))
       (setq frameset-cardinal (1- frameset-cardinal)))
     structure))
 
@@ -2884,12 +2928,19 @@ Format: (((image-alt row column) . offset) ...)")
 				  dimensions))
 			   (t
 			    ;; absolute number: pixel height
-			    (push (max (1+ (/ (car (read-from-string match))
-					      pixel-dim))
-				       min-dim)
-				  dimensions)))
-		     (setq remaining-available-dimension
-			   (- remaining-available-dimension (car dimensions)))))))
+			    (let* ((dim-in-pixels (car (read-from-string match)))
+				   (dim (max (/ dim-in-pixels pixel-dim)
+					     min-dim)))
+			      (cond ((<= dim remaining-available-dimension)
+				     (push dim dimensions)
+				     (setq remaining-available-dimension
+					   (- remaining-available-dimension (car dimensions))))
+				    (t
+				     (w3-warn 'html (format "Frame dimension too large: %d" dim-in-pixels))
+				     ;; too large: replace with *
+				     (push '* dimensions)
+				     (setq nb-stars (1+ nb-stars)
+					   norm-stars (1+ norm-stars)))))))))))
 	  (if (zerop nb-stars)
 	      ;; push => reverse order
 	      (reverse dimensions)
