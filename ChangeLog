@@ -1,3 +1,7 @@
+1999-04-08  William M. Perry  <wmperry@aventail.com>
+
+* Fixed the hackmap stuff for Emacs 19/20
+
 1999-04-08  Thierry Emery <Thierry.Emery@nmu.alcatel.fr>
 
 * lisp/url-cookie.el (url-cookie-write-file): check

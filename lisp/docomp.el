@@ -123,7 +123,6 @@
 
 (defun emacs-build-autoloads (dir autofile)
   (require 'autoload)
-
   (let ((files (directory-files dir t ".*.[eE][lL]$" nil)))
     (save-excursion
       (find-file autofile)
@@ -158,7 +157,7 @@
       (if foundit
 	  (let ((command-line-args-left (list dir)))
 	    (custom-make-dependencies))
-	(write-region "\n" nil "cus-dep.el")))))
+	(write-region "\n" nil "cus-load.el")))))
 
 (defun emacs-batch-build-custom-load ()
   (emacs-build-custom-load (car command-line-args-left)))

@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:49 $
-;; Version: $Revision: 1.10 $
+;; Created: $Date: 1999/04/08 12:14:45 $
+;; Version: $Revision: 1.11 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1974,7 +1974,7 @@ Format: (((image-alt row column) . offset) ...)")
       (progn
 	(setq w3-display-hackmap (make-sparse-keymap))
 	(set-keymap-parent w3-display-hackmap widget-button-keymap)
-	(define-key w3-display-hackmap w3-mouse-button3 'w3-popup-menu)))
+	(define-key w3-display-hackmap (vector w3-mouse-button3) 'w3-popup-menu)))
   (let ((st (point-min))
 	(inhibit-read-only t)
 	info nd node face)
