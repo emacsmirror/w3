@@ -1,7 +1,7 @@
-;; Created by: Joe Wells, jbw@cs.bu.edu
+;;; w3-parse.el --- Parse HTML and/or SGML for Emacs W3 browser
+
+;; Author: Joe Wells <jbw@cs.bu.edu>
 ;; Created on: Sat Sep 30 17:25:40 1995
-;; Filename: w3-parse.el
-;; Purpose: Parse HTML and/or SGML for Emacs W3 browser.
 
 ;; Copyright © 1995, 1996, 1997  Joseph Brian Wells
 ;; Copyright © 1993, 1994, 1995 by William M. Perry <wmperry@cs.indiana.edu>
@@ -20,10 +20,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-;;
-;; On November 13, 1995, the license was available at
-;; <URL:ftp://prep.ai.mit.edu/pub/gnu/COPYING-2.0>.  It may still be
-;; obtainable via that URL.
 
 
 ;;;
@@ -61,6 +57,9 @@
 (require 'url-parse)
 (require 'url-history)
 (require 'mule-sysdp)
+(autoload 'url-expand-file-name "url-expand")
+
+(eval-when-compile (require 'cl))
 
 (eval-when-compile
   (defconst w3-p-s-var-list nil
@@ -294,6 +293,7 @@ which must be a string to use as the error message."
 ;; & should only be recognized when followed by letter or # and
 ;; digit or # and letter.
 
+(eval-when-compile (defvar w3-invalid-sgml-char-replacement))
 (eval-when-compile
 
   (w3-p-s-var-def w3-p-s-entity)
@@ -1922,23 +1922,19 @@ skip-chars-forward."
 ;; For compatibility with the old parser interface.
 (defalias 'w3-preparse-buffer 'w3-parse-buffer)
 
-(defvar w3-parse-hooks '(w3-parse-munge-ethiopic-text)
+(defcustom w3-parse-hooks nil
+  :type 'hook
+  :group 'w3-display
+  :options '(w3-parse-munge-ethiopic-text)
   "*List of hooks to be run before parsing.")
 
 (defun w3-parse-munge-ethiopic-text ()
-  ;; This is for ethiopic text.  Unfortunately, old MULE and new MULE conflict
-  ;; on what exactly to call this function.
-  (condition-case ()
-      (let ((sera-being-called-by-w3 t))
-        (case mule-sysdep-version
-          (2.4
-           (sera-to-fidel-marker))
-          ((xemacs 3.0)
-           (ethio-sera-to-fidel-marker))
-          (4.0
-           (when default-enable-multibyte-characters
-             (ethio-sera-to-fidel-marker)))))
-    (error nil)))
+  "Treat marked-up regions using `ethio-sera-to-fidel-marker'.
+Do nothing in non-Mule or unibyte session."
+  (when (and (featurep 'mule)
+             (boundp 'default-enable-multibyte-characters)
+             default-enable-multibyte-characters)
+    (ethio-sera-to-fidel-marker)))
 
 (if (fboundp 'char-int)
     (defalias 'w3-char-int 'char-int)
