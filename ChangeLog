@@ -1,3 +1,12 @@
+1999-11-13  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-cus.el (w3-use-terminal-glyphs): Changed default value to nil,
+  was causing too many weirdnesses under Emacs (I loathe MULE sometimes)
+  (w3-use-terminal-characters): Ditto.
+
+* lisp/w3-display.el (w3-display-handle-java): Duh, give 2 arguments to
+  push.
+
 1999-11-12  William M. Perry  <wmperry@aventail.com>
 
 * lisp/w3-display.el (w3-display-handle-java): Make sure that there is

@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/12 16:30:08 $
-;; Version: $Revision: 1.16 $
+;; Created: $Date: 1999/11/14 01:37:16 $
+;; Version: $Revision: 1.17 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2029,7 +2029,7 @@ Format: (((image-alt row column) . offset) ...)")
     (setq options (delq nil options)
 	  params (delq nil params))
     (if (not (assq 'codebase options))
-	(push (cons 'codebase (url-view-url t))))
+	(push (cons 'codebase (url-view-url t)) options))
     (w3-java-run-applet options params)))
 
 (defun w3-display-node (node &optional nofaces)

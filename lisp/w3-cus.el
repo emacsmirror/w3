@@ -1,7 +1,7 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/08 11:47:49 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/11/14 01:37:15 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -192,7 +192,7 @@ If nil W3 will use a terminal graphic character if possible."
 		       (symbol :tag "Coding system" :value ,mule-no-coding-system))))
 
 ;;; these three variables control how w3-setup-terminal-chars works
-(defcustom w3-use-terminal-characters t
+(defcustom w3-use-terminal-characters nil
   "*Use terminal graphics characters for drawing tables and rules if available"
   :group 'w3-display
   :type 'boolean)
@@ -204,7 +204,7 @@ This triggers display bugs on both FSF Emacs and XEmacs.
   :group 'w3-display
   :type 'boolean)
 
-(defcustom w3-use-terminal-glyphs t
+(defcustom w3-use-terminal-glyphs nil
   "*Use glyphs if possible rather than properties for terminal graphics characters
 
 Glyphs are probably more efficient but don't work with the most recent versions

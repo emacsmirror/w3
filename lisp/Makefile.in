@@ -38,7 +38,7 @@ SOURCES =								\
 	w3-speak.el w3-latex.el w3-parse.el w3-display.el w3-print.el	\
 	w3-about.el w3-hotindex.el w3-hot.el w3-e19.el w3-xemac.el	\
 	w3.el w3-script.el w3-jscript.el w3-elisp.el w3-e20.el		\
-	w3-speak-table.el	
+	w3-speak-table.el w3-java.el
 
 OBJECTS = $(SOURCES:.el=.elc)
 
