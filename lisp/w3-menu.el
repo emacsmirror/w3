@@ -1,6 +1,6 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.10 $
+;; Version: $Revision: 1.11 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,6 +27,7 @@
 
 (require 'w3-vars)
 (require 'w3-mouse)
+(require 'w3-sysdp)			; for copy-tree
 (eval-when-compile
   (require 'cl)
   (defvar w3-html-bookmarks))
@@ -803,9 +804,7 @@ on that platform."
 		     (and parent (widget-get parent :href))))
 	   (imag (or (and widget (widget-get widget :src))
 		     (and parent (widget-get parent :src))))
-	   (menu (if (featurep 'xemacs)
-		     (copy-tree w3-popup-menu)
-		   (copy-keymap w3-popup-menu)))
+	   (menu (copy-tree w3-popup-menu))
 	   url val trunc-url)
       (if href
 	  (progn
