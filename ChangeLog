@@ -1,3 +1,9 @@
+2001-09-24  Dave Love  <fx@gnu.org>
+
+	* lisp/w3.el (w3-http-equiv-headers): New function.
+	(w3-nasty-disgusting-http-equiv-handling): Use it to fix
+	http-equiv handling.
+
 2001-09-09  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-display.el (w3-mode, w3-add-delayed-graphic) 
