@@ -259,7 +259,8 @@ which must be a string to use as the error message."
 
 ;; *** I18N HTML support?
 
-
+;; It's perhaps better to use a suitable display table for these
+;; things.  -- fx
 (defconst w3-invalid-sgml-char-replacement
   `((128 "euro" 8364) ;; U+20AC  EURO SIGN
     (130 "," 8218) ;; U+201A  SINGLE LOW-9 QUOTATION MARK
@@ -307,6 +308,29 @@ an ASCII substitute and the Unicode for the cp1252 character.")
           ?~)))
     (defalias 'w3-int-to-char 'identity)))
 
+;; For older Mule-UCS.  This is from Mule-UCS 0.84.
+(if (and (not (fboundp 'decode-char))
+         (fboundp 'mucs-get-representation-decoding-backend))
+    (defun decode-char (representation object &optional restriction)
+      "Return a character represented by OBJECT in view of REPRESENTATION.
+Return nil if OBJECT cannot be mapped to only one character.
+Available representation list can be obtained by mucs-representation-list.
+Optional argument RESTRICTION specifies a way to map OBJECT to
+a character.  Its interpretation depends on the given
+REPRESENTATION.  If not specified, the default restriction of REPRESENTATION
+is used."
+      (let ((fs (mucs-get-representation-decoding-backend
+                 representation restriction))
+            ret)
+        (while
+            (and fs
+                 (not (setq ret
+                            (funcall
+                             (car fs)
+                             representation object restriction))))
+          (setq fs (cdr fs)))
+        ret)))
+
 (defun w3-resolve-numeric-entity (code)
   "Return a representation of the numeric entity CODE.
 This may be a string or a character.  CODE is always interpreted as a
@@ -316,11 +340,11 @@ available.  Codes in the range [128,160] are substituted using
   ;; Maybe fall back to something like `(format "&%d;" code)' instead
   ;; of ?~.
   (if (fboundp 'decode-char)
-    (progn (if (and (< code 160) (> code 128))
-               (setq code
-                     (or (nth 2 (assq code w3-invalid-sgml-char-replacement))
-                         code)))
-           (or (decode-char 'ucs code) ?~))
+      (progn (if (and (< code 160) (> code 128))
+                 (setq code
+                       (or (nth 2 (assq code w3-invalid-sgml-char-replacement))
+                           code)))
+             (or (decode-char 'ucs code) ?~))
     (w3-int-to-char (cond ((<= code 127)
                            code)
                           ((<= code 255)
@@ -427,9 +451,10 @@ available.  Codes in the range [128,160] are substituted using
             (t
              ;; *** We don't handle external entities yet.
              (error "[Unimplemented entity: \"%s\"]" w3-p-s-entity))))
-   
-     ;; Fixme: do &#x<n>; too.
-     ((looking-at "&#[0-9][0-9]*\\([\   ;\n]?\\)") ; \n should be \r
+
+;;; What was this regexp supposed to be?
+;;;     ((looking-at "&#[0-9][0-9]*\\([\   ;\n]?\\)") ; \n should be \r
+     ((looking-at "&#[0-9]+\\([ ;\n]?\\)") ; \n should be \r
       ;; We are looking at a numeric character reference.
       ;; Ensure the number is already terminated by a semicolon or carriage
       ;; return so we can use "read" to get it as a number quickly.
@@ -440,13 +465,32 @@ available.  Codes in the range [128,160] are substituted using
                (goto-char (match-end 0)) ; same as match-end 1
                (insert ?\;))
              ;; Set up the match data properly
-             (looking-at "&#[0-9][0-9]*;")))
+             (looking-at "&#[0-9]+;")))
       (forward-char 2)
       (setq w3-p-s-num (read (current-buffer)))
-      ;; Always leave point after the expansion of a numeric
-      ;; character reference, like it were a CDATA entity.
-      (replace-match "")
+      ;; Always leave point after the expansion of a numeric character
+      ;; reference, like it were a CDATA entity.  Don't zap a
+      ;; delimiter other than `;'.
+      (if (eq ?\; (char-before (match-end 0)))
+          (replace-match "")
+        (replace-match (match-string 1))
+        (backward-char 1))
       ;; The condition-case is probably not necessary now.
+      (condition-case ()
+          (insert (w3-resolve-numeric-entity w3-p-s-num))
+        (error (insert "~"))))
+     ((looking-at "&#x\\([0-9a-f]+\\)\\([ ;\n]?\\)")
+      ;; Similarly to above, but for hex numbers.
+      (cond ((= (match-beginning 2) (match-end 2))
+             (save-excursion
+               (goto-char (match-end 0))
+               (insert ?\;))
+             (looking-at "&#x[0-9a-f]+;")))
+      (setq w3-p-s-num (string-to-number (match-string 1) 16))
+      (if (eq ?\; (char-before (match-end 0)))
+          (replace-match "")
+        (replace-match (match-string 2))
+        (backward-char 1))
       (condition-case ()
           (insert (w3-resolve-numeric-entity w3-p-s-num))
         (error (insert "~"))))
