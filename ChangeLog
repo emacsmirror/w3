@@ -1,3 +1,12 @@
+1999-10-14  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url-ldap.el (url-ldap-certificate-formatter): Now uses
+  ssl-certificate-information instead of hacked up bill-specific stuff.
+
+* lisp/ssl.el (ssl-certificate-information): New function to get
+  certificate information out of a DER encoded object.
+  (ssl-program-name): Default to using OpenSSL now.
+
 1999-10-11  William M. Perry  <wmperry@aventail.com>
 
 * lisp/w3-display.el (w3-fixup-eol-faces): only strip spaces off of

@@ -1,14 +1,14 @@
 ;;; ssl.el,v --- ssl functions for emacsen without them builtin
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:08 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/10/14 12:44:18 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -72,7 +72,8 @@ Maybe a way of passing a file should be implemented"
   "*Style of cert database to use, the only valid value right now is `ssleay'.
 This means a directory of pem encoded certificates with hash symlinks."
   :group 'ssl
-  :type '(choice (const :tag "SSLeay" :value ssleay)))  
+  :type '(choice (const :tag "SSLeay" :value ssleay)
+		 (const :tag "OpenSSL" :value openssl)))
 
 (defcustom ssl-certificate-verification-policy 0
   "*How far up the certificate chain we should verify."
@@ -82,13 +83,14 @@ This means a directory of pem encoded certificates with hash symlinks."
 		 (const :tag "Reject connection if verification fails" :value 3)
 		 (const :tag "SSL_VERIFY_CLIENT_ONCE" :value 5)))
 
-(defcustom ssl-program-name "s_client"
+(defcustom ssl-program-name "openssl"
   "*The program to run in a subprocess to open an SSL connection."
   :group 'ssl
   :type 'string)
 
 (defcustom ssl-program-arguments
-  '(;;"-quiet"
+  '("s_client"
+    "-quiet"
     "-host" host
     "-port" service
     "-verify" (int-to-string ssl-certificate-verification-policy)
@@ -103,6 +105,36 @@ to."
   :group 'ssl
   :type 'list)
 
+(defun ssl-certificate-information (der)
+  "Return an assoc list of information about a certificate in DER format."
+  (let ((certificate (concat "-----BEGIN CERTIFICATE-----\n"
+			     (base64-encode-string der)
+			     "\n-----END CERTIFICATE-----\n"))
+	(exit-code 0))
+    (save-excursion
+      (set-buffer (get-buffer-create " *openssl*"))
+      (erase-buffer)
+      (insert certificate)
+      (setq exit-code (condition-case ()
+			  (call-process-region (point-min) (point-max)
+					       ssl-program-name
+					       t (list (current-buffer) nil) t
+					       "x509"
+					       "-subject" ; Print the subject DN
+					       "-issuer" ; Print the issuer DN
+					       "-dates" ; Both before and after dates
+					       "-serial" ; print out serial number
+					       "-noout" ; Don't spit out the certificate
+					       )
+			(error -1)))
+      (if (/= exit-code 0)
+	  nil
+	(let ((vals nil))
+	  (goto-char (point-min))
+	  (while (re-search-forward "^\\([^=\n\r]+\\)\\s *=\\s *\\(.*\\)" nil t)
+	    (push (cons (match-string 1) (match-string 2)) vals))
+	  vals)))))
+  
 (defun ssl-accept-ca-certificate ()
   "Ask if the user is willing to accept a new CA certificate. The buffer-name
 should be the intended name of the certificate, and the buffer should probably
