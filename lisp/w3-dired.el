@@ -1,7 +1,7 @@
 ;;; w3-dired.el --- W3 Dired minor mode
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2001/05/14 16:19:07 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 2001/05/29 15:50:37 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,7 +35,10 @@
 
 ;; Fixme: should we have both this and url-dired?
 
+(require 'w3-sysdp)			; for add-minor-mode
 (autoload 'dired-get-filename "dired")
+(autoload 'w3-open-local "w3")
+(autoload 'w3-fetch "w3")
 
 (defvar w3-dired-minor-mode-map
   (let ((map (make-sparse-keymap)))
@@ -74,27 +77,6 @@
     (setq w3-dired-minor-mode nil))
    (t
     (setq w3-dired-minor-mode t))))
-
-(if (not (fboundp 'add-minor-mode))
-    (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
-      "Add a minor mode to `minor-mode-alist' and `minor-mode-map-alist'.
-TOGGLE is a symbol which is used as the variable which toggle the minor mode,
-NAME is the name that should appear in the modeline (it should be a string
-beginning with a space), KEYMAP is a keymap to make active when the minor
-mode is active, and AFTER is the toggling symbol used for another minor
-mode.  If AFTER is non-nil, then it is used to position the new mode in the
-minor-mode alists.  TOGGLE-FUN specifies an interactive function that
-is called to toggle the mode on and off; this affects what appens when
-button2 is pressed on the mode, and when button3 is pressed somewhere
-in the list of modes.  If TOGGLE-FUN is nil and TOGGLE names an
-interactive function, TOGGLE is used as the toggle function.
-
-Example:  (add-minor-mode 'view-minor-mode \" View\" view-mode-map)"
-      (if (not (assq toggle minor-mode-alist))
-	  (setq minor-mode-alist (cons (list toggle name) minor-mode-alist)))
-      (if (and keymap (not (assq toggle minor-mode-map-alist)))
-	  (setq minor-mode-map-alist (cons (cons toggle keymap)
-					   minor-mode-map-alist)))))
 
 (add-minor-mode 'w3-dired-minor-mode " W3" w3-dired-minor-mode-map)
 
