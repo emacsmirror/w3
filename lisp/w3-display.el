@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.32 $
+;; Version: $Revision: 1.33 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -501,9 +501,6 @@ If the face already exists, it is unmodified."
 			   (list 'personality (car w3-active-voices))))
   )
 
-(eval-and-compile
-  (require 'mule-sysdp))
-
 (defun w3-display-get-cookie (args)
   (if (not (fboundp 'cookie))
       "Sorry, no cookies today."
@@ -515,10 +512,12 @@ If the face already exists, it is unmodified."
       (if (not (file-exists-p fname))
 	  (save-excursion
 	    (set-buffer (generate-new-buffer " *cookie*"))
+	    (mm-disable-multibyte)
 	    (url-insert-file-contents href)
  	    (setq buffer-file-name nil)
  	    (set-buffer-modified-p nil)    
-	    (mule-write-region-no-coding-system (point-min) (point-max) fname 5)
+	    (let ((coding-system-for-write 'binary))
+	      (write-region (point-min) (point-max) fname 5))
 	    (setq w3-cookie-cache (cons (cons href fname) w3-cookie-cache))))
       (cookie fname st nd))))
 
@@ -897,7 +896,8 @@ If the face already exists, it is unmodified."
 	  (erase-buffer)
 	  (insert (aref glyph 2))
 	  (setq glyph temp-fname)
-	  (mule-write-region-no-coding-system (point-min) (point-max) temp-fname)
+	  (let ((coding-system-for-write 'binary))
+	    (write-region (point-min) (point-max) temp-fname))
 	  (kill-buffer (current-buffer)))
 	(setq glyph (make-glyph (list (cons 'x glyph))))
 	(condition-case ()
