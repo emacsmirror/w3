@@ -1,7 +1,7 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
-;; Author: $Author: fx $
-;; Created: $Date: 2000/12/20 20:36:31 $
-;; Version: $Revision: 1.6 $
+;; Author: $Author: wmperry $
+;; Created: $Date: 2001/05/24 16:45:40 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -399,7 +399,7 @@ If nil, then lines can extend all the way to the window margin."
   :group 'w3-display
   :type 'boolean)
 
-(defcustom w3-honor-stylesheets t
+(defcustom w3-honor-stylesheets nil
   "*Whether to let a document specify a CSS stylesheet."
   :group 'w3-display
   :type 'boolean)

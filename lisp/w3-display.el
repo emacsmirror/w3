@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.28 $
+;; Version: $Revision: 1.29 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2044,7 +2044,7 @@ Format: (((image-alt row column) . offset) ...)")
 								 :button-keymap w3-display-hackmap
 								 :end nd)
 							   info))))
-      (setq st (next-single-property-change nd 'w3-hyperlink-info)))))
+      (setq st (next-single-property-change st 'w3-hyperlink-info)))))
 
 (defun w3-display-convert-arglist (args)
   (let ((rval nil)
