@@ -1,12 +1,12 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/23 19:34:05 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -512,6 +512,7 @@ on that platform."
 	(define-key map [rootmenu w3 edit] 'undefined)
 	(define-key map [rootmenu w3 options] 'undefined)
 	(define-key map [rootmenu w3 buffer] 'undefined)
+	(define-key map [rootmenu w3 mule] 'undefined)
 	(define-key map [rootmenu w3 tools] 'undefined)
 	(define-key map [rootmenu w3 help] 'undefined)
 	(define-key map [rootmenu w3 help-menu] 'undefined)
