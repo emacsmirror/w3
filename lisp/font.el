@@ -1,7 +1,7 @@
 ;;; font.el --- New font model
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 19:58:37 $
-;; Version: $Revision: 1.5 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:52:16 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -80,10 +80,10 @@
 
 (require 'disp-table)
 
-(if (not (fboundp '<<))   (fset '<< 'lsh))
-(if (not (fboundp '&))    (fset '& 'logand))
-(if (not (fboundp '|))    (fset '| 'logior))
-(if (not (fboundp '~))    (fset '~ 'lognot))
+(if (not (fboundp '<<))   (defalias '<< 'lsh))
+(if (not (fboundp '&))    (defalias '& 'logand))
+(if (not (fboundp '|))    (defalias '| 'logior))
+(if (not (fboundp '~))    (defalias '~ 'lognot))
 (if (not (fboundp '>>))   (defun >> (value count) (<< value (- count))))
 
 
@@ -888,7 +888,7 @@ for use in the 'weight' field of an mswindows font string.")
     (while fonts
       (setq cur (car fonts)
 	    fonts (cdr fonts)
-	    plist (cl-gethash (car (font-family cur)) hash-table))
+	    plist (gethash (car (font-family cur)) hash-table))
       (if (not (memq (font-weight cur) (plist-get plist 'weights)))
 	  (setq plist (plist-put plist 'weights (cons (font-weight cur)
 						      (plist-get plist 'weights)))))
@@ -901,7 +901,7 @@ for use in the 'weight' field of an mswindows font string.")
       (if (and (font-italic-p cur)
 	       (not (memq 'italic (plist-get plist 'styles))))
 	  (setq plist (plist-put plist 'styles (cons 'italic (plist-get plist 'styles)))))
-      (cl-puthash (car (font-family cur)) plist hash-table))
+      (puthash (car (font-family cur)) plist hash-table))
     hash-table))
 
 
@@ -1000,7 +1000,7 @@ for use in the 'weight' field of an mswindows font string.")
     (apply 'set-face-font face font args))))
 
 (if font-running-emacs-new-redisplay
-    (fset 'font-set-face-font 'font-set-face-font-new-redisplay))
+    (defalias 'font-set-face-font 'font-set-face-font-new-redisplay))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Now for emacsen specific stuff
@@ -1045,7 +1045,7 @@ for use in the 'weight' field of an mswindows font string.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (cond
  ((fboundp 'display-warning)
-  (fset 'font-warn 'display-warning))
+  (defalias 'font-warn 'display-warning))
  ((fboundp 'warn)
   (defun font-warn (class message &optional level)
     (warn "(%s/%s) %s" class (or level 'warning) message)))
