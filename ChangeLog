@@ -1,3 +1,36 @@
+2001-05-29  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-sysdp.el: Remove lots of unused stuff.
+
+	* lisp/w3.el: Require cl only when compiling.  Doc and message
+	fixes.
+
+	* lisp/w3-toolbar.el (w3-toolbar): Bind w3-hotlist-view, not
+	w3-show-hotlist.
+
+	* lisp/w3-menu.el (w3-menu-hotlist-constructor): Require
+	w3-hotlist.
+	(w3-menu-bookmark-menu): Bind w3-hotlist-view, not
+	w3-show-hotlist.
+	(w3-popup-menu): In Emacs, use copy-keymap, not copy-tree.
+
+	* lisp/w3-hotindex.el (w3-hotindex-query): Call w3-hotlist-view,
+	not w3-show-hotlist.
+
+	* lisp/w3-emulate.el (url-vars): Require.
+	(w3-lynx-emulation-minor-mode-map)
+	(w3-netscape-emulation-minor-mode-map): Bind w3-hotlist-view, not
+	w3-show-hotlist.
+
+	* lisp/w3-dired.el (w3-open-local, w3-fetch): Autoload.
+	(add-minor-mode): Remove definition in favour of autoload.
+
+	* lisp/w3-keymap.el (w3-mode-map): Bind w3-hotlist-view, not
+	w3-show-hotlist.
+
+	* lisp/w3-parse.el (w3-parse-buffer): Use
+	w3-resolve-numeric-entity for bogus characters.
+
 2001-05-25  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3-speak-table.el: Make sure to load cl-extra at load time
