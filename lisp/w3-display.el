@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
-;; Author: $Author: wmperry $
-;; Created: $Date: 2000/11/15 13:58:28 $
-;; Version: $Revision: 1.24 $
+;; Author: $Author: fx $
+;; Created: $Date: 2000/12/20 20:51:28 $
+;; Version: $Revision: 1.25 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -375,11 +375,11 @@ If the face already exists, it is unmodified."
 
 (cond
  ((not (fboundp 'make-face))
-  (fset 'w3-make-face 'ignore))
+  (defalias 'w3-make-face 'ignore))
  (w3-running-xemacs
-  (fset 'w3-make-face 'make-face))
+  (defalias 'w3-make-face 'make-face))
  (t
-  (fset 'w3-make-face 'w3-make-face-emacs19)))
+  (defalias 'w3-make-face 'w3-make-face-emacs19)))
 
 (defsubst w3-face-for-element (node)
   (w3-get-all-face-info)
@@ -557,13 +557,6 @@ If the face already exists, it is unmodified."
 	(and extent (extent-buffer extent)))))
 
 (defun w3-widget-echo (widget &rest ignore)
-  (if (windowp widget)
-      ;; FSF emacs 21.x does some weird shit...
-      ;; args are window object pos
-      (debug)
-      (save-excursion
-	(set-buffer (window-buffer widget))
-	(setq widget (widget-at (cadr ignore)))))
   (save-excursion
     (set-buffer (or (w3-widget-buffer widget) (current-buffer)))
     (let* ((url (widget-get widget :href))
