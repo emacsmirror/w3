@@ -1,3 +1,11 @@
+2001-09-09  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-display.el (w3-mode, w3-add-delayed-graphic) 
+	(w3-find-specific-link, w3-fix-spaces): Autoload.
+
+	* lisp/w3-props.el (w3-fillin-text-property): Renamed from
+	`fillin-text-property'.
+
 2001-08-24  Dave Love  <fx@gnu.org>
 
 	* lisp/font.el (font-spatial-to-canonical): Don't choke if
