@@ -1,7 +1,7 @@
 ;;; url-cid.el --- Content-ID URL loader
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/18 02:20:05 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/28 15:12:21 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,7 +29,9 @@
 (require 'url-parse)
 (require 'widget)
 
-(require 'mm-decode)
+(condition-case ()
+    (require 'mm-decode)
+  (error nil))
 
 (defun url-cid-gnus (cid)
   (set-buffer (get-buffer-create url-working-buffer))
