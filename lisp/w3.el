@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 19:58:39 $
-;; Version: $Revision: 1.12 $
+;; Created: $Date: 1999/12/11 00:54:09 $
+;; Version: $Revision: 1.13 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -273,24 +273,27 @@ If PROMPT (the prefix), prompt for a coding system to use."
     (message "Downloading of `%s' complete." url)
     (w3-decode-charset)
     (url-mark-buffer-as-dead (current-buffer))
-    (if (equal (car-safe (mm-handle-type handle)) "text/html")
-	;; Special case text/html if it comes through w3-fetch
-	(progn
-	  (setq buff (generate-new-buffer " *w3-html*"))
-	  (set-buffer buff)
-	  (setq url-current-object (url-generic-parse-url url))
-	  (mm-insert-part handle)
-	  (w3-prepare-buffer)
-	  (w3-notify-when-ready (current-buffer)))
-      (if (mm-inlinable-p handle)
-	  ;; We can view it inline!
-	  (progn
-	    (setq buff (generate-new-buffer url))
-	    (set-buffer buff)
-	    (mm-display-part handle)
-	    (w3-notify-when-ready (current-buffer)))
-	;; Must be an external viewer
-	(mm-display-part handle)))
+    (cond
+     ((equal (car-safe (mm-handle-type handle)) "text/html")
+      ;; Special case text/html if it comes through w3-fetch
+      (setq buff (generate-new-buffer " *w3-html*"))
+      (set-buffer buff)
+      (setq url-current-object (url-generic-parse-url url))
+      (mm-insert-part handle)
+      (w3-prepare-buffer)
+      (w3-notify-when-ready (current-buffer)))
+     ((equal (car-safe (mm-handle-type handle)) "application/x-elisp-parsed-html")
+      ;; Also need to special-case pre-parsed representations of HTML
+      (w3-prepare-tree (read (set-marker (make-marker) 1 (mm-handle-buffer handle)))))
+     ((mm-inlinable-p handle)
+      ;; We can view it inline!
+      (setq buff (generate-new-buffer url))
+      (set-buffer buff)
+      (mm-display-part handle)
+      (w3-notify-when-ready (current-buffer)))
+     (t
+      ;; Must be an external viewer
+      (mm-display-part handle)))
     (mm-destroy-parts handle)))
 
 ;;;###autoload
@@ -1527,7 +1530,7 @@ No arg means whole window full.  Arg is number of lines to scroll."
 		(setq possible (cons href possible))))
 	  (case (length possible)
 	    (0				; No mailto links found
-	     (w3-fetch x))		; fall back onto first 'made' link
+	     (w3-fetch href))		; fall back onto first 'made' link
 	    (1				; Only one found, get it
 	     (w3-fetch (car possible)))
 	    (otherwise
