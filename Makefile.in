@@ -63,7 +63,7 @@ DISTFILES    =  configure.in aclocal.m4 Makefile.in install-sh	\
 		configure descrip.mms ChangeLog	build.bat 	\
 		$(SUPPORTFILES)
 MAJOR = 4
-MINOR = 0pre
+MINOR = 0
 VERSION = $(MAJOR).$(MINOR).$(shell cat .version)
 DIRNAME = w3-$(VERSION)
 

@@ -1,4 +1,25 @@
+1999-11-20  William M. Perry  <wmperry@aventail.com>
+
+* lisp/url-ldap.el (url-ldap-certificate-formatter): Make sure we require
+  ssl before calling any of the functions.
+
+* lisp/w3-display.el (w3-insert-terminal-char): Nuke the 'face' property
+  on any inserted terminal characters, or we can get bold/red/etc table
+  borders - looks kind of odd.
+
 1999-11-14  William M. Perry  <wmperry@aventail.com>
+
+* lisp/w3-display.el (w3-resurrect-hyperlinks): Skip over whitespace at
+  the beginning of hyperlinks, so mouse highlighting looks better.
+  (w3-resurrect-hyperlinks): Look for next property change from 'nd'
+  instead of 'st' - you cannot have overlapping hyperlinks, so this saves
+  quite a few iterations through the loop.
+  (w3-display-table): Nuke the w3-hyperlink-info text property on inserted
+  text.  This fixes a bug under XEmacs where hyperlinks in tables could
+  get _really_ confused when portions of the row needed to be filled -
+  hyperlinks would flow WAY past their end, and into the next row.
+
+* Emacs/W3 4.0.46 released
 
 * aclocal.m4 (AC_EMACS_LISP): work around bug in current Emacs 21.1
   pretests where (princ "foo") crashes in batch mode.

@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/14 01:37:16 $
-;; Version: $Revision: 1.17 $
+;; Created: $Date: 1999/11/20 11:37:54 $
+;; Version: $Revision: 1.18 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1098,7 +1098,11 @@ w3-table-graphic-border-chars.")
 					  (or count 1) inherit)
 			     (point))
 			   w3-terminal-properties)
-    (insert-char (or character ? ) (or count 1) inherit)))
+    (remove-text-properties (point)
+			    (progn
+			      (insert-char (or character ? ) (or count 1) inherit)
+			      (point))
+			    '(face nil))))
 
 (defsubst w3-horizontal-rule-char ()
   (w3-table-lookup-char t nil t nil w3-horizontal-rule-char))
@@ -1659,14 +1663,22 @@ Can sometimes make the structure of a document clearer")
 		       (skip-chars-backward " \t\n\r")
 		       (delete-region (point) (point-max))
 		       (if (>= fill-column (current-column))
-			   (insert-char ?  (- fill-column (current-column)) t))
+			   (let ((opos (point)))
+			     (insert-char ?  (- fill-column (current-column)) t)
+			     (remove-text-properties opos
+						     (point)
+						     '(w3-hyperlink-info nil))))
 		       (goto-char (point-min))
 		       ;; This gets our text properties out to the
 		       ;; end of lines for table rows/cells with backgrounds
 		       (while (not (eobp))
 			 (re-search-forward "$" nil t)
 			 (if (>= fill-column (current-column))
-			     (insert-char ?  (- fill-column (current-column)) t))
+			     (let ((opos (point)))
+			       (insert-char ?  (- fill-column (current-column)) t)
+			       (remove-text-properties opos
+						       (point)
+						       '(w3-hyperlink-info nil))))
 			 (or (eobp) (forward-char 1)))
 		       (aset formatted-cols i (extract-rectangle (point-min) (point-max)))
 		       (delete-region (point-min) (point-max))
@@ -1993,11 +2005,14 @@ Format: (((image-alt row column) . offset) ...)")
 	(set-keymap-parent w3-display-hackmap widget-button-keymap)
 	(define-key w3-display-hackmap (vector w3-mouse-button3) 'w3-popup-menu)))
   (let ((st (point-min))
+	(nd (point-min))
 	(inhibit-read-only t)
-	info nd node face)
+	info node face)
     (while st
       (if (setq info (get-text-property st 'w3-hyperlink-info))
 	  (progn
+	    (while (memq (char-after st) '(?\t ?\r ?\n ?\ ))
+	      (setq st (1+ st)))
 	    (setq nd (or (next-single-property-change st 'w3-hyperlink-info)
 			 (point-max)))
 	    (apply 'widget-convert-text 'link st nd st nd (nconc
@@ -2005,7 +2020,7 @@ Format: (((image-alt row column) . offset) ...)")
 								 :button-keymap w3-display-hackmap
 								 :end nd)
 							   info))))
-      (setq st (next-single-property-change st 'w3-hyperlink-info)))))
+      (setq st (next-single-property-change nd 'w3-hyperlink-info)))))
 
 (defun w3-display-convert-arglist (args)
   (let ((rval nil)

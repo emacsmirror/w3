@@ -1,7 +1,7 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/10/14 12:44:16 $
-;; Version: $Revision: 1.8 $
+;; Created: $Date: 1999/11/20 11:37:51 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,6 +91,7 @@
 	  "'>" dn "</a>"))
 
 (defun url-ldap-certificate-formatter (data)
+  (require 'ssl)
   (let ((vals (ssl-certificate-information data)))
     (if (not vals)
 	"<b>Unable to parse certificate</b>"

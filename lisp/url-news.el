@@ -1,7 +1,7 @@
 ;;; url-news.el --- News Uniform Resource Locator retrieval code
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/22 20:41:01 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1999/11/20 11:37:53 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -276,6 +276,7 @@
 	 (article-brackets nil)
 	 (article (url-filename urlobj)))
     (url-news-open-host host port (url-user urlobj) (url-password urlobj))
+    (setq article (url-unhex-string article))
     (cond
      ((string-match "@" article)	; Its a specific article
       (url-news-fetch-message-id host port article))
@@ -295,6 +296,7 @@
 	 (article-brackets nil)
 	 (article (url-filename urlobj)))
     (url-news-open-host host port (url-user urlobj) (url-password urlobj))
+    (setq article (url-unhex-string article))
     (cond
      ((string-match "@" article)	; Its a specific article
       (url-news-fetch-message-id host port article))
