@@ -1,3 +1,48 @@
+2002-01-22  Dave Love  <fx@gnu.org>
+
+	* lisp/css.el (css-color-values): Maybe use `color-values'.
+
+	* lisp/socks.el: Require cl only when compiling.  Require wid-edit
+	when compiling.
+
+	* lisp/font.el: Require cl only when compiling.  Remove second
+	(require 'disp-table).  Wrap definitions of << & al in
+	eval-and-compile.  Doc fixes.
+	(font-set-font-encoding): Renamed from set-font-encoding (which is
+	in fontset.el).
+
+	* lisp/devices.el: Require cl only when compiling.
+
+	* lisp/w3-java.el (url-util): Require.
+	(w3-java-run-applet): Use url-generate-unique-filename, not
+	non-existent mailcap-generate-unique-filename.
+
+	* lisp/w3-menu.el (w3-first-n-items, w3-only-links) 
+	(w3-fix-spaces): Autoload to avoid compiler warnings.
+	(w3-menu-filters-supported-p): Include Emacs 21.
+	(w3-menu-links-constructor): Use modern backquote syntax.
+
+	* lisp/ssl.el: Require cl only when compiling.  Require url.  Doc
+	fixes.
+	(ssl-view-certificate-program-arguments): Modify :type.
+	(top-level): Delete custom compatibility code since we require a
+	modern Emacs.
+	(open-ssl-stream): Use modern backquote syntax.
+
+	* lisp/w3-display.el (top-level): Declarations and autoloads to
+	avoid compiler warnings.
+	(w3-display-node): Use copy-sequence, not CL runtime copy-tree.
+
+	* lisp/w3-parse.el (decode-char): Modify logic for compiler
+	warning.
+
+	* lisp/w3.el (w3-nasty-disgusting-http-equiv-handling): Make
+	buffer arg compulsory and always set the buffer.  Parse a copy of
+	the head region, since w3-parse-region widens the buffer and may
+	mung it.
+	(w3-fetch-callback): Give w3-nasty-disgusting-http-equiv-handling
+	an arg.
+
 2001-12-04  William M. Perry  <wmperry@gnu.org>
 
 	* lisp/w3-display.el (w3-display-node): Explicitly put in breaks
