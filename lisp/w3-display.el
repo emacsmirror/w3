@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.37 $
+;; Version: $Revision: 1.38 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -153,7 +153,7 @@
 	    (orig nil ))
 	(setq orig (get-text-property start 'personality))
 	ad-do-it 
-	(and orig 
+	(and orig
 	     (put-text-property start end 
 				'personality orig)))))
 
@@ -499,10 +499,8 @@ If the face already exists, it is unmodified."
 				     'end-open nil
 				     'front-sticky t
 				     'rear-nonsticky nil
+				     'personality (car w3-active-voices)
 				     'duplicable t))
-  (if (car w3-active-voices)
-      (add-text-properties w3-scratch-start-point (point)
-			   (list 'personality (car w3-active-voices))))
   )
 
 (defun w3-display-get-cookie (args)
