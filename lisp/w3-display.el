@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.39 $
+;; Version: $Revision: 1.40 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,7 +27,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (eval-when-compile
   (require 'cl)
-  (require 'w3-props))
+  (require 'w3-props)
+  (defvar w3-last-parse-tree))
 (require 'css)
 (require 'font)
 (require 'url-parse)
@@ -47,6 +48,14 @@
 (autoload 'w3-find-specific-link "w3")
 (autoload 'w3-fix-spaces "w3")
 (autoload 'mm-inline-text "mm-view")	; may not be done by Gnus
+(autoload 'w3-form-resurrect-widgets "w3-forms")
+(autoload 'w3-do-setup "w3")
+(autoload 'w3-parse-buffer "w3-parse")
+(autoload 'w3-mode "w3")
+(autoload 'w3-handle-style "w3-style")
+(autoload 'w3-form-add-element "w3-forms")
+(autoload 'w3-warn "w3")
+
 (defvar w3-cookie-cache nil)
 
 (defmacro w3-d-s-var-def (var)
@@ -2190,7 +2199,7 @@ Format: (((image-alt row column) . offset) ...)")
 		    (old-props w3-display-css-properties)
 		    (active-face nil)
 		    (visited-face nil)
-		    (munged (copy-tree args)))
+		    (munged (copy-sequence args)))
 	       (if (assq 'class munged)
 		   (push ":active" (cdr (assq 'class munged)))
 		 (setq munged (cons (cons 'class '(":active")) munged)))
@@ -2201,7 +2210,7 @@ Format: (((image-alt row column) . offset) ...)")
 						w3-display-open-element-stack))
 	       (setq active-face (w3-face-for-element (list tag munged nil)))
 	       (w3-pop-all-face-info)
-	       (setq munged (copy-tree args))
+	       (setq munged (copy-sequence args))
 	       (if (assq 'class munged)
 		   (push ":visited" (cdr (assq 'class munged)))
 		 (setq munged (cons (cons 'class '(":visited")) munged)))
@@ -2234,8 +2243,10 @@ Format: (((image-alt row column) . offset) ...)")
 	       )
 	     )
 	    ((ol ul dl menu)
-	     (push (if (or (w3-get-attribute 'start) (w3-get-attribute 'seqnum))
-		       (1- (string-to-int (or (w3-get-attribute 'start) (w3-get-attribute 'seqnum))))
+	     (push (if (or (w3-get-attribute 'start)
+			   (w3-get-attribute 'seqnum))
+		       (1- (string-to-int (or (w3-get-attribute 'start)
+					      (w3-get-attribute 'seqnum))))
 		     0) w3-display-list-stack)
 	     (w3-handle-content node))
 	    (dir
