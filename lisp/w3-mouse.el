@@ -1,12 +1,12 @@
 ;;; w3-menu.el --- Mouse specific functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1998/12/21 16:28:39 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -85,7 +85,8 @@ the mouse click, opening it in another frame."
 
 (if (not w3-running-xemacs)
     (progn
-      (define-key w3-mode-map [mouse-movement] 'w3-mouse-handler)
+      (if w3-track-mouse
+	  (define-key w3-mode-map [mouse-movement] 'w3-mouse-handler))
       (if w3-popup-menu-on-mouse-3
 	  (define-key w3-mode-map [down-mouse-3] 'w3-popup-menu))))
   
