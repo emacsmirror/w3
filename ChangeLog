@@ -1,6 +1,10 @@
+2003-06-26  Sam Steingold  <sds@gnu.org>
+
+	* lisp/w3-imap.el (w3-image-loadable-p): fixed the logic
+
 2003-01-12  Wolfgang Jenkner <wjenkner@inode.at>
 
-	* lisp/w3.el (w3-fetch-callback) 
+	* lisp/w3.el (w3-fetch-callback)
 	(w3-nasty-disgusting-http-equiv-handling): When searching for the
 	':' meaning we are past the 'http/1.x' response, make sure that we
 	save-execursion around it, or bad things happen.
@@ -87,7 +91,7 @@
 	(w3-java-run-applet): Use url-generate-unique-filename, not
 	non-existent mailcap-generate-unique-filename.
 
-	* lisp/w3-menu.el (w3-first-n-items, w3-only-links) 
+	* lisp/w3-menu.el (w3-first-n-items, w3-only-links)
 	(w3-fix-spaces): Autoload to avoid compiler warnings.
 	(w3-menu-filters-supported-p): Include Emacs 21.
 	(w3-menu-links-constructor): Use modern backquote syntax.
@@ -176,7 +180,7 @@
 2001-10-01  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-vars.el: Doc fixes.
-	(w3-meta-content-type-charset-regexp) 
+	(w3-meta-content-type-charset-regexp)
 	(w3-meta-charset-content-type-regexp): Removed.
 	(w3-persistent-variables): Add url-current-mime-headers.
 
@@ -200,7 +204,7 @@
 
 2001-09-09  Dave Love  <fx@gnu.org>
 
-	* lisp/w3-display.el (w3-mode, w3-add-delayed-graphic) 
+	* lisp/w3-display.el (w3-mode, w3-add-delayed-graphic)
 	(w3-find-specific-link, w3-fix-spaces): Autoload.
 
 	* lisp/w3-props.el (w3-fillin-text-property): Renamed from
@@ -253,7 +257,7 @@
 	cl-map-keymap.
 	(w3-form-create-custom): Require cus-edit unconditionally.
 	(w3-all-widgets): Move definition.
-	(w3-form-create-file-browser, w3-form-create-option-list) 
+	(w3-form-create-file-browser, w3-form-create-option-list)
 	(w3-form-default-button-update): Avoid mule-truncate-string.
 	(mule-sysdp): Don't require.
 	(w3-form-encode-xwfu): Avoid mule-encode-string.
@@ -296,11 +300,11 @@
 	* lisp/w3-vars.el (w3-version-number): Fix regexp, doc.
 	(w3-html-entities): Modified per W3C entity list.
 
-	* lisp/w3-toolbar.el (w3-toolbar-back-icon, w3-toolbar-forw-icon) 
-	(w3-toolbar-home-icon, w3-toolbar-reld-icon) 
-	(w3-toolbar-imag-icon, w3-toolbar-open-icon) 
-	(w3-toolbar-print-icon, w3-toolbar-find-icon) 
-	(w3-toolbar-stop-icon, w3-toolbar-help-icon) 
+	* lisp/w3-toolbar.el (w3-toolbar-back-icon, w3-toolbar-forw-icon)
+	(w3-toolbar-home-icon, w3-toolbar-reld-icon)
+	(w3-toolbar-imag-icon, w3-toolbar-open-icon)
+	(w3-toolbar-print-icon, w3-toolbar-find-icon)
+	(w3-toolbar-stop-icon, w3-toolbar-help-icon)
 	(w3-toolbar-hotl-icon) [(featurep 'tool-bar)]: Initialize to names
 	of Emacs 21 icons.
 	(toolbar-make-button-list) [(featurep 'tool-bar)]: Don't define.
@@ -322,14 +326,14 @@
 2001-05-31  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-menu.el (w3-menu-file-menu): Fix
-	"---:shadowDoubleEtchedIn".  From Pavel Jan-Bík.-A
+	"---:shadowDoubleEtchedIn".  From Pavel Janík.
 
 	* lisp/w3-parse.el (decode-char): Define with older Mule-UCS.
 	(w3-expand-entity-at-point-maybe): Sanitize regexp for numeric
 	entity.  Don't lose trailing space.  Grok hex form.
 
 2001-05-30  Dave Love  <fx@gnu.org>
-	
+
 	* lisp/w3-menu.el: Require w3-sysdp.
 	(w3-popup-menu): Revert last change.
 
@@ -372,7 +376,7 @@
 	to work around a byte-optimizer bug in Emacs 21 that caused this
 	module to fail to byte-compile.
 
-2001-05-24  Pavel Jan-Bík <Pavel@janik.cz>-A
+2001-05-24  Pavel Janík <Pavel@janik.cz>
 
 	* lisp/w3-display.el (w3-resurrect-hyperlinks): Look for next
 	single property change from `st' instead of `nd' to avoid
@@ -502,9 +506,9 @@
 
 2001-01-04  Dave Love  <fx@gnu.org>
 
-	* lisp/w3-toolbar.el (w3-add-toolbar-to-buffer) <featurep 'tool-bar>: 
+	* lisp/w3-toolbar.el (w3-add-toolbar-to-buffer) <featurep 'tool-bar>:
 	Test display-graphic-p and tool-bar-lines.  Use mapc, not mapcar.
-	
+
 2001-01-03  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-toolbar.el (w3-add-toolbar-to-buffer): In Emacs, test
@@ -708,5 +712,5 @@
 	face attribute if it is nil.  The new redisplay doesn't like that.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; End:

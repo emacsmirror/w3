@@ -1,7 +1,7 @@
 ;;; w3-imap.el --- Imagemap functions
-;; Author: $Author: fx $
-;; Created: $Date: 2001/05/14 17:29:25 $
-;; Version: $Revision: 1.3 $
+;; Author: $Author: sds $
+;; Created: $Date: 2003/06/26 18:43:27 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -97,7 +97,7 @@ All arguments are vectors of [X Y] coordinates."
 (defun w3-image-poly-alloc (n)
   (if (< n 3)
       (error "w3-image-poly-alloc: invalid number of sides (%d)" n))
-  
+
   (vector n 0 (make-vector n nil) (make-vector n nil)))
 
 (defun w3-image-poly-assign (p x y)
@@ -209,13 +209,16 @@ vectors."
   `(cdr-safe (assoc ,href w3-graphics-list)))
 
 (defun w3-image-loadable-p (href force)
-  (let ((attribs (url-file-attributes href)))
-    (or force
-	(assoc (nth 8 attribs) w3-allowed-image-types)
-	(null w3-image-size-restriction)
-	(<= (nth 7 attribs) 0)
-	(and (numberp w3-image-size-restriction)
-	     (<= (nth 7 attribs) w3-image-size-restriction)))))
+  (or force
+      (let ((attribs (url-file-attributes href)))
+        (and attribs
+             ;; this is clearly an error: `file-attributes' returns
+             ;; the permissions string as the 8th element, not a mime type!
+             ;; (assoc (nth 8 attribs) w3-allowed-image-types)
+             (or (null w3-image-size-restriction)
+                 (and (<= (nth 7 attribs) 0)
+                      (or (not (numberp w3-image-size-restriction))
+                          (<= (nth 7 attribs) w3-image-size-restriction))))))))
 
 (defmacro w3-image-invalid-glyph-p (glyph)
   `(if (vectorp glyph)
