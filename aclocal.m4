@@ -194,14 +194,14 @@ EMACS_cv_REBUILD_AUTOLOADS=${HAVE_autoload}
 if test "${EMACS_cv_REBUILD_AUTOLOADS}" != "no"; then
    REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) -eval "(setq autoload-package-name \"w3\")" -l autoload -f batch-update-directory .'
 else
-   REBUILD_AUTOLOADS='touch auto-autoloads.el'
+   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) $(DEPS) -f emacs-batch-build-autoloads $(srcdir) auto-autoloads.el'
 fi
 AC_MSG_RESULT("${REBUILD_AUTOLOADS}")
 AC_SUBST(REBUILD_AUTOLOADS)
 ])
 
 dnl
-dnl Figure out how we can rebuild the auto-autoloads.el files
+dnl Figure out how we can rebuild the custom-load.el files
 dnl
 AC_DEFUN(AC_CHECK_CUSTOMLOADS, [
 AC_MSG_CHECKING(how to rebuild custom autoloads)
@@ -212,7 +212,7 @@ EMACS_cv_REBUILD_CUSTOMLOADS=${HAVE_cus_dep}
 if test "${EMACS_cv_REBUILD_CUSTOMLOADS}" != "no"; then
    REBUILD_CUSTOMLOADS='$(EMACS) $(BATCHFLAGS) -l cus-dep -f Custom-make-dependencies .'
 else
-   REBUILD_CUSTOMLOADS='touch custom-load.el'
+   REBUILD_AUTOLOADS='$(EMACS) $(BATCHFLAGS) $(DEPS) -f emacs-batch-build-custom-load $(srcdir)'
 fi
 AC_MSG_RESULT("${REBUILD_CUSTOMLOADS}")
 AC_SUBST(REBUILD_CUSTOMLOADS)
