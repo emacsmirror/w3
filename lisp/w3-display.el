@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/22 20:43:22 $
-;; Version: $Revision: 1.2 $
+;; Created: $Date: 1998/12/23 00:38:55 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -259,19 +259,26 @@
   ;; within some user-configurable delta?
   (equal foreground background))
 
+(defun w3-get-default-color (backgroundp)
+  (if w3-running-xemacs
+      (or (if backgroundp
+	      (face-background-name 'default)
+	    (face-foreground-name 'default))
+	  (frame-property nil (if backgroundp 'background-color 'foreground-color)))
+      (or (if backgroundp
+	      (face-background 'default)
+	    (face-foreground 'default))
+	  (frame-parameter nil (if backgroundp 'background-color 'foreground-color)))))
+
 (defun w3-display-background-useless-p (color)
   (let ((foreground-color (font-color-rgb-components
-			   (if (fboundp 'face-foreground-name)
-			       (face-foreground-name 'default)
-			     (face-foreground 'default))))
+			   (w3-get-default-color nil)))
 	(background-color (font-color-rgb-components color)))
     (w3-display-colors-too-close-p foreground-color background-color)))
 
 (defun w3-display-foreground-useless-p (color)
   (let ((background-color (font-color-rgb-components
-			   (if (fboundp 'face-background-name)
-			       (face-background-name 'default)
-			     (face-background 'default))))
+			   (w3-get-default-color t)))
 	(foreground-color (font-color-rgb-components color)))
     (w3-display-colors-too-close-p foreground-color background-color)))
 
