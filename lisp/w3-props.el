@@ -1,7 +1,7 @@
 ;;; w3-props.el --- Additional text property stuff
-;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Author: $Author: fx $
+;; Created: $Date: 2001/09/09 15:33:14 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -37,7 +37,8 @@
 ;; so, should the first or last duplicate item remain?  Or the one that was
 ;; added?  In our implementation, the first duplicate remains.
 
-(defsubst fillin-text-property (start end setprop markprop value &optional object)
+(defsubst w3-fillin-text-property (start end setprop markprop value
+					 &optional object)
   "Fill in one property of the text from START to END.
 Arguments PROP and VALUE specify the property and value to put where none are
 already in place.  Therefore existing property values are not overwritten.
