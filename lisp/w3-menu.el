@@ -1,11 +1,11 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.13 $
+;; Version: $Revision: 1.14 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -32,6 +32,9 @@
   (require 'cl)
   (defvar w3-html-bookmarks))
 (autoload 'url-truncate-url-for-viewing "url-util")
+(autoload 'w3-first-n-items "w3")
+(autoload 'w3-only-links "w3")
+(autoload 'w3-fix-spaces "w3")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; InfoDock stuff
@@ -43,8 +46,10 @@
 ;;; Spiffy new menus (for both Emacs and XEmacs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar w3-menu-filters-supported-p
-  (or (featurep 'xemacs) (and (= emacs-major-version 20)
-			     (>= emacs-minor-version 3))))
+  (or (featurep 'xemacs)
+      (and (= emacs-major-version 20)
+			      (>= emacs-minor-version 3))
+      (>= emacs-major-version 21)))
 
 (defvar w3-menu-fsfemacs-bookmark-menu nil)
 (defvar w3-menu-fsfemacs-debug-menu nil)
@@ -194,7 +199,8 @@ on that platform."
 				(buffer-substring-no-properties
 				 (widget-get widget :from)
 				 (widget-get widget :to)))))
-			  (` (url-retrieve (url-expand-file-name (, href)))) t) menu)))
+			  `(url-retrieve (url-expand-file-name ,href)) t)
+		  menu)))
     (setq menu (w3-menu-breakup menu w3-max-menu-length))
     (easy-menu-define w3-menu-links-menu nil "Emacs/W3 dynamic menu"
 		      (or menu (w3-menu-dummy-menu "No links")))
@@ -346,8 +352,10 @@ on that platform."
 (defconst w3-menu-go-menu
   (list
    "Go"
-   ["Forward" w3-history-forward (cdr (w3-history-find-url-internal (url-view-url t)))]
-   ["Back" w3-history-backward (car (w3-history-find-url-internal (url-view-url t)))]
+   ["Forward" w3-history-forward
+    (cdr (w3-history-find-url-internal (url-view-url t)))]
+   ["Back" w3-history-backward
+    (car (w3-history-find-url-internal (url-view-url t)))]
    ["Home" w3 w3-default-homepage]
    ["View History..." w3-show-history-list url-history-track]
    "----"
