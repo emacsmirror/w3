@@ -27,6 +27,7 @@ W3_SOURCES =								\
 	url-hotlist.el							\
 	w3-cfg.el							\
 	w3-cus.el							\
+	w3-dired.el							\
 	w3-display.el							\
 	w3-e19.el							\
 	w3-e20.el							\
