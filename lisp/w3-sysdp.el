@@ -6,6 +6,14 @@
 ;; Keywords: lisp, tools
 ;; Version: 0.003
 
+
+;; This stuff should go.  We don't have papers for it and it's not
+;; good practice to define things like this.  It tends to screw other
+;; packages that do feature tests with fboundp.  Compare what Gnus
+;; does.  (A lot of it's probably irrelevant anyhow, especially as
+;; depending on Gnus MIME stuff means dropping support for old
+;; Emacsen.)  -- fx
+
 ;; The purpose of this file is to eliminate the cruftiness that
 ;; would otherwise be required of packages that want to run on multiple
 ;; versions of Emacs.  The idea is that we make it look like we're running
@@ -351,7 +359,7 @@ The PLIST is modified by side effects."
 (sysdep-defun plist-get (plist prop)
   "Extract a value from a property list.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
 corresponding to the given PROP, or nil if PROP is not
 one of the properties on the list."
   (while (and plist (not (eq (car plist) prop)))
@@ -359,32 +367,32 @@ one of the properties on the list."
   (and plist (car (cdr plist))))
 
 ;; Extent stuff
-(sysdep-defalias 'delete-extent 'delete-overlay)
-(sysdep-defalias 'extent-end-position 'overlay-end)
-(sysdep-defalias 'extent-start-position 'overlay-start)
-(sysdep-defalias 'set-extent-endpoints 'move-overlay)
-(sysdep-defalias 'set-extent-property 'overlay-put)
-(sysdep-defalias 'make-extent 'make-overlay)
+;; (sysdep-defalias 'delete-extent 'delete-overlay)
+;; (sysdep-defalias 'extent-end-position 'overlay-end)
+;; (sysdep-defalias 'extent-start-position 'overlay-start)
+;; (sysdep-defalias 'set-extent-endpoints 'move-overlay)
+;; (sysdep-defalias 'set-extent-property 'overlay-put)
+;; (sysdep-defalias 'make-extent 'make-overlay)
 
-(sysdep-defun extent-property (extent property &optional default)
-  (or (overlay-get extent property) default))
+;; (sysdep-defun extent-property (extent property &optional default)
+;;   (or (overlay-get extent property) default))
 
-(sysdep-defun extent-at (pos &optional object property before at-flag)
-  (let ((tmp (overlays-at (point)))
-	ovls)
-    (if property
-	(while tmp
-	  (if (extent-property (car tmp) property)
-	      (setq ovls (cons (car tmp) ovls)))
-	  (setq tmp (cdr tmp)))
-      (setq ovls tmp
-	    tmp nil))
-    (car-safe
-     (sort ovls
-	   (function
-	    (lambda (a b)
-	      (< (- (extent-end-position a) (extent-start-position a))
-		 (- (extent-end-position b) (extent-start-position b)))))))))
+;; (sysdep-defun extent-at (pos &optional object property before at-flag)
+;;   (let ((tmp (overlays-at (point)))
+;; 	ovls)
+;;     (if property
+;; 	(while tmp
+;; 	  (if (extent-property (car tmp) property)
+;; 	      (setq ovls (cons (car tmp) ovls)))
+;; 	  (setq tmp (cdr tmp)))
+;;       (setq ovls tmp
+;; 	    tmp nil))
+;;     (car-safe
+;;      (sort ovls
+;; 	   (function
+;; 	    (lambda (a b)
+;; 	      (< (- (extent-end-position a) (extent-start-position a))
+;; 		 (- (extent-end-position b) (extent-start-position b)))))))))
 
 (sysdep-defun overlays-in (beg end)
   "Return a list of the overlays that overlap the region BEG ... END.
@@ -409,24 +417,24 @@ or between BEG and END."
 	  (setq retval (cons tmp retval))))
     retval))
 
-(sysdep-defun map-extents (function &optional object from to
-				    maparg flags property value)
-  (let ((tmp (overlays-in (or from (point-min))
-			  (or to (point-max))))
-	ovls)
-    (if property
-	(while tmp
-	  (if (extent-property (car tmp) property)
-	      (setq ovls (cons (car tmp) ovls)))
-	  (setq tmp (cdr tmp)))
-      (setq ovls tmp
-	    tmp nil))
-    (catch 'done
-      (while ovls
-	(setq tmp (funcall function (car ovls) maparg)
-	      ovls (cdr ovls))
-	(if tmp
-	    (throw 'done tmp))))))
+;; (sysdep-defun map-extents (function &optional object from to
+;; 				    maparg flags property value)
+;;   (let ((tmp (overlays-in (or from (point-min))
+;; 			  (or to (point-max))))
+;; 	ovls)
+;;     (if property
+;; 	(while tmp
+;; 	  (if (extent-property (car tmp) property)
+;; 	      (setq ovls (cons (car tmp) ovls)))
+;; 	  (setq tmp (cdr tmp)))
+;;       (setq ovls tmp
+;; 	    tmp nil))
+;;     (catch 'done
+;;       (while ovls
+;; 	(setq tmp (funcall function (car ovls) maparg)
+;; 	      ovls (cdr ovls))
+;; 	(if tmp
+;; 	    (throw 'done tmp))))))
 
 ;; misc
 (sysdep-defalias 'make-local-hook 'make-local-variable)
