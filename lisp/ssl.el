@@ -1,6 +1,6 @@
 ;;; ssl.el,v --- ssl functions for Emacsen without them builtin
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; $Revision: 1.4 $
+;; $Revision: 1.5 $
 ;; Keywords: comm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -212,8 +212,7 @@ specifying a port number to connect to."
   (if (integerp service) (setq service (int-to-string service)))
   (let* ((process-connection-type nil)
 	 (port service)
-	 (proc (eval
-		(start-process name buffer ,@(ssl-get-command)))))
+	 (proc (eval `(start-process name buffer ,@(ssl-get-command)))))
     (process-kill-without-query proc)
     proc))
 
