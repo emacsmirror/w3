@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.29 $
+;; Version: $Revision: 1.30 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,6 +40,9 @@
 (autoload 'string-ify "flame")
 (autoload '*flame "flame")
 (autoload 'flatten "flame")
+(autoload 'append-suffixes-hack "flame") ; I guess... -- fx
+(autoload 'w3-java-run-applet "w3-java")
+(autoload 'mm-inline-text "mm-view")	; may not be done by Gnus
 (defvar w3-cookie-cache nil)
 
 (defmacro w3-d-s-var-def (var)
@@ -138,16 +141,17 @@
 
 (make-variable-buffer-local 'w3-last-fill-pos)
 
-(defadvice widget-convert-text (around emacspeak pre act comp)
-  "Protect value of personality if set originally"
-  (let ((start (ad-get-arg 1))
-        (end (ad-get-arg 2))
-        (orig nil ))
-    (setq orig (get-text-property start 'personality))
-    ad-do-it 
-    (and orig 
-         (put-text-property start end 
-                            'personality orig))))
+(if (featurep 'emacspeak)
+    (defadvice widget-convert-text (around emacspeak pre act comp)
+      "Protect value of personality if set originally"
+      (let ((start (ad-get-arg 1))
+	    (end (ad-get-arg 2))
+	    (orig nil ))
+	(setq orig (get-text-property start 'personality))
+	ad-do-it 
+	(and orig 
+	     (put-text-property start end 
+				'personality orig)))))
 
 (defconst w3-fill-prefixes-vector
   (let ((len 0)
@@ -533,7 +537,7 @@ If the face already exists, it is unmodified."
       "Sorry, no cookies today."
     (let* ((href (or (w3-get-attribute 'href) (w3-get-attribute 'src)))
 	   (fname (or (cdr-safe (assoc href w3-cookie-cache))
-		      (mailcap-generate-unique-filename "%s.cki")))
+		      (url-generate-unique-filename "%s.cki")))
 	   (st (or (cdr-safe (assq 'start args)) "Loading cookies..."))
 	   (nd (or (cdr-safe (assq 'end args)) "Loading cookies... done.")))
       (if (not (file-exists-p fname))
@@ -1819,8 +1823,8 @@ Can sometimes make the structure of a document clearer")
 		   (setq height (max height (length (aref formatted-cols i)))))
 	       (setq i (+ i (max 1 (aref table-colspans i)))))
 
-	     (aset whole-table-rowspans row-index (copy-seq table-rowspans))
-	     (aset whole-table-colspans row-index (copy-seq table-colspans))
+	     (aset whole-table-rowspans row-index (copy-sequence table-rowspans))
+	     (aset whole-table-colspans row-index (copy-sequence table-colspans))
 	     
 	     ;; update row-dimensions
 	     (aset row-dimensions row-index (1+ height))
@@ -1847,8 +1851,8 @@ Can sometimes make the structure of a document clearer")
 		   (decf (aref table-rowspans i)))
 	       (incf i))
 	     
-	     (setq prev-rowspans (copy-seq table-rowspans))
-	     (setq prev-colspans (copy-seq table-colspans))
+	     (setq prev-rowspans (copy-sequence table-rowspans))
+	     (setq prev-colspans (copy-sequence table-colspans))
 	 
 	     (and w3-do-incremental-display (w3-pause))
 	     )
@@ -2056,7 +2060,7 @@ Format: (((image-alt row column) . offset) ...)")
     rval))
 
 (defvar w3-auto-run-java nil
-  "*If non-nil, will cause Java applets to automatically be run in another process.")
+  "*Non-nil means cause Java applets to run automatically in another process.")
 
 (defun w3-display-handle-java (node)
   (let ((options (nth 1 node))
