@@ -1,3 +1,16 @@
+2001-05-15  Dave Love  <fx@gnu.org>
+
+	* lisp/w3-display.el (w3-sysdp): Require.
+	(flatten): Autoload unconditionally.
+
+	* lisp/w3-parse.el (w3-invalid-sgml-char-replacement): Redefined.
+	(w3-resolve-numeric-entity): New function.
+	(html-entities): Consider string and non-string returns from
+	w3-resolve-numeric-entity.
+	(w3-p-s-var-def): Use w3-resolve-numeric-entity.
+	(w3-parse-hooks): Fix typo.
+	(w3-int-to-char): New alias.
+
 2001-05-14  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-sysdp.el: Don't define extent-related functions, to
