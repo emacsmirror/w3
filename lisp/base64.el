@@ -1,7 +1,7 @@
 ;;; base64.el,v --- Base64 encoding functions
 ;; Author: Kyle E. Jones
-;; Created: $Date: 1999/03/25 05:30:03 $
-;; Version: $Revision: 1.3 $
+;; Created: 1997/03/12 14:37:09
+;; Version: 1.6
 ;; Keywords: extensions
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,9 +73,13 @@ base64-encoder-program.")
       (setq p (cdr p)))
     v))
 
+(defvar base64-binary-coding-system 'binary)
+
 (defun base64-run-command-on-region (start end output-buffer command
 					   &rest arg-list)
-  (let ((tempfile nil) status errstring)
+  (let ((tempfile nil) status errstring default-process-coding-system 
+	(coding-system-for-write base64-binary-coding-system)
+	(coding-system-for-read base64-binary-coding-system))
     (unwind-protect
 	(progn
 	  (setq tempfile (make-temp-name "base64"))
@@ -94,29 +98,21 @@ base64-encoder-program.")
 		     (setq errstring (buffer-string))
 		     (kill-buffer nil)
 		     (cons status errstring)))))
-      (condition-case ()
-	  (delete-file tempfile)
-	(error nil)))))
+      (ignore-errors
+	(delete-file tempfile)))))
 
-(defun base64-insert-char (char &optional count ignored buffer)
-  (condition-case nil
-      (progn
-	(insert-char char count ignored buffer)
-	(fset 'base64-insert-char 'insert-char))
-    (wrong-number-of-arguments
-     (fset 'base64-insert-char 'base64-xemacs-insert-char)
-     (base64-insert-char char count ignored buffer))))
-
-(defun base64-xemacs-insert-char (char &optional count ignored buffer)
-  (if (and buffer (eq buffer (current-buffer)))
-      (insert-char char count)
-    (save-excursion
-      (set-buffer buffer)
-      (insert-char char count))))
+(if (string-match "XEmacs" emacs-version)
+    (defalias 'base64-insert-char 'insert-char)
+  (defun base64-insert-char (char &optional count ignored buffer)
+    (if (or (null buffer) (eq buffer (current-buffer)))
+	(insert-char char count)
+      (with-current-buffer buffer
+	(insert-char char count))))
+  (setq base64-binary-coding-system 'no-conversion))
 
 (defun base64-decode-region (start end)
   (interactive "r")
-  (message "Decoding base64...")
+  ;;(message "Decoding base64...")
   (let ((work-buffer nil)
 	(done nil)
 	(counter 0)
@@ -143,7 +139,7 @@ base64-encoder-program.")
 	       ((> (skip-chars-forward base64-alphabet end) 0)
 		(setq lim (point))
 		(while (< inputpos lim)
-		  (setq bits (+ bits 
+		  (setq bits (+ bits
 				(aref base64-alphabet-decoding-vector
 				      (char-int (char-after inputpos)))))
 		  (setq counter (1+ counter)
@@ -162,7 +158,7 @@ base64-encoder-program.")
 		    (error "at least %d bits missing at end of base64 encoding"
 			   (* (- 4 counter) 6)))
 		(setq done t))
-	       ((= (char-after (point)) ?=)
+	       ((eq (char-after (point)) ?=)
 		(setq done t)
 		(cond ((= counter 1)
 		       (error "at least 2 bits missing at end of base64 encoding"))
@@ -179,9 +175,10 @@ base64-encoder-program.")
 	  (insert-buffer-substring work-buffer)
 	  (delete-region (point) end))
       (and work-buffer (kill-buffer work-buffer))))
-  (message "Decoding base64... done"))
+  ;;(message "Decoding base64... done")
+  )
 
-(defun base64-encode-region (start end)
+(defun base64-encode-region (start end &optional no-line-break)
   (interactive "r")
   (message "Encoding base64...")
   (let ((work-buffer nil)
@@ -218,7 +215,8 @@ base64-encoder-program.")
 		      (aref alphabet (logand bits 63))
 		      1 nil work-buffer)
 		     (setq cols (+ cols 4))
-		     (cond ((= cols 72)
+		     (cond ((and (= cols 72)
+				 (not no-line-break))
 			    (base64-insert-char ?\n 1 nil work-buffer)
 			    (setq cols 0)))
 		     (setq bits 0 counter 0))
@@ -237,8 +235,9 @@ base64-encoder-program.")
 		(base64-insert-char (aref alphabet (logand (lsh bits -6) 63))
 				    1 nil work-buffer)
 		(base64-insert-char ?= 1 nil work-buffer)))
-	    (if (> cols 0)
-		(base64-insert-char ?\n 1 nil work-buffer)))
+	    (if (and (> cols 0)
+		     (not no-line-break))
+	    	(base64-insert-char ?\n 1 nil work-buffer)))
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)
 	  (insert-buffer-substring work-buffer)
@@ -269,9 +268,9 @@ base64-encoder-program.")
     (delete-region (point-max) (point))
     (prog1
 	(buffer-string)
-      (kill-buffer (current-buffer)))))  
+      (kill-buffer (current-buffer)))))
 
-(defalias 'base64-encode-string 'base64-encode)
-(defalias 'base64-decode-string 'base64-decode)
+(fset 'base64-decode-string 'base64-decode)
+(fset 'base64-encode-string 'base64-encode)
 
 (provide 'base64)

@@ -24,9 +24,9 @@ ac_help="$ac_help
 ac_help="$ac_help
 --with-lispdir            Where to install lisp files"
 ac_help="$ac_help
---with-custom             Specify where to find the custom package"
+--with-gnus               Specify where to find the gnus package"
 ac_help="$ac_help
---with-gnus             Specify where to find the gnus package"
+--with-url                Specify where to find the URL package"
 
 # Initialize some variables set by options.
 # The variables have the same names as the options, with
@@ -792,8 +792,10 @@ fi
 
 
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
 	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_xemacsp=$retval
 
@@ -814,18 +816,20 @@ fi
 
   if test "$prefix" = "NONE"; then
 	echo $ac_n "checking prefix for your Emacs""... $ac_c" 1>&6
-echo "configure:818: checking prefix for your Emacs" >&5
+echo "configure:820: checking prefix for your Emacs" >&5
 	
 elisp="(expand-file-name \"..\" invocation-directory)"
 if test -z ""noecho""; then
 	echo $ac_n "checking for prefix""... $ac_c" 1>&6
-echo "configure:823: checking for prefix" >&5
+echo "configure:825: checking for prefix" >&5
 fi
 
 
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
 	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_prefix=$retval
 
@@ -845,7 +849,7 @@ if test "${with_lispdir+set}" = set; then
 fi
 
   echo $ac_n "checking where .elc files should go""... $ac_c" 1>&6
-echo "configure:849: checking where .elc files should go" >&5
+echo "configure:853: checking where .elc files should go" >&5
   if test -z "$lispdir"; then
         theprefix=$prefix
     if test "x$theprefix" = "xNONE"; then
@@ -866,18 +870,20 @@ echo "configure:849: checking where .elc files should go" >&5
 
 
 echo $ac_n "checking for emacs version""... $ac_c" 1>&6
-echo "configure:870: checking for emacs version" >&5
+echo "configure:874: checking for emacs version" >&5
 
 elisp="(and (boundp 'emacs-major-version) (format \"%d.%d\" emacs-major-version emacs-minor-version))"
 if test -z ""noecho""; then
 	echo $ac_n "checking for version""... $ac_c" 1>&6
-echo "configure:875: checking for version" >&5
+echo "configure:879: checking for version" >&5
 fi
 
 
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
 	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_version=$retval
 
@@ -893,146 +899,29 @@ EMACS_VERSION=${EMACS_cv_SYS_version}
 echo "$ac_t""${EMACS_VERSION}" 1>&6
 
 
-echo $ac_n "checking for acceptable custom library""... $ac_c" 1>&6
-echo "configure:898: checking for acceptable custom library" >&5
-
-
-
-if test -z ""noecho""; then
-	echo $ac_n "checking for widget-convert-text in widget""... $ac_c" 1>&6
-echo "configure:904: checking for widget-convert-text in widget" >&5
-fi
-library=`echo widget | tr _ -`
-
-elisp="(progn (fmakunbound 'widget-convert-text) (condition-case nil (progn (require '$library) (fboundp 'widget-convert-text)) (error nil)))"
-if test -z ""noecho""; then
-	echo $ac_n "checking for widget""... $ac_c" 1>&6
-echo "configure:911: checking for widget" >&5
-fi
-
-
-	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
-	retval=`cat ${OUTPUT}`
-	rm -f ${OUTPUT}
-	EMACS_cv_SYS_widget=$retval
-
-
-widget=${EMACS_cv_SYS_widget}
-if test -z ""noecho""; then
-	echo "$ac_t""$widget" 1>&6
-fi
-
-if test "${EMACS_cv_SYS_widget}" = "nil"; then
-	EMACS_cv_SYS_widget=no
-fi
-HAVE_widget=${EMACS_cv_SYS_widget}
-
-if test -z ""noecho""; then
-	echo "$ac_t""$HAVE_widget" 1>&6
-fi
-
-
-if test -z ""noecho""; then
-	echo $ac_n "checking for widget-convert-text in wid_edit""... $ac_c" 1>&6
-echo "configure:939: checking for widget-convert-text in wid_edit" >&5
-fi
-library=`echo wid_edit | tr _ -`
-
-elisp="(progn (fmakunbound 'widget-convert-text) (condition-case nil (progn (require '$library) (fboundp 'widget-convert-text)) (error nil)))"
-if test -z ""noecho""; then
-	echo $ac_n "checking for wid_edit""... $ac_c" 1>&6
-echo "configure:946: checking for wid_edit" >&5
-fi
-
-
-	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
-	retval=`cat ${OUTPUT}`
-	rm -f ${OUTPUT}
-	EMACS_cv_SYS_wid_edit=$retval
-
-
-wid_edit=${EMACS_cv_SYS_wid_edit}
-if test -z ""noecho""; then
-	echo "$ac_t""$wid_edit" 1>&6
-fi
-
-if test "${EMACS_cv_SYS_wid_edit}" = "nil"; then
-	EMACS_cv_SYS_wid_edit=no
-fi
-HAVE_wid_edit=${EMACS_cv_SYS_wid_edit}
-
-if test -z ""noecho""; then
-	echo "$ac_t""$HAVE_wid_edit" 1>&6
-fi
-
-if test "${HAVE_widget}" = "yes"; then
-	EMACS_cv_ACCEPTABLE_CUSTOM=yes
-else
-	if test "${HAVE_wid_edit}" != "no"; then
-		EMACS_cv_ACCEPTABLE_CUSTOM=yes
-	else
-		EMACS_cv_ACCEPTABLE_CUSTOM=no
-	fi
-fi
-if test "${EMACS_cv_ACCEPTABLE_CUSTOM}" = "yes"; then
-	
-elisp="(file-name-directory (locate-library \"widget\"))"
-if test -z ""noecho""; then
-	echo $ac_n "checking for widget_dir""... $ac_c" 1>&6
-echo "configure:985: checking for widget_dir" >&5
-fi
-
-
-	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
-	retval=`cat ${OUTPUT}`
-	rm -f ${OUTPUT}
-	EMACS_cv_SYS_widget_dir=$retval
-
-
-widget_dir=${EMACS_cv_SYS_widget_dir}
-if test -z ""noecho""; then
-	echo "$ac_t""$widget_dir" 1>&6
-fi
-
-	EMACS_cv_ACCEPTABLE_CUSTOM=$EMACS_cv_SYS_widget_dir
-fi
-
-
-   # Check whether --with-custom or --without-custom was given.
-if test "${with_custom+set}" = set; then
-  withval="$with_custom"
-   EMACS_cv_ACCEPTABLE_CUSTOM=`( cd $withval && pwd || echo "$withval" ) 2> /dev/null` 
-fi
-
-   CUSTOM=${EMACS_cv_ACCEPTABLE_CUSTOM}
-   
-   echo "$ac_t"""${CUSTOM}"" 1>&6
-
-
 echo $ac_n "checking for recent gnus version""... $ac_c" 1>&6
-echo "configure:1017: checking for recent gnus version" >&5
+echo "configure:904: checking for recent gnus version" >&5
 
 
 
 if test -z ""noecho""; then
 	echo $ac_n "checking for mm-get-content-id in mm_decode""... $ac_c" 1>&6
-echo "configure:1023: checking for mm-get-content-id in mm_decode" >&5
+echo "configure:910: checking for mm-get-content-id in mm_decode" >&5
 fi
 library=`echo mm_decode | tr _ -`
 
-elisp="(progn (fmakunbound 'mm-get-content-id) (condition-case nil (progn (require '$library) (fboundp 'mm-get-content-id)) (error nil)))"
+elisp="(progn (fmakunbound 'mm-get-content-id) (condition-case nil (progn (require '$library) (fboundp 'mm-get-content-id)) (error (prog1 nil (message \"$library not found\")))))"
 if test -z ""noecho""; then
 	echo $ac_n "checking for mm_decode""... $ac_c" 1>&6
-echo "configure:1030: checking for mm_decode" >&5
+echo "configure:917: checking for mm_decode" >&5
 fi
 
 
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
 	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_mm_decode=$retval
 
@@ -1044,6 +933,9 @@ fi
 
 if test "${EMACS_cv_SYS_mm_decode}" = "nil"; then
 	EMACS_cv_SYS_mm_decode=no
+fi
+if test "${EMACS_cv_SYS_mm_decode}" = "t"; then
+	EMACS_cv_SYS_mm_decode=yes
 fi
 HAVE_mm_decode=${EMACS_cv_SYS_mm_decode}
 
@@ -1062,13 +954,15 @@ if test "${EMACS_cv_ACCEPTABLE_GNUS}" = "yes"; then
 elisp="(file-name-directory (locate-library \"mm-decode\"))"
 if test -z ""noecho""; then
 	echo $ac_n "checking for gnus_dir""... $ac_c" 1>&6
-echo "configure:1066: checking for gnus_dir" >&5
+echo "configure:958: checking for gnus_dir" >&5
 fi
 
 
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
 	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_gnus_dir=$retval
 
@@ -1093,27 +987,117 @@ fi
    echo "$ac_t"""${GNUS}"" 1>&6
 
 
+echo $ac_n "checking for recent URL version""... $ac_c" 1>&6
+echo "configure:992: checking for recent URL version" >&5
+
+
+
+if test -z ""noecho""; then
+	echo $ac_n "checking for url-scheme-get-property in url_methods""... $ac_c" 1>&6
+echo "configure:998: checking for url-scheme-get-property in url_methods" >&5
+fi
+library=`echo url_methods | tr _ -`
+
+elisp="(progn (fmakunbound 'url-scheme-get-property) (condition-case nil (progn (require '$library) (fboundp 'url-scheme-get-property)) (error (prog1 nil (message \"$library not found\")))))"
+if test -z ""noecho""; then
+	echo $ac_n "checking for url_methods""... $ac_c" 1>&6
+echo "configure:1005: checking for url_methods" >&5
+fi
+
+
+	OUTPUT=./conftest-$$
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
+	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
+	rm -f ${OUTPUT}
+	EMACS_cv_SYS_url_methods=$retval
+
+
+url_methods=${EMACS_cv_SYS_url_methods}
+if test -z ""noecho""; then
+	echo "$ac_t""$url_methods" 1>&6
+fi
+
+if test "${EMACS_cv_SYS_url_methods}" = "nil"; then
+	EMACS_cv_SYS_url_methods=no
+fi
+if test "${EMACS_cv_SYS_url_methods}" = "t"; then
+	EMACS_cv_SYS_url_methods=yes
+fi
+HAVE_url_methods=${EMACS_cv_SYS_url_methods}
+
+if test -z ""noecho""; then
+	echo "$ac_t""$HAVE_url_methods" 1>&6
+fi
+
+if test "${HAVE_url_methods}" = "yes"; then
+	EMACS_cv_ACCEPTABLE_URL=yes
+else
+	EMACS_cv_ACCEPTABLE_URL=no
+fi
+
+if test "${EMACS_cv_ACCEPTABLE_URL}" = "yes"; then
+	
+elisp="(file-name-directory (locate-library \"url-methods\"))"
+if test -z ""noecho""; then
+	echo $ac_n "checking for url_dir""... $ac_c" 1>&6
+echo "configure:1046: checking for url_dir" >&5
+fi
+
+
+	OUTPUT=./conftest-$$
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
+	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
+	rm -f ${OUTPUT}
+	EMACS_cv_SYS_url_dir=$retval
+
+
+url_dir=${EMACS_cv_SYS_url_dir}
+if test -z ""noecho""; then
+	echo "$ac_t""$url_dir" 1>&6
+fi
+
+	EMACS_cv_ACCEPTABLE_URL=$EMACS_cv_SYS_url_dir
+fi
+
+
+   # Check whether --with-url or --without-url was given.
+if test "${with_url+set}" = set; then
+  withval="$with_url"
+   EMACS_cv_ACCEPTABLE_URL=`( cd $withval && pwd || echo "$withval" ) 2> /dev/null` 
+fi
+
+   URL=${EMACS_cv_ACCEPTABLE_URL}
+   
+   echo "$ac_t"""${URL}"" 1>&6
+
+
 echo $ac_n "checking how to rebuild custom autoloads""... $ac_c" 1>&6
-echo "configure:1098: checking how to rebuild custom autoloads" >&5
+echo "configure:1080: checking how to rebuild custom autoloads" >&5
 
 
 
 if test -z ""noecho""; then
 	echo $ac_n "checking for Custom-make-dependencies in cus_dep""... $ac_c" 1>&6
-echo "configure:1104: checking for Custom-make-dependencies in cus_dep" >&5
+echo "configure:1086: checking for Custom-make-dependencies in cus_dep" >&5
 fi
 library=`echo cus_dep | tr _ -`
 
-elisp="(progn (fmakunbound 'Custom-make-dependencies) (condition-case nil (progn (require '$library) (fboundp 'Custom-make-dependencies)) (error nil)))"
+elisp="(progn (fmakunbound 'Custom-make-dependencies) (condition-case nil (progn (require '$library) (fboundp 'Custom-make-dependencies)) (error (prog1 nil (message \"$library not found\")))))"
 if test -z ""noecho""; then
 	echo $ac_n "checking for cus_dep""... $ac_c" 1>&6
-echo "configure:1111: checking for cus_dep" >&5
+echo "configure:1093: checking for cus_dep" >&5
 fi
 
 
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& 5 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& 5 2>&1
 	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& 5 2>&1
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_cus_dep=$retval
 
@@ -1125,6 +1109,9 @@ fi
 
 if test "${EMACS_cv_SYS_cus_dep}" = "nil"; then
 	EMACS_cv_SYS_cus_dep=no
+fi
+if test "${EMACS_cv_SYS_cus_dep}" = "t"; then
+	EMACS_cv_SYS_cus_dep=yes
 fi
 HAVE_cus_dep=${EMACS_cv_SYS_cus_dep}
 
@@ -1164,22 +1151,6 @@ fi
 if test "${GNUS}" != "no"; then
 CIDFILE=url-cid.el
 
-fi
-
-if test "${CUSTOM}" = "no"; then
-echo "configure: warning: " "" 1>&2
-echo "configure: warning: No usable version of the widget/custom libraries have been" 1>&2
-echo "configure: warning: detected on your system.  This version of Emacs/W3 requires" 1>&2
-echo "configure: warning: features present in newer versions of the widget library." 1>&2
-echo "configure: warning: " "" 1>&2
-echo "configure: warning: Please upgrade to the latest version of custom available." 1>&2
-echo "configure: warning: This package is included with Emacs 20.1 and XEmacs 20.3" 1>&2
-echo "configure: warning: or from http://www.dina.kvl.dk/~abraham/custom/" 1>&2
-echo "configure: warning: or /ftp.dina.kvl.dk:/pub/Staff/Per.Abrahamsen/custom/" 1>&2
-echo "configure: warning: " "" 1>&2
-echo "configure: warning: You may still continue, but you must modify lisp/Makefile" 1>&2
-echo "configure: warning: to have the correct WIDGETDIR setting." 1>&2
-echo "configure: warning: " "" 1>&2
 fi
 
 trap '' 1 2 15
@@ -1298,11 +1269,10 @@ s%@XEMACS@%$XEMACS%g
 s%@EMACS_FLAVOR@%$EMACS_FLAVOR%g
 s%@lispdir@%$lispdir%g
 s%@EMACS_VERSION@%$EMACS_VERSION%g
-s%@HAVE_widget@%$HAVE_widget%g
-s%@HAVE_wid_edit@%$HAVE_wid_edit%g
-s%@CUSTOM@%$CUSTOM%g
 s%@HAVE_mm_decode@%$HAVE_mm_decode%g
 s%@GNUS@%$GNUS%g
+s%@HAVE_url_methods@%$HAVE_url_methods%g
+s%@URL@%$URL%g
 s%@HAVE_cus_dep@%$HAVE_cus_dep%g
 s%@REBUILD_CUSTOMLOADS@%$REBUILD_CUSTOMLOADS%g
 s%@INSTALL@%$INSTALL%g
@@ -1438,4 +1408,3 @@ echo "$ac_t""" "" 1>&6
 echo "$ac_t"""To finish building Emacs/W3 type \'make\' now."" 1>&6
 echo "$ac_t"""To install Emacs/W3 type \'make install\'."" 1>&6
 echo "$ac_t"""To create autoloads in \'${DOTEMACS}\' type \'make dotemacs\'"" 1>&6
-

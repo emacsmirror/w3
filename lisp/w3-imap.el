@@ -1,12 +1,12 @@
 ;;; w3-imap.el --- Imagemap functions
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:07 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -27,6 +27,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'w3-vars)
+(require 'url)
+(require 'url-handlers)
+
 (eval-and-compile
   (require 'widget))
 

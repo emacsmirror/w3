@@ -1,7 +1,7 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/10 15:29:01 $
-;; Version: $Revision: 1.6 $
+;; Created: $Date: 1999/12/05 08:36:05 $
+;; Version: $Revision: 1.7 $
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,7 +27,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; FORMS processing for html 2.0/3.0
+;;; FORMS processing for HTML
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (eval-when-compile
   (require 'cl))
@@ -37,6 +37,7 @@
   (require 'w3-mouse)
   (require 'w3-display)
   (require 'url)
+  (require 'url-util)
   (require 'widget)
   (condition-case nil
       (require 'wid-edit)
@@ -898,9 +899,6 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 	   (w3-form-encode-helper result) "\n"))
     query))
 
-(defun w3-form-encode-application/x-gopher-query (result)
-  (concat "\t" (cdr (car (w3-form-encode-helper result)))))
-
 (defun w3-form-encode-xwfu (chunk)
   "Escape characters in a string for application/x-www-form-urlencoded.
 Blasphemous crap because someone didn't think %20 was good enough for encoding
@@ -934,19 +932,6 @@ spaces.  Die Die Die."
 	(url-hexify-string query)
       "")))
 
-(defun w3-form-encode-application/gopher-ask-block (result)
-  (let ((query ""))
-    ;;; gopher+ will expect all the checkboxes/etc, even if they are
-    ;;; not turned on.  Should still ignore RADIO boxes that are not
-    ;;; active though.
-  (while result
-    (if (and (not (and (string= (nth 2 (car result)) "RADIO")
-		       (not (nth 6 (car result)))))
-	     (not (member (nth 2 (car result)) '("SUBMIT" "RESET"))))
-	(setq query (format "%s\r\n%s" query (nth 5 (car result)))))
-    (setq result (cdr result)))
-  (concat query "\r\n.\r\n")))
-
 (defun w3-submit-form (ident)
   ;; Submit form entry fields matching ACTN as their action identifier.
   (let* ((result (w3-all-widgets ident))
@@ -957,7 +942,7 @@ spaces.  Die Die Die."
 	 (theurl (cdr (assq 'action ident))))
     (if (and (string= "GET" themeth)
 	     (string-match "\\([^\\?]*\\)\\?" theurl))
-	(setq theurl (url-match theurl 1)))
+	(setq theurl (match-string 1 theurl)))
     (cond
      ((or (string= "POST" themeth)
 	  (string= "PUT" themeth))
@@ -972,8 +957,7 @@ spaces.  Die Die Die."
 	     (cons (cons "Content-type" enctype) url-request-extra-headers)))
 	(w3-fetch theurl)))
      ((string= "GET" themeth)
-      (let ((theurl (concat theurl (if (string-match "gopher" enctype)
-				       "" "?") query)))
+      (let ((theurl (concat theurl "?" query)))
 	(w3-fetch theurl)))
      (t
       (w3-warn 'html (format "Unknown submit method: %s" themeth))

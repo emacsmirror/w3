@@ -1,7 +1,7 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:11 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: mouse, toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -326,7 +326,6 @@ not `none'.")
 		 ["PostScript" (w3-print-this-url nil "PostScript") t]
 		 ["Formatted Text" (w3-print-this-url nil "Formatted Text") t]
 		 ["HTML Source" (w3-print-this-url nil "HTML Source") t]
-		 ["LaTeX'd" (w3-print-this-url nil "LaTeX'd") t]
 		 nil
 		 ["Cancel" (beep) t])))
     (popup-dialog-box descr)))

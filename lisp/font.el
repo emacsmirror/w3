@@ -1,7 +1,7 @@
 ;;; font.el --- New font model
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/04/29 15:46:58 $
-;; Version: $Revision: 1.3 $
+;; Created: $Date: 1999/12/05 08:35:46 $
+;; Version: $Revision: 1.4 $
 ;; Keywords: faces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -987,8 +987,9 @@ for use in the 'weight' field of an mswindows font string.")
 			:underline (font-underline-p font)
 			:weight (or (cdr-safe (assoc (font-weight font)
 						     font-new-redisplay-weight-mappings))
-				    'normal)
-			:family (font-find-available-family font))
+				    'normal))
+    (if (font-find-available-family font)
+	(set-face-attribute :family (font-find-available-family font)))
     (if (font-size font)
 	(set-face-attribute face nil
 			    :height (* 10 (font-spatial-to-canonical (font-size font))))))
@@ -1043,17 +1044,13 @@ for use in the 'weight' field of an mswindows font string.")
 (cond
  ((fboundp 'display-warning)
   (fset 'font-warn 'display-warning))
- ((fboundp 'w3-warn)
-  (fset 'font-warn 'w3-warn))
- ((fboundp 'url-warn)
-  (fset 'font-warn 'url-warn))
  ((fboundp 'warn)
   (defun font-warn (class message &optional level)
     (warn "(%s/%s) %s" class (or level 'warning) message)))
  (t
   (defun font-warn (class message &optional level)
     (save-excursion
-      (set-buffer (get-buffer-create "*W3-WARNINGS*"))
+      (set-buffer (get-buffer-create "*FONT-WARNINGS*"))
       (goto-char (point-max))
       (save-excursion
 	(insert (format "(%s/%s) %s\n" class (or level 'warning) message)))

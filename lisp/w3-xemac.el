@@ -1,12 +1,12 @@
 ;;; w3-xemac.el --- XEmacs specific functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:12 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -31,7 +31,6 @@
 (require 'w3-widget)
 (require 'w3-menu)
 (require 'w3-forms)
-(require 'w3-script)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Enhancements For XEmacs
@@ -46,10 +45,7 @@
 	(if (not (and good pt (number-or-marker-p pt)))
 	    nil
 	  (if (and inhibit-help-echo w3-track-mouse)
-	      (widget-echo-help pt))
-	  (setq mouse-events (w3-script-find-event-handlers pt 'mouse))
-	  (if (assq 'onmouseover mouse-events)
-	      (w3-script-evaluate-form (cdr (assq 'onmouseover mouse-events))))))))
+	      (widget-echo-help pt))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Functions to build menus of urls

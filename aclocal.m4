@@ -8,8 +8,10 @@ if test -z "$3"; then
 fi
 AC_CACHE_VAL(EMACS_cv_SYS_$1,[
 	OUTPUT=./conftest-$$
-	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (message \"%s\" x) (prin1-to-string x)) nil \"${OUTPUT}\"))" > /dev/null 2>&1 
+	echo ${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x) (prin1-to-string x)) nil \"${OUTPUT}\"))" >& AC_FD_CC 2>&1  
+	${EMACS} -batch -eval "(let ((x ${elisp})) (write-region (if (stringp x) (princ x 'ignore) (prin1-to-string x)) nil \"${OUTPUT}\"nil 5))" >& AC_FD_CC 2>&1
 	retval=`cat ${OUTPUT}`
+	echo "=> ${retval}" >& AC_FD_CC 2>&1
 	rm -f ${OUTPUT}
 	EMACS_cv_SYS_$1=$retval
 ])
@@ -103,9 +105,12 @@ if test -z "$3"; then
 	AC_MSG_CHECKING(for $2 in $1)
 fi
 library=`echo $1 | tr _ -`
-AC_EMACS_LISP($1,(progn (fmakunbound '$2) (condition-case nil (progn (require '$library) (fboundp '$2)) (error nil))),"noecho")
+AC_EMACS_LISP($1,(progn (fmakunbound '$2) (condition-case nil (progn (require '$library) (fboundp '$2)) (error (prog1 nil (message \"$library not found\"))))),"noecho")
 if test "${EMACS_cv_SYS_$1}" = "nil"; then
 	EMACS_cv_SYS_$1=no
+fi
+if test "${EMACS_cv_SYS_$1}" = "t"; then
+	EMACS_cv_SYS_$1=yes
 fi
 HAVE_$1=${EMACS_cv_SYS_$1}
 AC_SUBST(HAVE_$1)
@@ -176,11 +181,36 @@ if test "${EMACS_cv_ACCEPTABLE_GNUS}" = "yes"; then
 	EMACS_cv_ACCEPTABLE_GNUS=$EMACS_cv_SYS_gnus_dir
 fi
 ])
-   AC_ARG_WITH(gnus,           --with-gnus             Specify where to find the gnus package, [ EMACS_cv_ACCEPTABLE_GNUS=`( cd $withval && pwd || echo "$withval" ) 2> /dev/null` ])
+   AC_ARG_WITH(gnus,           --with-gnus               Specify where to find the gnus package, [ EMACS_cv_ACCEPTABLE_GNUS=`( cd $withval && pwd || echo "$withval" ) 2> /dev/null` ])
    GNUS=${EMACS_cv_ACCEPTABLE_GNUS}
    AC_SUBST(GNUS)
    AC_MSG_RESULT("${GNUS}")
 ])
+
+dnl
+dnl Perform sanity checking and try to locate the URL package
+dnl
+AC_DEFUN(AC_CHECK_URL, [
+AC_MSG_CHECKING(for recent URL version)
+AC_CACHE_VAL(EMACS_cv_ACCEPTABLE_URL,[
+AC_EMACS_CHECK_LIB(url_methods, url-scheme-get-property,"noecho")
+if test "${HAVE_url_methods}" = "yes"; then
+	EMACS_cv_ACCEPTABLE_URL=yes
+else
+	EMACS_cv_ACCEPTABLE_URL=no
+fi
+
+if test "${EMACS_cv_ACCEPTABLE_URL}" = "yes"; then
+	AC_EMACS_LISP(url_dir,(file-name-directory (locate-library \"url-methods\")),"noecho")
+	EMACS_cv_ACCEPTABLE_URL=$EMACS_cv_SYS_url_dir
+fi
+])
+   AC_ARG_WITH(url,             --with-url                Specify where to find the URL package, [ EMACS_cv_ACCEPTABLE_URL=`( cd $withval && pwd || echo "$withval" ) 2> /dev/null` ])
+   URL=${EMACS_cv_ACCEPTABLE_URL}
+   AC_SUBST(URL)
+   AC_MSG_RESULT("${URL}")
+])
+
 
 dnl
 dnl Figure out how we can rebuild the custom-load.el files
@@ -199,9 +229,3 @@ fi
 AC_MSG_RESULT("${REBUILD_CUSTOMLOADS}")
 AC_SUBST(REBUILD_CUSTOMLOADS)
 ])
-
-dnl (aclocal.m4) Local variables:
-dnl (aclocal.m4) eval: (make-local-hook 'kill-buffer-hook)
-dnl (aclocal.m4) eval: (defun w3-rebuild-configure-files () (if (file-newer-than-file-p (buffer-file-name) (expand-file-name "configure" (file-name-directory (buffer-file-name)))) (shell-command "autoreconf")))
-dnl (aclocal.m4) eval: (add-hook 'kill-buffer-hook 'w3-rebuild-configure-files nil t)
-dnl (aclocal.m4) End: ***

@@ -1,7 +1,7 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/11 01:36:11 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1999/12/05 08:36:08 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -185,7 +185,7 @@ on that platform."
 				(buffer-substring-no-properties
 				 (widget-get widget :from)
 				 (widget-get widget :to)))))
-			  (list 'url-maybe-relative href) t) menu)))
+			  (` (url-retrieve (url-expand-file-name (, href)))) t) menu)))
     (setq menu (w3-menu-breakup menu w3-max-menu-length))
     (easy-menu-define w3-menu-links-menu nil "Emacs/W3 dynamic menu"
 		      (or menu (w3-menu-dummy-menu "No links")))
@@ -261,7 +261,6 @@ on that platform."
     "Save As..."
     ["HTML" (w3-save-as "HTML Source") t]
     ["Formatted Text" (w3-save-as "Formatted Text") t]
-    ["LaTeX" (w3-save-as "LaTeX Source") t]
     ["PostScript" (w3-save-as "PostScript") t]
     ["Binary" (w3-save-as "Binary") t]
     )
@@ -271,14 +270,12 @@ on that platform."
     ["PostScript" (w3-print-this-url nil "PostScript") t]
     ["Formatted Text" (w3-print-this-url nil "Formatted Text") t]
     ["HTML Source" (w3-print-this-url nil "HTML Source") t]
-    ["LaTeX'd" (w3-print-this-url nil "LaTeX'd") t]
     )
    (list
     "Mail Document..."
     ["HTML" (w3-mail-current-document nil "HTML Source") t]
     ["Formatted Text" (w3-mail-current-document nil "Formatted Text") t]
     ["PostScript" (w3-mail-current-document nil "PostScript") t]
-    ["LaTeX Source" (w3-mail-current-document nil "LaTeX Source") t]
     )
    (if w3-running-xemacs
        "---:shadowDoubleEtchedIn"
@@ -319,8 +316,7 @@ on that platform."
    ["Load Images" w3-load-delayed-images w3-delayed-images]
    "----"
    ["Refresh" w3-refresh-buffer w3-current-parse]
-   ["Reload" w3-reload-document (and (url-view-url t)
-				     (not (equal (url-view-url t) "")))]
+   ["Reload" w3-reload-document url-current-object]
    "----"
    ["Show URL" url-view-url t]
    ["Show URL At Point" w3-view-this-url t]
@@ -446,7 +442,8 @@ on that platform."
    "Search"
    ["Yahoo!"    (w3-fetch "http://www.yahoo.com/") t]
    ["Excite"    (w3-fetch "http://www.excite.com/") t]
-   ["AltaVista" (w3-fetch "http://www.altavista.digital.com/") t]
+   ["AltaVista" (w3-fetch "http://www.altavista.com/") t]
+   ["Google"    (w3-fetch "http://www.google.com/") t]
    ["FTP Search" (w3-fetch "http://ftpsearch.ntnu.no/home.html") t]
    "---"
    )
@@ -624,7 +621,8 @@ on that platform."
       (lookup-key w3-mode-menu-map [rootmenu])))))
 
 (defun w3-menu-install-menus ()
-  (cond ((= emacs-minor-version 28)	; Hey, get with the times people!!
+  (cond ((and (= emacs-major-version 19)
+	      (= emacs-minor-version 28)) ; Hey, get with the times people!!
 	 nil)
 	((consp w3-use-menus)
 	 (w3-menu-install-menubar))

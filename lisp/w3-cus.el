@@ -1,7 +1,7 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/14 01:37:15 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1999/12/05 08:36:02 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -25,17 +25,6 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(eval-and-compile
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args)
-      nil)
-    (defmacro defcustom (var value doc &rest args) 
-      (` (defvar (, var) (, value) (, doc))))))
 
 (require 'mule-sysdp)
 
@@ -125,11 +114,6 @@ explicit encodings for URLs."
   "*Where the w3 documentation lives.  This MUST end in a slash."
   :group 'w3-files
   :type 'string)
-
-(defcustom w3-temporary-directory (or (getenv "TMPDIR") "/tmp")
-  "*Where temporary files go."
-  :group 'w3-files
-  :type 'directory)
 
 ;;; Display related variables
 (defcustom w3-display-frames t
@@ -264,22 +248,6 @@ argument, the filename of the graphic that is not loaded.
 		 (string :tag "Format string")
 		 (sexp :tag "Function" :value nil)))
 
-(defcustom w3-icon-directory "http://cs.indiana.edu/elisp/w3/icons/"
-  "*Where to find standard icons.  Must end in a /!"
-  :group 'w3-images
-  :type 'string)
-
-(defcustom w3-icon-format 'gif
-  "*Image format the default icons are expected to be in.
-This is a symbol specifing what file extension to use.
-If nil, then no file extension is used."
-  :group 'w3-images
-  :type '(choice (const :tag "GIF Image" :value gif)
-		 (const :tag "XPM Image" :value xpm)
-		 (const :tag "XBM Image" :value xbm)
-		 (const :tag "Let the server decide" :value nil)
-		 (symbol :tag "Other")))
-
 (defcustom w3-delay-image-loads (not (or (featurep 'gif)
 					 (featurep 'jpeg)
 					 (featurep 'imagick)
@@ -289,51 +257,27 @@ If nil, then no file extension is used."
   :type 'boolean)
 
 (defcustom w3-image-mappings
-  (if (featurep 'imagick)
-      '(
-	("image/x-xbitmap"        . xbm)
-	("image/xbitmap"          . xbm)
-	("image/xbm"              . xbm)
-	("image/jpeg"             . imagick)
-	("image/gif"              . imagick)
-	("image/png"              . imagick)
-	("image/x-fax"            . imagick)
-	("image/x-raster"         . imagick)
-	("image/windowdump"       . imagick)
-	("image/x-icon"           . imagick)
-	("image/portable-graymap" . imagick)
-	("image/portable-pixmap"  . imagick)
-	("image/x-pixmap"         . imagick)
-	("image/x-xpixmap"        . imagick)
-	("image/pict"             . imagick)
-	("image/x-rgb"            . imagick)
-	("image/x-sgi"            . imagick)
-	("image/x-macpaint"       . imagick)
-	("image/x-targa"          . imagick)
-	("image/tiff"             . imagick)
-	)
-    '(
-      ("image/x-xbitmap"        . xbm)
-      ("image/xbitmap"          . xbm)
-      ("image/xbm"              . xbm)
-      ("image/jpeg"             . jpeg)
-      ("image/gif"              . gif)
-      ("image/png"              . png)
-      ("image/x-fax"            . g3fax)
-      ("image/x-raster"         . rast)
-      ("image/windowdump"       . xwd)
-      ("image/x-icon"           . icon)
-      ("image/portable-graymap" . pgm)
-      ("image/portable-pixmap"  . ppm)
-      ("image/x-pixmap"         . xpm)
-      ("image/x-xpixmap"        . xpm)
-      ("image/pict"             . pict)
-      ("image/x-rgb"            . sgi)
-      ("image/x-sgi"            . sgi)
-      ("image/x-macpaint"       . macpt)
-      ("image/x-targa"          . tga)
-      ("image/tiff"             . tiff)
-      )
+  '(
+    ("image/x-xbitmap"        . xbm)
+    ("image/xbitmap"          . xbm)
+    ("image/xbm"              . xbm)
+    ("image/jpeg"             . jpeg)
+    ("image/gif"              . gif)
+    ("image/png"              . png)
+    ("image/x-fax"            . g3fax)
+    ("image/x-raster"         . rast)
+    ("image/windowdump"       . xwd)
+    ("image/x-icon"           . icon)
+    ("image/portable-graymap" . pgm)
+    ("image/portable-pixmap"  . ppm)
+    ("image/x-pixmap"         . xpm)
+    ("image/x-xpixmap"        . xpm)
+    ("image/pict"             . pict)
+    ("image/x-rgb"            . sgi)
+    ("image/x-sgi"            . sgi)
+    ("image/x-macpaint"       . macpt)
+    ("image/x-targa"          . tga)
+    ("image/tiff"             . tiff)
     )
   "*How to map MIME types to image types for the `image' package.
 Each entry is a cons cell of MIME types and image-type symbols."
@@ -341,38 +285,6 @@ Each entry is a cons cell of MIME types and image-type symbols."
   :type '(repeat (cons :format "%v"
 		       (string :tag "MIME Type")
 		       (symbol :tag "Image type"))))
-
-;;; Printing variables
-(defcustom w3-latex-docstyle "{article}"
-  "*The documentstyle to use when printing or mailing files as LaTeX.
-Good defaults are: {article}, [psfig,twocolumn]{article}, etc."
-  :group 'w3-printing
-  :type 'string)
-
-(defcustom w3-latex-print-links nil
-  "*If non-nil, prints the URLs of hypertext links as endnotes at the end of
-the document.  If `footnote', prints the URL's as footnotes on a page."
-  :group 'w3-printing
-  :type '(choice (const :tag "As endnotes" :value t)
-		 (const :tag "As footnotes" :value footnote)
-		 (const :tag "Do not print" :value nil)))
-
-(defcustom w3-latex-use-latex2e nil
-  "*If non-nil, configures LaTeX generator to use LaTeX2e syntax.  A `nil' 
-value indicates that LaTeX 2.0.9 compatibility will be used instead."
-  :group 'w3-printing
-  :type 'boolean)
-
-(defcustom w3-latex-packages nil
-  "*List of LaTeX packages to include when converting HTML to LaTeX.
-Currently this is only used if `w3-latex-use-latex2e' is non-nil."
-  :group 'w3-printing
-  :type '(repeat string))
-
-(defcustom w3-latex-use-maketitle nil
-  "*Non-nil makes the LaTeX parser use real LaTeX title pages."
-  :group 'w3-printing
-  :type 'boolean)
 
 ;;; Menus
 (defcustom w3-max-menu-length 35
@@ -404,9 +316,8 @@ of the menu."
   :group 'w3-advanced
   :type 'sexp)
 
-(defcustom w3-netscape-compatible-comments t
-  "*Whether to honor netscape-style <! > comments.
-Ye gods I wish I could turn this off by default."
+(defcustom w3-netscape-compatible-comments nil
+  "*Whether to honor netscape-style <! > comments."
   :group 'w3-parsing
   :type 'boolean)
 
@@ -447,13 +358,6 @@ Any other value of `w3-notify' is equivalent to `meek'."
 A nil value means W3 should not change the binding of mouse-3."
   :group 'w3-display
   :type 'boolean)
-
-(defcustom w3-print-command "lpr -h -d"
-  "*Print command for dvi files.
-This is usually 'lpr -h -d' to send it to a postscript printer, but you can set
-it up so that it is any command that takes a dvi file as its last argument."
-  :group 'w3-printing
-  :type 'string)
 
 (defcustom w3-reuse-buffers 'yes
   "What to do when following a link will re-fetch a document that has

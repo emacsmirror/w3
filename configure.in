@@ -34,8 +34,8 @@ AC_EMACS_PACKAGES
 AC_PATH_LISPDIR
 
 AC_EMACS_VERSION
-AC_CHECK_CUSTOM
 AC_CHECK_GNUS
+AC_CHECK_URL
 AC_CHECK_CUSTOMLOADS
 
 if test "${MAKEINFO}" = "no"; then
@@ -60,22 +60,6 @@ CIDFILE=url-cid.el
 AC_SUBST(CIDFILE)
 fi
 
-if test "${CUSTOM}" = "no"; then
-AC_MSG_WARN(" ")
-AC_MSG_WARN(No usable version of the widget/custom libraries have been)
-AC_MSG_WARN(detected on your system.  This version of Emacs/W3 requires)
-AC_MSG_WARN(features present in newer versions of the widget library.)
-AC_MSG_WARN(" ")
-AC_MSG_WARN(Please upgrade to the latest version of custom available.)
-AC_MSG_WARN(This package is included with Emacs 20.1 and XEmacs 20.3)
-AC_MSG_WARN(or from http://www.dina.kvl.dk/~abraham/custom/)
-AC_MSG_WARN(or /ftp.dina.kvl.dk:/pub/Staff/Per.Abrahamsen/custom/)
-AC_MSG_WARN(" ")
-AC_MSG_WARN([You may still continue, but you must modify lisp/Makefile])
-AC_MSG_WARN(to have the correct WIDGETDIR setting.)
-AC_MSG_WARN(" ")
-fi
-
 AC_OUTPUT(Makefile
 	  etc/Makefile
 	  texi/Makefile
@@ -94,9 +78,3 @@ AC_MSG_RESULT(" ")
 AC_MSG_RESULT("To finish building Emacs/W3 type \'make\' now.")
 AC_MSG_RESULT("To install Emacs/W3 type \'make install\'.")
 AC_MSG_RESULT("To create autoloads in \'${DOTEMACS}\' type \'make dotemacs\'")
-
-dnl (aclocal.m4) Local variables:
-dnl (aclocal.m4) eval: (make-local-hook 'kill-buffer-hook)
-dnl (aclocal.m4) eval: (defun w3-rebuild-configure-files () (if (file-newer-than-file-p (buffer-file-name) (expand-file-name "configure" (file-name-directory (buffer-file-name)))) (shell-command "autoreconf")))
-dnl (aclocal.m4) eval: (add-hook 'kill-buffer-hook 'w3-rebuild-configure-files nil t)
-dnl (aclocal.m4) End: ***

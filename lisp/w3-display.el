@@ -1,7 +1,7 @@
 ;;; w3-display.el --- display engine
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/20 11:37:54 $
-;; Version: $Revision: 1.18 $
+;; Created: $Date: 1999/12/05 08:36:02 $
+;; Version: $Revision: 1.19 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,6 +33,7 @@
 (require 'css)
 (require 'font)
 (require 'url-parse)
+(require 'mailcap)
 (require 'w3-widget)
 (require 'w3-imap)
 
@@ -498,7 +499,7 @@ If the face already exists, it is unmodified."
       "Sorry, no cookies today."
     (let* ((href (or (w3-get-attribute 'href) (w3-get-attribute 'src)))
 	   (fname (or (cdr-safe (assoc href w3-cookie-cache))
-		      (url-generate-unique-filename "%s.cki")))
+		      (mailcap-generate-unique-filename "%s.cki")))
 	   (st (or (cdr-safe (assq 'start args)) "Loading cookies..."))
 	   (nd (or (cdr-safe (assq 'end args)) "Loading cookies... done.")))
       (if (not (file-exists-p fname))
@@ -796,12 +797,9 @@ If the face already exists, it is unmodified."
       (message "Skipping image %s" (url-basepath src t))
       (w3-add-delayed-graphic widget))
      (t					; Grab the images
-      (let (
-	    (url-request-method "GET")
-	    (old-asynch (default-value 'url-be-asynchronous))
+      (let ((url-request-method "GET")
 	    (url-request-data nil)
 	    (url-request-extra-headers nil)
-	    (url-source t)
 	    (url-mime-accept-string (substring
 				     (mapconcat
 				      (function
@@ -810,21 +808,11 @@ If the face already exists, it is unmodified."
 					     (concat (car x) ",")
 					   "")))
 				      w3-allowed-image-types "")
-				     0 -1))
-	    (url-working-buffer (generate-new-buffer-name " *W3GRAPH*")))
-	(unwind-protect
-	    (progn
-	      (setq-default url-be-asynchronous t)
-	      (setq w3-graphics-list (cons (cons src (make-glyph))
-					   w3-graphics-list))
-	      (save-excursion
-		(set-buffer (get-buffer-create url-working-buffer))
-		(setq url-current-callback-data (list src (widget-get widget 'buffer)
-						      widget)
-		      url-be-asynchronous t
-		      url-current-callback-func 'w3-finalize-image-download)
-		(url-retrieve src)))
-	  (setq-default url-be-asynchronous old-asynch)))))))
+				     0 -1)))
+	(setq w3-graphics-list (cons (cons src (make-glyph))
+				     w3-graphics-list))
+	(url-retrieve src 'w3-finalize-image-download
+		      (list src (widget-get widget 'buffer) widget)))))))
 
 (defun w3-maybe-start-background-image-download (src face)
   (let* ((cached-glyph (w3-image-cached-p src))
@@ -844,12 +832,9 @@ If the face already exists, it is unmodified."
       (mesage "Skipping image %s" (url-basepath src t))
       nil)
      (t					; Grab the images
-      (let (
-	    (url-request-method "GET")
-	    (old-asynch (default-value 'url-be-asynchronous))
+      (let ((url-request-method "GET")
 	    (url-request-data nil)
 	    (url-request-extra-headers nil)
-	    (url-source t)
 	    (url-mime-accept-string (substring
 				     (mapconcat
 				      (function
@@ -858,31 +843,23 @@ If the face already exists, it is unmodified."
 					     (concat (car x) ",")
 					   "")))
 				      w3-allowed-image-types "")
-				     0 -1))
-	    (url-working-buffer (generate-new-buffer-name " *W3GRAPH*")))
-	(unwind-protect
-	    (progn
-	      (setq-default url-be-asynchronous t)
-	      (setq w3-graphics-list (cons (cons src (make-glyph))
-					   w3-graphics-list))
-	      (save-excursion
-		(set-buffer (get-buffer-create url-working-buffer))
-		(setq url-current-callback-data (list src buf 'background face)
-		      url-be-asynchronous t
-		      url-current-callback-func 'w3-finalize-image-download)
-		(url-retrieve src)))
-	  (setq-default url-be-asynchronous old-asynch)))))))
+				     0 -1)))
+	(setq w3-graphics-list (cons (cons src (make-glyph))
+				     w3-graphics-list))
+	(url-retrieve src 'w3-finalize-image-download (list src buf 'background face)))))))
 
 (defun w3-finalize-image-download (url buffer &optional widget face)
   (let ((glyph nil)
-	(node nil))
-    (url-uncompress)
+	(node nil)
+	(handle (mm-dissect-buffer t)))
+    (url-mark-buffer-as-dead (current-buffer))
     (message "Enhancing image...")
-    (setq glyph (image-normalize (cdr-safe (assoc url-current-mime-type
-						  w3-image-mappings))
-				 (buffer-string)))
+    (with-temp-buffer
+      (mm-insert-part handle)
+      (setq glyph (image-normalize (cdr-safe (assoc (car (mm-handle-type handle))
+						    w3-image-mappings))
+				   (buffer-string))))
     (message "Enhancing image... done")
-    (kill-buffer (current-buffer))
     (cond
      ((w3-image-invalid-glyph-p glyph)
       (setq glyph nil)
@@ -2497,6 +2474,7 @@ Format: (((image-alt row column) . offset) ...)")
 	    (*invisible
 	     (w3-handle-empty-tag))
 	    (meta
+	     ;; FIXME!!! This is broken for the new URL package.
 	     (let* ((equiv (cdr-safe (assq 'http-equiv args)))
 		    (value (w3-get-attribute 'content))
 		    (name  (w3-get-attribute 'name))
@@ -2516,6 +2494,7 @@ Format: (((image-alt row column) . offset) ...)")
 		   (url-cookie-handle-set-cookie value))
 	       ;; Special-case the refresh header
 	       (if (and equiv (string= (downcase equiv) "refresh"))
+		   ;; FIXME!!!
 		   (url-handle-refresh-header value)))
 	     (w3-handle-empty-tag)
 	     )
@@ -2802,12 +2781,30 @@ Format: (((image-alt row column) . offset) ...)")
 	     (w3-frames)
 	     t))))
 
+(defun w3-buffer-visiting (url)
+  "Return the name of a buffer (if any) that is visiting URL."
+  (setq url (url-normalize-url url))
+  (let ((bufs (buffer-list))
+	(found nil))
+    (while (and bufs (not found))
+      (save-excursion
+	(set-buffer (car bufs))
+	(setq found (if (and
+			 (not (string-match "^ " (buffer-name (car bufs))))
+			 (eq major-mode 'w3-mode)
+			 url-current-object
+			 (equal (url-normalize-url (url-view-url t)) url))
+			(car bufs) nil)
+	      bufs (cdr bufs))))
+    found))
+
 (defun w3-frames (&optional new-frame)
   "Set up and fetch W3 frames. With optional prefix, do so in a new frame."
   (interactive "P")
   (if (not w3-display-frames)
       (let ((w3-display-frames t))
 	(w3-refresh-buffer)))
+  ;; FIXME!!!
   (let* ((old-asynch (default-value 'url-be-asynchronous))
 	 (structure (reverse w3-frameset-structure)))
     (if new-frame
@@ -2879,7 +2876,6 @@ Format: (((image-alt row column) . offset) ...)")
       (cond ((eq (car (car structure)) 'frame)
 	     (let ((href (nth 2 (car structure)))
 		   (name (nth 1 (car structure)))
-		   (url-working-buffer url-default-working-buffer) ; in case url-multiple-p is t
 		   (w3-notify 'semibully)
 		   (next-frame-window (next-window)))
 	       (pop structure)
@@ -2891,7 +2887,7 @@ Format: (((image-alt row column) . offset) ...)")
 		     (t
 		      (w3-fetch href)))
 	       (let ((buf (current-buffer))
-		     (framebuf (url-buffer-visiting href)))
+		     (framebuf (w3-buffer-visiting href)))
 		 (cond (framebuf
 			(set-buffer framebuf)
 			(setq w3-frame-name name

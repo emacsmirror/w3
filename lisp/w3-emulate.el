@@ -1,12 +1,12 @@
 ;;; w3-emulate.el --- All variable definitions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:05 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -250,18 +250,6 @@
 (defun turn-off-ie-masquerade-mode ()
   (interactive)
   (w3-ie-masquerade-mode 0))
-
-(defun w3-arena-masquerade-mode (&optional arg)
-  (interactive "P")
-  (w3-masquerade-stub arg "Arena" "0.9"))
-
-(defun turn-on-arena-masquerade-mode ()
-  (interactive)
-  (w3-arena-masquerade-mode 1))
-
-(defun turn-off-arena-masquerade-mode ()
-  (interactive)
-  (w3-arena-masquerade-mode 0))
 
 ;;
 (provide 'w3-emulate)

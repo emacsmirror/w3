@@ -2,9 +2,6 @@ BUGS (4.0):
 - trim down w3-sysdp.el to be just the stuff it really needs
 - border-color can have multiple color specifications, but we
   currently choke with 'args out of range' when we see this.
-- widget appears to be stealing button3 to mean 'activate' - this is
-  bogus!  We lose all context-sensitive menus because of this.
-- We still seem to be growing the line size under Emacs 19.x/20.x
 - document how to translate Netscape foo.pac files to emacs lisp
 
 BUGS (4.1):
@@ -39,10 +36,6 @@ FEATURES (4.1)
     additional methods to automatically index documents.
 
     * Multi keyword search
-- w3-(un)?plugged, w3-toggle-plugged to control url-standalone-mode in
-  a convenient, user-friendly way.
-- Nice custom-y way to create an HTTP request.  This would allow
-  people to use HTTP PUT to upload documents to HTTP servers, etc.
 - cache a formatted version of documents, with enough info to recreate
   the widgets in them.
 - keystrokes and supporting infrastructure to prefetch URLs from
@@ -57,17 +50,10 @@ FEATURES (4.1)
   it would solve most of the problem.
 - When fetching images for viewing (not inlining), W3 should at least
   have an option of displaying it inline, ala Netscape.
-- Widget library merging
-  - Write a font selection widget
-  - Write a voice selection widget
-  - Write a mailcap entry widget
-- Custom library merging
-  - Add custom support for MM
 - Hotlist handling
   - Abstract out current support
   - Do something similar to GNUS 'backends' to provide easy way to add new
     bookmark formats, etc.
-- Write a new major mode for handling CSS style sheets
 
 FEATURES (5.0)
 - Emacspeak Integration
@@ -84,7 +70,6 @@ FEATURES (5.0)
     - TeXinfo
 - Display code
   - implement <spacer> from netscape 3.0b5
-  - reimplement w3-show-headers
   - Handle math environment using the calc library
   - Better integration with the parser
 

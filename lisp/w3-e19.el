@@ -1,12 +1,12 @@
 ;;; w3-e19.el --- Emacs 19.xx specific functions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:03 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -33,7 +33,6 @@
   (require 'w3-props))
 (require 'w3-forms)
 (require 'font)
-(require 'w3-script)
 
 (defvar w3-e19-window-width nil)
 (make-variable-buffer-local 'w3-e19-window-width)
@@ -80,11 +79,7 @@
 	 (mouse-events nil))
     (if (not (and good pt (number-or-marker-p pt)))
 	nil
-      (widget-echo-help pt)
-      ;; FIXME!!! Need to handle onmouseover, on mouseout
-      (setq mouse-events (w3-script-find-event-handlers pt 'mouse))
-      (if (assq 'onmouseover mouse-events)
-	  (w3-script-evaluate-form (cdr (assq 'onmouseover mouse-events)))))))
+      (widget-echo-help pt))))
 
 (defun w3-window-size-change-function (frame)
   (let ((first (frame-first-window frame))

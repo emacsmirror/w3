@@ -1,7 +1,7 @@
 ;;; w3-vars.el,v --- All variable definitions for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/10/01 20:22:11 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 1999/12/05 08:36:11 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: comm, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,7 +34,7 @@
 (require 'wid-edit)			; For `widget-keymap'
 
 (defconst w3-version-number
-  (let ((x "$State: p4.0pre.46 $"))
+  (let ((x "$State: Exp $"))
     (if (string-match "State:[ \t\n]+.\\([^ \t\n]+\\)" x)
 	(setq x (substring x (match-beginning 1) (match-end 1)))
       (setq x (substring x 1)))
@@ -42,7 +42,7 @@
      (function (lambda (x) (if (= x ?-) "." (char-to-string x)))) x ""))
   "Version # of w3-mode.")
 
-(defconst w3-version-date (let ((x "$Date: 1999/10/01 20:22:11 $"))
+(defconst w3-version-date (let ((x "$Date: 1999/12/05 08:36:11 $"))
 			    (if (string-match "Date: \\([^ \t\n]+\\)" x)
 				(substring x (match-beginning 1) (match-end 1))
 			      x))
@@ -55,12 +55,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General configuration variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar w3-dump-to-disk nil
-  "*If non-nil, all W3 pages loaded will be dumped to disk.")
-
-(defvar w3-fetch-with-default t
-  "*Whether `w3-fetch' should determine a good starting URL as a default.")
-
 (defvar w3-track-last-buffer nil
   "*Whether to track the last w3 buffer to automatically switch to with
  M-x w3.")
@@ -76,7 +70,7 @@ in later garbage collections taking more time.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Figure out what flavor of emacs we are running
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar w3-running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)
+(defvar w3-running-xemacs (string-match "XEmacs" emacs-version)
   "*Got XEmacs?.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -264,8 +258,7 @@ in later garbage collections taking more time.")
 (defvar w3-graphlink-menu
   '(("Open this Image (%s)"     . w3-fetch)
     ("Save this Image As..."    . w3-download-url)
-    ("Copy this Image Location" . w3-save-url)
-    ("Information on this Image". w3-popup-image-info))
+    ("Copy this Image Location" . w3-save-url))
   "An assoc list of function names and labels.  These will be displayed
 in a popup menu when the mouse is pressed on a hyperlink.  Format is
 ( (label . function)), function is called with one argument, the URL of
@@ -277,8 +270,7 @@ the URL of the link.")
     ("Add Bookmark for this Link" . w3-hotlist-add-document-at-point)
     ("New Window with this Link"  . w3-fetch-other-frame)
     ("Save Link As..."            . w3-download-url)
-    ("Copy this Link Location to Clipboard" . w3-save-url)
-    ("Information on this Link"   . w3-popup-info))
+    ("Copy this Link Location to Clipboard" . w3-save-url))
   "An assoc list of function names and labels.  These will be displayed
 in a popup menu when the mouse is pressed on a hyperlink.  Format is
 ( (label . function)), function is called with one argument, the URL of
@@ -322,12 +314,6 @@ the buffer.")
 (defvar w3-current-stylesheet nil
   "The stylesheet for this document.")
 
-(defvar w3-blinking-buffs nil
-  "A list of buffers with blinking text in them.
-This is used to optimize when we change a face so the entire display
-doesn't flash every second, whether we've run into a buffer that is
-displaying blinking text or not.")
-
 (defvar w3-last-fill-pos nil
   "An internal variable for the new display engine that specifies the
 last character position that was correctly filled.")
@@ -335,10 +321,8 @@ last character position that was correctly filled.")
 (defvar w3-active-faces nil "The list of active faces.")
 (defvar w3-active-voices nil "The list of active voices.")
 
-(defconst w3-bug-address "wmperry+w3@cs.indiana.edu"
+(defconst w3-bug-address "w3-bugs@xemacs.org"
   "Address of current maintainer, where to send bug reports.")
-(defvar w3-continuation '(url-uncompress)
-  "List of functions to call to process a document completely.")
 (defvar w3-current-isindex nil "Is the current document a searchable index?")
 (defvar w3-current-buffer nil "Is the current W3 buffer")
 (defvar w3-current-last-buffer nil "Last W3 buffer seen before this one.")
@@ -347,17 +331,12 @@ last character position that was correctly filled.")
 (defvar w3-current-source nil "Source of current document.")
 (defvar w3-current-parse nil "Parsed version of current document.")
 (defvar w3-current-badhtml nil "List of HTML warnings for this page.")
-(defconst w3-default-continuation '(url-uncompress) 
-  "Default action to start with - cleans text and uncompresses if necessary.")
 (defvar w3-find-this-link nil "Link to go to within a document.")
 (defvar w3-hidden-forms nil "List of hidden form areas and their info.")
 (defvar w3-hotlist nil "Default hotlist.")
-(defvar w3-icon-path-cache nil "Cache of where we found icons for entities.")
 (defvar w3-last-buffer nil "The last W3 buffer visited.")
-(defvar w3-print-next nil "Should we latex & print the next doc?")
 (defvar w3-roman-characters "ivxLCDMVX" "Roman numerals.")
 (defvar w3-setup-done nil "Have we been through setup code yet?")
-(defvar w3-source nil "Should we source the next document or not?")
 
 (defvar w3-strict-width nil
   "*This variable will control how wide emacs thinks the current window is.
@@ -368,6 +347,7 @@ returns.")
 (defvar w3-submit-button nil
   "A widget object specifying what button was pressed to submit a form.")
 
+;; FIXME - this should be changed to use the mm stuff. - FIXME
 (defvar w3-meta-content-type-charset-regexp
   (concat "<meta[ \t]+http-equiv=\"?Content-type\"?[ \t]+content=\"\\([^;]+\\)"
 	  ";[ \t]*charset=\"?\\([^\"]+\\)\"?"
@@ -404,14 +384,7 @@ for a charset indication")
     widget-field-new
     w3-form-radio-elements
     w3-form-elements
-    url-current-callback-func
-    url-current-content-length
-    url-current-mime-encoding
-    url-current-mime-headers
-    url-current-mime-type
-    url-current-mime-viewer
     url-current-object
-    url-current-referer
     w3-current-badhtml
     w3-current-parse
     w3-current-isindex
@@ -464,98 +437,7 @@ for a charset indication")
 (defvar w3-table-structure nil
   "Structure to hold table info")
 (make-variable-buffer-local 'w3-table-structure)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;  Keymap definitions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar w3-mode-map (make-sparse-keymap) "Keymap to use in w3-mode.")
-(suppress-keymap w3-mode-map)
-(set-keymap-parent w3-mode-map widget-keymap)
 
-(define-key w3-mode-map "h" (make-sparse-keymap))
-(define-key w3-mode-map "H" (make-sparse-keymap))
-(define-key w3-mode-map "a" (make-sparse-keymap))
-
-(define-key w3-mode-map "ha"       'w3-hotlist-apropos)
-(define-key w3-mode-map "hd"       'w3-hotlist-delete)
-(define-key w3-mode-map "hi"       'w3-hotlist-add-document)
-(define-key w3-mode-map "hv"       'w3-show-hotlist)
-(define-key w3-mode-map "hr"       'w3-hotlist-rename-entry)
-(define-key w3-mode-map "hu"       'w3-use-hotlist)
-(define-key w3-mode-map "hA"       'w3-hotlist-append)
-(define-key w3-mode-map "hI"       'w3-hotlist-add-document-at-point)
-(define-key w3-mode-map "hR"       'w3-hotlist-refresh)
-
-(define-key w3-mode-map "x" (make-sparse-keymap))
-(define-key w3-mode-map "xa" 'w3-hotindex-add-key)
-(define-key w3-mode-map "xd" 'w3-hotindex-rm-key)
-(define-key w3-mode-map "xq" 'w3-hotindex-query)
-
-(define-key w3-mode-map "HF"       'w3-history-forward)
-(define-key w3-mode-map "HB"       'w3-history-backward)
-(define-key w3-mode-map "Hv"       'w3-show-history-list)
-
-(define-key w3-mode-map " "	   'w3-scroll-up)
-(define-key w3-mode-map "<"        'beginning-of-buffer)
-(define-key w3-mode-map ">"        'end-of-buffer)
-(define-key w3-mode-map "?"        'w3-help)
-(define-key w3-mode-map "B"        'w3-history-backward)
-(define-key w3-mode-map "D"        'w3-download-url-at-point)
-(define-key w3-mode-map "F"        'w3-history-forward)
-(define-key w3-mode-map "G"        'w3-show-graphics)
-(define-key w3-mode-map "I"        'w3-popup-info)
-(define-key w3-mode-map "K"        'w3-save-this-url)
-(define-key w3-mode-map "P"        'w3-print-url-under-point)
-(define-key w3-mode-map "Q"        'w3-leave-buffer)
-(define-key w3-mode-map "R"        'w3-refresh-buffer)
-(define-key w3-mode-map "S"        'w3-source-document-at-point)
-(define-key w3-mode-map "U"        'w3-use-links)
-(define-key w3-mode-map "V"        'w3-view-this-url)
-(define-key w3-mode-map "\C-?"     'scroll-down)
-(define-key w3-mode-map [backspace] 'scroll-down)
-(define-key w3-mode-map "\C-c\C-b" 'w3-show-history-list)
-(define-key w3-mode-map "\C-c\C-v" 'w3-version)
-(define-key w3-mode-map "\C-o"     'w3-fetch)
-(define-key w3-mode-map "\M-M"     'w3-mail-document-under-point)
-(define-key w3-mode-map "\M-m"	   'w3-mail-current-document)
-(define-key w3-mode-map "\M-s"	   'w3-save-as)
-(define-key w3-mode-map "\M-\r"    'w3-follow-inlined-image)
-(define-key w3-mode-map "b"	   'w3-widget-backward)
-(define-key w3-mode-map "c"        'w3-mail-document-author)
-(define-key w3-mode-map "d"        'w3-download-this-url)
-(define-key w3-mode-map "f"	   'w3-widget-forward)
-(define-key w3-mode-map "g"        'w3-reload-document)
-(define-key w3-mode-map "i"        'w3-document-information)
-(define-key w3-mode-map "k"        'w3-save-url)
-(define-key w3-mode-map "l"        'w3-goto-last-buffer)
-(define-key w3-mode-map "m"        'w3-complete-link)
-(define-key w3-mode-map "n"        'w3-widget-forward)
-(define-key w3-mode-map "o"	   'w3-open-local)
-(define-key w3-mode-map "p"        'w3-print-this-url)
-(define-key w3-mode-map "q"	   'w3-quit)
-(define-key w3-mode-map "r"        'w3-reload-document)
-(define-key w3-mode-map "s"        'w3-source-document)
-(define-key w3-mode-map "u"        'w3-leave-buffer)
-(define-key w3-mode-map "v"	   'url-view-url)
-(define-key w3-mode-map "w"        'w3-submit-bug)
-
-;; These are duplicated here instead of just inherited from widget-keymap
-;; due to some issues with Emacspeak.  FIXME.
-(define-key w3-mode-map [tab] 'w3-widget-forward)
-(define-key w3-mode-map [(shift tab)] 'w3-widget-backward)
-(define-key w3-mode-map [(meta tab)] 'w3-widget-backward)
-(define-key w3-mode-map [backtab] 'w3-widget-backward)
-
-;; Emulate some netscape stuff by default
-(define-key w3-mode-map [(control alt t)] 'url-list-processes)
-(define-key w3-mode-map [(control meta t)] 'url-list-processes)
-
-;; Have fun with document ordering
-(define-key w3-mode-map [(meta space)] 'w3-next-document)
-(define-key w3-mode-map [(meta delete)] 'w3-prev-document)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Keyword definitions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'w3-keymap)
 (require 'w3-keyword)
 (provide 'w3-vars)

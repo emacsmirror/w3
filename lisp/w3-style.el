@@ -1,12 +1,12 @@
 ;;; w3-style.el --- Emacs/W3 binding style sheet mechanism
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:11 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -37,8 +37,6 @@
 (require 'cl)
 (require 'css)
 
-
-
 ;;;###autoload
 (defun w3-handle-style (&optional plist)
   (let ((url (or (plist-get plist 'href)
@@ -46,17 +44,14 @@
 		 (plist-get plist 'uri)))
 	(media (intern (downcase (or (plist-get plist 'media) "all"))))
 	(type (downcase (or (plist-get plist 'notation) "text/css")))
-	(url-working-buffer " *style*")
 	(stylesheet nil)
 	(defines nil)
+	(buffer nil)
 	(cur-sheet w3-current-stylesheet)
 	(string (plist-get plist 'data)))
     (if (not (memq media (css-active-device-types)))
 	nil				; Not applicable to us!
       (save-excursion
-	(set-buffer (get-buffer-create url-working-buffer))
-	(erase-buffer)
-	(setq url-be-asynchronous nil)
 	(cond
 	 ((member type '("experimental" "arena" "w3c-style" "css" "text/css"))
 	  (setq stylesheet (css-parse url string cur-sheet)))

@@ -1,12 +1,12 @@
 ;;; w3-print.el --- Printing support for emacs-w3
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1998/12/01 22:12:11 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:10 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: faces, help, printing, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -36,7 +36,7 @@ ps-spool-buffer-with-faces   - spool for later")
 
 ;;;###autoload
 (defun w3-print-this-url (&optional url format)
-  "Print out the current document (in LaTeX format)"
+  "Print out the current document"
   (interactive)
   (if (not url) (setq url (url-view-url t)))
   (let* ((completion-ignore-case t)
@@ -46,42 +46,18 @@ ps-spool-buffer-with-faces   - spool for later")
 		      '(("HTML Source")		; The raw HTML code
 			("Formatted Text") 	; Plain ASCII rendition
 			("PostScript")		; Pretty PostScript
-			("LaTeX'd")		; LaTeX it, then print
 			)
 		      nil t))))
-    (save-excursion
-      (cond
-       ((equal "HTML Source" format)
-	(if w3-current-source
-	    (let ((x w3-current-source))
-	      (set-buffer (get-buffer-create url-working-buffer))
-	      (erase-buffer)
-	      (insert x))
-	  (url-retrieve url))
-	(lpr-buffer))
-       ((or (equal "Formatted Text" format)
-	    (equal "" format))
-	(lpr-buffer))
-       ((equal "PostScript" format)
-	(funcall w3-postscript-print-function))
-       ((equal "LaTeX'd" format)
- 	(w3-parse-tree-to-latex w3-current-parse url)
-	(save-window-excursion
-	  (mule-write-region-no-coding-system
-	   (point-min) (point-max)
-	   (expand-file-name "w3-tmp.latex"
-			     w3-temporary-directory) nil 5)
-	  (shell-command
-	   (format
-	    "cd %s ; latex w3-tmp.latex ; latex w3-tmp.latex ; %s w3-tmp.dvi ; rm -f w3-tmp*"
-	    w3-temporary-directory
-	    w3-print-command))
-	  (kill-buffer "*Shell Command Output*")))))))
-
-;;;###autoload
-(defun w3-print-url-under-point ()
-  "Print out the url under point (in LaTeX format)"
-  (interactive)
-  (w3-print-this-url (w3-view-this-url t)))
+    (cond
+     ((equal "HTML Source" format)
+      (save-excursion
+	(set-buffer (generate-new-buffer " *w3-print*"))
+	(insert w3-current-source)
+	(lpr-buffer)))
+     ((or (equal "Formatted Text" format)
+	  (equal "" format))
+      (lpr-buffer))
+     ((equal "PostScript" format)
+      (funcall w3-postscript-print-function)))))
 
 (provide 'w3-print)

@@ -58,6 +58,8 @@
 ;; will not complain, these variables are defined with defvar.
 
 (require 'w3-vars)
+(require 'url-parse)
+(require 'url-history)
 (require 'mule-sysdp)
 
 (eval-when-compile
@@ -266,43 +268,6 @@ which must be a string to use as the error message."
                            (mule-make-iso-character (cdr (car html-entities))))
 			(cdr (car html-entities)))))
     (setq html-entities (cdr html-entities))))
-
-;; These are handled differently than the normal HTML entities because
-;; we need to define the entities with 'nil instead of 'CDATA so
-;; that they are correctly scanned for new markup.
-;;
-;; from jbw@cs.bu.edu
-;;
-;;> Of course, this differs from the specification a bit.  The W3C tech
-;;> report defines all of these as SYSTEM entities.  This potentially means
-;;> that they can be used in more contexts.  The method I outlined above
-;;> means "&smiley;" can only be used in contexts where IMG is a valid
-;;> element.  I am not sure exactly where it is okay to use a SYSTEM entity.
-;;> I think anywhere that data characters are accepted.
-;;
-;; I find this acceptable, as just what the hell are you supposed to do with
-;; &computer; as part of a value of a form input when you display it and/or
-;; submit it?!
-
-;; The HTML graphics entities code is going away - nobody uses it, and
-;; I cannot even find references to it on the w3c site.  I am leaving
-;; this code in as an example of how to make the html entity expansion
-;; stuff work a little differently.
-;; WMP 4/4/1999
-
-;;(let ((html-entities w3-graphic-entities)
-;;      (cur nil))
-;;  (while html-entities
-;;    (setq cur (car html-entities)
-;;          html-entities (cdr html-entities))
-;;    (put (nth 0 cur) 'html-entity-expansion
-;;	 (cons 'nil (format "<img src=\"%s/%s%s\" alt=\"%s\">"
-;;                            w3-icon-directory
-;;                            (nth 1 cur)
-;;                            (if w3-icon-format
-;;                                (concat "." (symbol-name w3-icon-format))
-;;                              "")
-;;                            (or (nth 3 cur) (nth 2 cur)))))))
 
 ;; These are the general entities in HTML 3.0 in terms of which the math
 ;; shortrefs are defined:
@@ -1984,506 +1949,508 @@ skip-chars-forward."
 ;; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 (defun w3-parse-buffer (&optional buff)
   "Parse contents of BUFF as HTML.
-BUFF defaults to the value of url-working-buffer.
+BUFF defaults to the current buffer.
 Destructively alters contents of BUFF.
 Returns a data structure containing the parsed information."
   (if (not w3-setup-done) (w3-do-setup))
-  (set-buffer (or buff url-working-buffer))
-  (setq buff (current-buffer))
-  (let ((old-syntax-table (syntax-table)))
-    (set-syntax-table w3-sgml-md-syntax-table)
-    (buffer-disable-undo (current-buffer))
-    (widen)                             ; sanity checking
-    (goto-char (point-max))
-    (insert "\n")
-    (goto-char (point-min))
-    (setq case-fold-search t)           ; allows smaller regexp patterns
+  (save-excursion
+    (if buff
+        (set-buffer buff)
+      (setq buff (current-buffer)))
+    (let ((old-syntax-table (syntax-table)))
+      (set-syntax-table w3-sgml-md-syntax-table)
+      (buffer-disable-undo (current-buffer))
+      (widen)                           ; sanity checking
+      (goto-char (point-max))
+      (insert "\n")
+      (goto-char (point-min))
+      (setq case-fold-search t)         ; allows smaller regexp patterns
 
-    (run-hooks 'w3-parse-hooks);
+      (run-hooks 'w3-parse-hooks)       ;
 
-    (goto-char (point-min))
+      (goto-char (point-min))
   
-    ;; *** Should premunge line boundaries.
-    ;; ********************
+      ;; *** Should premunge line boundaries.
+      ;; ********************
   
-    (let* (
-           ;; Speed hack, see the variable doc string.
-           (gc-cons-threshold (if (> w3-gc-cons-threshold-multiplier 0)
-                                  (* w3-gc-cons-threshold-multiplier
-                                     gc-cons-threshold)
-                                gc-cons-threshold))
+      (let* (
+             ;; Speed hack, see the variable doc string.
+             (gc-cons-threshold (if (> w3-gc-cons-threshold-multiplier 0)
+                                    (* w3-gc-cons-threshold-multiplier
+                                       gc-cons-threshold)
+                                  gc-cons-threshold))
 
-           ;; Used to determine if we made any progress since the last loop.
-           (last-loop-start (point-min))
+             ;; Used to determine if we made any progress since the last loop.
+             (last-loop-start (point-min))
         
-           ;; How many iterations of the main loop have occurred.  Used only
-           ;; to send messages to the user periodically, since this function
-           ;; can take some time.
-           (loop-count 0)
+             ;; How many iterations of the main loop have occurred.  Used only
+             ;; to send messages to the user periodically, since this function
+             ;; can take some time.
+             (loop-count 0)
 
-           ;; Precomputing the loop-invariant parts of this for speed.
-           (status-message-format
-            (if url-show-status
-                (format "Parsed %%3d%%%% of %d..." (- (point-max) (point-min)))))
+             ;; Precomputing the loop-invariant parts of this for speed.
+             (status-message-format
+              (if url-show-status
+                  (format "Parsed %%3d%%%% of %d..." (- (point-max) (point-min)))))
          
-           ;; Use a float value for 100 if possible, otherwise integer.
-           ;; Determine which we can use outside of the loop for speed.
-           (one-hundred (funcall (if (fboundp 'float) 'float 'identity) 100))
+             ;; Use a float value for 100 if possible, otherwise integer.
+             ;; Determine which we can use outside of the loop for speed.
+             (one-hundred (funcall (if (fboundp 'float) 'float 'identity) 100))
          
-           ;; The buffer which contains the HTML we are parsing.  This
-           ;; variable is used to avoid using the more expensive
-           ;; save-excursion.
-           (parse-buffer (current-buffer))
+             ;; The buffer which contains the HTML we are parsing.  This
+             ;; variable is used to avoid using the more expensive
+             ;; save-excursion.
+             (parse-buffer (current-buffer))
          
-           ;; Points to start of region of text since the previous tag.
-           (between-tags-start (point-min))
+             ;; Points to start of region of text since the previous tag.
+             (between-tags-start (point-min))
          
-           ;; Points past end of region of text since the previous tag.  Only
-           ;; non-nil when the region has been completely determined and is
-           ;; ready to be processed.
-           between-tags-end
+             ;; Points past end of region of text since the previous tag.  Only
+             ;; non-nil when the region has been completely determined and is
+             ;; ready to be processed.
+             between-tags-end
          
-           ;; See doc string.
-           w3-p-d-tag-name
+             ;; See doc string.
+             w3-p-d-tag-name
          
-           ;; See doc string.
-           w3-p-d-end-tag-p
+             ;; See doc string.
+             w3-p-d-end-tag-p
          
-           ;; Is the tag we are looking at a null-end-tag-enabling
-           ;; start-tag?
-           net-tag-p
+             ;; Is the tag we are looking at a null-end-tag-enabling
+             ;; start-tag?
+             net-tag-p
          
-           ;; Attributes of the tag we are looking at.  An alist whose items
-           ;; are pairs of the form (SYMBOL . STRING).
-           tag-attributes
+             ;; Attributes of the tag we are looking at.  An alist whose items
+             ;; are pairs of the form (SYMBOL . STRING).
+             tag-attributes
          
-           ;; Points past end of attribute value we are looking at.  Points
-           ;; past the syntactic construct, not the value of the attribute,
-           ;; which may be at (1- attribute-value-end).
-           attribute-value-end
+             ;; Points past end of attribute value we are looking at.  Points
+             ;; past the syntactic construct, not the value of the attribute,
+             ;; which may be at (1- attribute-value-end).
+             attribute-value-end
          
-           ;; Points past end of tag we are looking at.
-           tag-end
+             ;; Points past end of tag we are looking at.
+             tag-end
          
-           ;; See doc string.
-           (w3-p-d-current-element (w3-fresh-element-for-tag '*document))
+             ;; See doc string.
+             (w3-p-d-current-element (w3-fresh-element-for-tag '*document))
          
-           ;; See doc string.
-           (w3-p-d-open-element-stack (list (w3-fresh-element-for-tag '*holder)))
+             ;; See doc string.
+             (w3-p-d-open-element-stack (list (w3-fresh-element-for-tag '*holder)))
          
-           ;; ***not implemented yet***
-           (marked-section-undo-stack nil)
+             ;; ***not implemented yet***
+             (marked-section-undo-stack nil)
          
-           ;; See doc string.
-           (w3-p-d-debug-url t)
+             ;; See doc string.
+             (w3-p-d-debug-url t)
          
-           ;; Any of the following variables with the comment ";*NESTED*"
-           ;; are syntactic or semantic features that were introduced by
-           ;; some containing element or marked section which will be undone
-           ;; when we close that element or marked section.
+             ;; Any of the following variables with the comment ";*NESTED*"
+             ;; are syntactic or semantic features that were introduced by
+             ;; some containing element or marked section which will be undone
+             ;; when we close that element or marked section.
          
-           ;; See doc string.
-           (w3-p-d-non-markup-chars nil) ;*NESTED*
+             ;; See doc string.
+             (w3-p-d-non-markup-chars nil) ;*NESTED*
          
-           ;; See doc string.
-           (w3-p-d-null-end-tag-enabled nil) ;*NESTED*
+             ;; See doc string.
+             (w3-p-d-null-end-tag-enabled nil) ;*NESTED*
          
-           ;; See doc string.
-           (w3-p-d-in-parsed-marked-section nil) ;*NESTED*
+             ;; See doc string.
+             (w3-p-d-in-parsed-marked-section nil) ;*NESTED*
          
-           ;; See doc string.
-           (w3-p-d-shortrefs nil)       ;*NESTED*
+             ;; See doc string.
+             (w3-p-d-shortrefs nil)     ;*NESTED*
          
-           ;; See doc string.
-           (w3-p-d-shortref-chars nil)  ;*NESTED*
+             ;; See doc string.
+             (w3-p-d-shortref-chars nil) ;*NESTED*
          
-           ;; ******* maybe not needed.
-           ;; 
-           ;; ;; Are we recognizing start-tags?
-           ;; (recognizing-start-tags t)     ;*NESTED*
-           ;; 
-           ;; ;; Are we recognizing end-tags?  If this is non-nil and not t,
-           ;; ;; then only the end tag of the current open element is
-           ;; ;; recognized.
-           ;; (recognizing-end-tags t)       ;*NESTED*
+             ;; ******* maybe not needed.
+             ;; 
+             ;; ;; Are we recognizing start-tags?
+             ;; (recognizing-start-tags t)     ;*NESTED*
+             ;; 
+             ;; ;; Are we recognizing end-tags?  If this is non-nil and not t,
+             ;; ;; then only the end tag of the current open element is
+             ;; ;; recognized.
+             ;; (recognizing-end-tags t)       ;*NESTED*
          
-           ;; See doc string.
-           (w3-p-d-exceptions nil)      ;*NESTED*
+             ;; See doc string.
+             (w3-p-d-exceptions nil)    ;*NESTED*
          
-           ;; Scratch variables used in this function
-           ref attr-name attr-value content-model content open-list
-           )
-      ;; Scratch variables used by macros and defsubsts we call.
-      (w3-p-s-let-bindings
-       (w3-update-non-markup-chars)
-       (setq w3-p-s-baseobject (url-generic-parse-url (url-view-url t)))
-       ;; Main loop.  Handle markup as follows:
-       ;;
-       ;; non-empty tag: Handle the region since the previous tag as PCDATA,
-       ;; RCDATA, CDATA, if allowed by syntax.  Then handle the tag.
-       ;;
-       ;; general entity (&name;): expand it and parse the result.
-       ;;
-       ;; shortref (_, {, }, and ^ in math stuff): Expand it and parse the
-       ;; result.
-       ;;
-       ;; SGML marked section (<![ keywords [ conditional-text ]]>): Either
-       ;; strip the delimiters and parse the result or delete.
-       ;;
-       ;; comment: Delete.
-       ;;
-       ;; empty tag (<>, </>): Handle as the appropriate tag.
-       ;;
-       ;; markup declaration (e.g. <!DOCTYPE ...>): Delete.
-       ;;
-       ;; SGML processing instruction (<?name>): Delete.
-       ;;
-       (while
-           ;; Continue as long as we processed something last time and we
-           ;; have more to process.
-           (prog1 
-               (not (and (= last-loop-start (point))
-                         (eobp)))
-             (setq last-loop-start (point)))
+             ;; Scratch variables used in this function
+             ref attr-name attr-value content-model content open-list
+             )
+        ;; Scratch variables used by macros and defsubsts we call.
+        (w3-p-s-let-bindings
+         (w3-update-non-markup-chars)
+         (setq w3-p-s-baseobject (copy-sequence url-current-object))
+         ;; Main loop.  Handle markup as follows:
+         ;;
+         ;; non-empty tag: Handle the region since the previous tag as PCDATA,
+         ;; RCDATA, CDATA, if allowed by syntax.  Then handle the tag.
+         ;;
+         ;; general entity (&name;): expand it and parse the result.
+         ;;
+         ;; shortref (_, {, }, and ^ in math stuff): Expand it and parse the
+         ;; result.
+         ;;
+         ;; SGML marked section (<![ keywords [ conditional-text ]]>): Either
+         ;; strip the delimiters and parse the result or delete.
+         ;;
+         ;; comment: Delete.
+         ;;
+         ;; empty tag (<>, </>): Handle as the appropriate tag.
+         ;;
+         ;; markup declaration (e.g. <!DOCTYPE ...>): Delete.
+         ;;
+         ;; SGML processing instruction (<?name>): Delete.
+         ;;
+         (while
+             ;; Continue as long as we processed something last time and we
+             ;; have more to process.
+             (prog1 
+                 (not (and (= last-loop-start (point))
+                           (eobp)))
+               (setq last-loop-start (point)))
       
-         ;; Display progress messages if asked and/or do incremental display
-         ;; of results
-         (cond ((= 0 (% (setq loop-count (1+ loop-count)) 40))
-                (if status-message-format
-                    (progn
-                      (if (fboundp 'progress)
-                          (progress "Parsing %s"
-                                    (truncate (/ (* (point) one-hundred) (point-max)))
-                                    (url-pretty-length (point-max))))
-                      (message status-message-format
-                               ;; Percentage of buffer processed.
-                               (/ (* (point) one-hundred) (point-max)))))))
+           ;; Display progress messages if asked and/or do incremental display
+           ;; of results
+           (cond ((= 0 (% (setq loop-count (1+ loop-count)) 40))
+                  (if status-message-format
+                      (progn
+                        (if (fboundp 'progress)
+                            (progress "Parsing %s"
+                                      (truncate (/ (* (point) one-hundred) (point-max)))
+                                      (url-pretty-length (point-max))))
+                        (message status-message-format
+                                 ;; Percentage of buffer processed.
+                                 (/ (* (point) one-hundred) (point-max)))))))
       
-         ;; Go to next interesting thing in the buffer.
-         (skip-chars-forward w3-p-d-non-markup-chars)
+           ;; Go to next interesting thing in the buffer.
+           (skip-chars-forward w3-p-d-non-markup-chars)
       
-         ;; We are looking at a markup-starting character, and invalid
-         ;; character, or end of buffer.
-         (cond
-
-          ((eq ?< (char-after (point)))
-
-           ;; We are looking at a tag, comment, markup declaration, SGML marked
-           ;; section, SGML processing instruction, or non-markup "<".
-           (forward-char)
+           ;; We are looking at a markup-starting character, and invalid
+           ;; character, or end of buffer.
            (cond
 
-            ((looking-at "/?\\([a-z][-a-z0-9.]*\\)")
-             ;; We are looking at a non-empty tag.
+            ((eq ?< (char-after (point)))
 
-             ;; Downcase it in the buffer, to save creation of a string
-             (downcase-region (match-beginning 1) (match-end 1))
-             (setq w3-p-d-tag-name
-                   (intern (buffer-substring (match-beginning 1)
-                                             (match-end 1))))
-             (setq w3-p-d-end-tag-p (eq ?/ (char-after (point)))
-                   between-tags-end (1- (point)))
-             (goto-char (match-end 0))
+             ;; We are looking at a tag, comment, markup declaration, SGML marked
+             ;; section, SGML processing instruction, or non-markup "<".
+             (forward-char)
+             (cond
+
+              ((looking-at "/?\\([a-z][-a-z0-9.]*\\)")
+               ;; We are looking at a non-empty tag.
+
+               ;; Downcase it in the buffer, to save creation of a string
+               (downcase-region (match-beginning 1) (match-end 1))
+               (setq w3-p-d-tag-name
+                     (intern (buffer-substring (match-beginning 1)
+                                               (match-end 1))))
+               (setq w3-p-d-end-tag-p (eq ?/ (char-after (point)))
+                     between-tags-end (1- (point)))
+               (goto-char (match-end 0))
           
-             ;; Read the attributes from a start-tag.
-             (if w3-p-d-end-tag-p
-                 (if (looking-at "[ \t\r\n/]*[<>]")
-                     nil
-                   ;; This is in here to deal with those idiots who stick
-                   ;; attribute/value pairs on end tags.  *sigh*
-                   (w3-debug-html "Evil attributes on end tag.")
-                   (skip-chars-forward "^>"))
+               ;; Read the attributes from a start-tag.
+               (if w3-p-d-end-tag-p
+                   (if (looking-at "[ \t\r\n/]*[<>]")
+                       nil
+                     ;; This is in here to deal with those idiots who stick
+                     ;; attribute/value pairs on end tags.  *sigh*
+                     (w3-debug-html "Evil attributes on end tag.")
+                     (skip-chars-forward "^>"))
            
-               ;; Attribute values can be:
-               ;;   "STRING"   where STRING does not contain the double quote
-               ;;   'STRING'   where STRING does not contain the single quote
-               ;;   name-start character, *name character
-               ;;   *name character
-               ;;   Digit, +name character
-               ;;   +Digit
-               ;; or a SPACE-separated list of one of the last four
-               ;; possibilities (there is a comment somewhere that this is a
-               ;; misinterpretation of the grammar, so we ignore this
-               ;; possibility).
-               (while
-                   (looking-at
-                    (eval-when-compile
-                      (concat
-                       ;; Leading whitespace.
-                       "[ \n\r\t,]*"
-                       ;; The attribute name, possibly with a bad syntax
-                       ;; component.
-                       "\\([a-z_][-a-z0-9.]*\\(\\([_][-a-z0-9._]*\\)?\\)\\)"
-                       ;; Trailing whitespace and perhaps an "=".
-                       "[ \n\r\t]*\\(\\(=[ \n\r\t]*\\)?\\)")))
-               
-                 (cond ((/= (match-beginning 2) (match-end 2))
-                        (w3-debug-html
-                         :nocontext
-                         (format "Bad attribute name syntax: %s"
-                                 (buffer-substring (match-beginning 1)
-                                                   (match-end 1))))))
-
-                 ;; Downcase it in the buffer, to save creation of a string
-                 (downcase-region (match-beginning 1) (match-end 1))
-                 (setq attr-name
-                       (intern (buffer-substring (match-beginning 1)
-                                                 (match-end 1))))
-                 (goto-char (match-end 0))
-                 (cond
-                  ((< (match-beginning 4) (match-end 4))
-                   ;; A value was specified (e.g. ATTRIBUTE=VALUE).
-                   (cond
-                    ((looking-at
+                 ;; Attribute values can be:
+                 ;;   "STRING"   where STRING does not contain the double quote
+                 ;;   'STRING'   where STRING does not contain the single quote
+                 ;;   name-start character, *name character
+                 ;;   *name character
+                 ;;   Digit, +name character
+                 ;;   +Digit
+                 ;; or a SPACE-separated list of one of the last four
+                 ;; possibilities (there is a comment somewhere that this is a
+                 ;; misinterpretation of the grammar, so we ignore this
+                 ;; possibility).
+                 (while
+                     (looking-at
                       (eval-when-compile
                         (concat
-                         ;; Comma separated list of literals with double quotes
-                         ;; (bad HTML).
-                         "\"\\([^\"]*\\(\"[ \n\r\t]*,[ \n\r\t]*\"[^\"]*\\)+\\)\""
-                         "\\|"
-                         ;; Comma separated list of literals with single quotes
-                         ;; (bad HTML).
-                         "'\\([^']*\\('[ \n\r\t]*,[ \n\r\t]*'[^']*\\)+\\)'"
-                         "\\|"
-                         ;; Literal with double quotes.
-                         "\"\\([^\"]*\\)\""
-                         "\\|"
-                         ;; Literal with single quotes.
-                         "'\\([^']*\\)'"
-                         "\\|"
-                         ;; Handle bad HTML conflicting with NET-enabling
-                         ;; start-tags.
-                         "\\([^ \t\n\r>]+/[^ \t\n\r>]+\\)[ \t\n\r>]"
-                         "\\|"
-                         ;; SGML NAME-syntax attribute value.
-                         "\\([-a-z0-9.]+\\)[ \t\n\r></]"
-                         )))
-                     (cond
-                      ((or (match-beginning 5)
-                           (match-beginning 6)
-                           (match-beginning 1)
-                           (match-beginning 3))
-                       (if (or (match-beginning 1)
-                               (match-beginning 3))
-                           (w3-debug-html
-                            :nocontext
-                            (format "Badly quoted attribute value: %s"
-                                    (match-string 0))))
-                       ;; We have an attribute value literal.
-                       (narrow-to-region (1+ (match-beginning 0))
-                                         (1- (match-end 0)))
-                       ;; Delete (bad) extra quotes from comma separated list.
-                       (cond
-                        ((match-beginning 1)
-                         (while (progn (skip-chars-forward "^\"") (not (eobp)))
-                           (delete-char 1))
-                         (goto-char (point-min)))
-                        ((match-beginning 3)
-                         (while (progn (skip-chars-forward "^'") (not (eobp)))
-                           (delete-char 1))
-                         (goto-char (point-min))))
-                     
-                       ;; In attribute value literals, EE and RS are ignored
-                       ;; and RE and SEPCHAR characters sequences are
-                       ;; replaced by SPACEs.
-                       ;;
-                       ;; (There is no way right now to get RS into one of
-                       ;; these so that it can be ignored.  This is due to
-                       ;; our using Unix line-handling conventions.)
-                       (skip-chars-forward "^&\t\n\r")
-                       (if (eobp)
-                           nil
-                         ;; We must expand entities and replace RS, RE,
-                         ;; and SEPCHAR.
-                         (goto-char (point-min))
-                         (while (progn
-                                  (skip-chars-forward "^&")
-                                  (not (eobp)))
-                           (w3-expand-entity-at-point-maybe))
-                         (subst-char-in-region (point-min) (point-max) ?\t ? )
-                         (subst-char-in-region (point-min) (point-max) ?\n ? ))
-                       ;; Set this after we have changed the size of the
-                       ;; attribute.
-                       (setq attribute-value-end (1+ (point-max))))
-                      ((match-beginning 8)
-                       (setq attribute-value-end (match-end 8))
-                       (narrow-to-region (point) attribute-value-end))
-                      ((match-beginning 7)
-                       (setq attribute-value-end (match-end 7))
-                       (narrow-to-region (point) attribute-value-end)
-                       ;; Horribly illegal non-SGML handling of bad
-                       ;; HTML on the net.  This can break valid HTML.
-                       (setq attr-value (buffer-substring (point)
-                                                          (match-end 7)))
-                       (w3-debug-html :nocontext
-                                      (format "Evil attribute value syntax: %s"
-                                              (buffer-substring (point-min) (point-max)))))
-                      (t
-                       (error "impossible attribute value"))))
-                    ((memq (char-after (point)) '(?\" ?'))
-                     ;; Missing terminating quote character.
-                     (narrow-to-region (point)
-                                       (progn
-                                         (forward-char 1)
-                                         (skip-chars-forward "^ \t\n\r'\"<>")
-                                         (setq attribute-value-end (point))))
-                     (w3-debug-html :nocontext
-                                    (format "Attribute value missing end quote: %s"
-                                            (buffer-substring (point-min) (point-max))))
-                     (narrow-to-region (1+ (point-min)) (point-max)))
-                    (t
-                     ;; We have a syntactically invalid attribute value.  Let's
-                     ;; make a best guess as to what the author intended.
-                     (narrow-to-region (point)
-                                       (progn
-                                         (skip-chars-forward "^ \t\n\r'\"<>")
-                                         (setq attribute-value-end (point))))
-                     (w3-debug-html :nocontext
-                                    (format "Bad attribute value syntax: %s"
-                                            (buffer-substring (point-min) (point-max))))))
-                   ;; Now we have isolated the attribute value.  We need to
-                   ;; munge the value depending on the syntax of the
-                   ;; attribute.
-                   ;; *** Right now, we only implement the necessary munging
-                   ;; for CDATA attributes, which is none.  I'm not sure why
-                   ;; this happens to work for other attributes right now.
-                   ;; For any other kind of attribute, we are supposed to
-                   ;; * smash case
-                   ;; * remove leading/trailing whitespace
-                   ;; * smash multiple space sequences into single spaces
-                   ;; * verify the syntax of each token
-                   (setq attr-value (buffer-substring (point-min) (point-max)))
-                   (case attr-name
-                     (class
-                      (setq attr-value (split-string attr-value "[ ,]+")))
-                     (align
-                      (if (string-match "^[ \t\r\n]*\\(.*\\)[ \t\r\n]*$"
-                                        attr-value)
-                          (setq attr-value (downcase
-                                            (substring attr-value
-                                                       (match-beginning 1)
-                                                       (match-end 1))))
-                        (setq attr-value (downcase attr-value)))
-                      (setq attr-value (intern attr-value)))
-                     ((src href)
-                      ;; I should expand URLs here
-                      )
-                     (otherwise nil)
-                     )
-                   (widen)
-                   (goto-char attribute-value-end))
-                  (t
-                   ;; No value was specified, in which case NAME should be
-                   ;; taken as ATTRIBUTE=NAME where NAME is one of the
-                   ;; enumerated values for ATTRIBUTE.
-                   ;; We assume here that ATTRIBUTE is the same as NAME.
-                   ;; *** Another piece of code will fix the attribute name if it
-                   ;; is wrong.
-                   (setq attr-value (symbol-name attr-name))))
-             
-                 ;; Accumulate the attributes.
-                 (setq tag-attributes (cons (cons attr-name attr-value)
-                                            tag-attributes)))
+                         ;; Leading whitespace.
+                         "[ \n\r\t,]*"
+                         ;; The attribute name, possibly with a bad syntax
+                         ;; component.
+                         "\\([a-z_][-a-z0-9.]*\\(\\([_][-a-z0-9._]*\\)?\\)\\)"
+                         ;; Trailing whitespace and perhaps an "=".
+                         "[ \n\r\t]*\\(\\(=[ \n\r\t]*\\)?\\)")))
+               
+                   (cond ((/= (match-beginning 2) (match-end 2))
+                          (w3-debug-html
+                           :nocontext
+                           (format "Bad attribute name syntax: %s"
+                                   (buffer-substring (match-beginning 1)
+                                                     (match-end 1))))))
 
-               (if (and (eq w3-p-d-tag-name 'img)
-                        (not (assq 'alt tag-attributes)))
-                   (w3-debug-html :bad-style
-                                  :outer
-                                  "IMG element has no ALT attribute"))
-               (cond
-                ((and (eq w3-p-d-tag-name 'base)
-                      (setq w3-p-s-baseobject
-                            (or (assq 'src tag-attributes)
-                                (assq 'href tag-attributes))))
-                 (setq w3-p-s-baseobject (url-generic-parse-url
-                                          (cdr w3-p-s-baseobject))))
-                ((setq w3-p-s-btdt (or (assq 'src tag-attributes)
-                                       (assq 'background tag-attributes)
-                                       (assq 'codebase tag-attributes)
-                                       (assq 'href tag-attributes)
-                                       (assq 'action tag-attributes)))
-                 (setcdr w3-p-s-btdt (url-expand-file-name (cdr w3-p-s-btdt)
-                                                           w3-p-s-baseobject))
-                 (setq w3-p-s-btdt (if (url-have-visited-url (cdr w3-p-s-btdt))
-                                       ":visited"
-                                     ":link"))
-                 (if (assq 'class tag-attributes)
-                     (setcdr (assq 'class tag-attributes)
-                             (cons w3-p-s-btdt
-                                   (cdr (assq 'class tag-attributes))))
-                   (setq tag-attributes (cons (cons 'class (list w3-p-s-btdt))
-                                              tag-attributes))))
-                )
-               (if (not (eq w3-p-d-tag-name 'input))
-                   nil
-                 (setq w3-p-s-btdt (concat ":"
-                                           (downcase
-                                            (or (cdr-safe
-                                                 (assq 'type tag-attributes))
-                                                "text"))))
-                 (if (assq 'class tag-attributes)
-                     (setcdr (assq 'class tag-attributes)
-                             (cons w3-p-s-btdt
-                                   (cdr (assq 'class tag-attributes))))
-                   (setq tag-attributes (cons (cons 'class (list w3-p-s-btdt))
-                                              tag-attributes))))
-               )
+                   ;; Downcase it in the buffer, to save creation of a string
+                   (downcase-region (match-beginning 1) (match-end 1))
+                   (setq attr-name
+                         (intern (buffer-substring (match-beginning 1)
+                                                   (match-end 1))))
+                   (goto-char (match-end 0))
+                   (cond
+                    ((< (match-beginning 4) (match-end 4))
+                     ;; A value was specified (e.g. ATTRIBUTE=VALUE).
+                     (cond
+                      ((looking-at
+                        (eval-when-compile
+                          (concat
+                           ;; Comma separated list of literals with double quotes
+                           ;; (bad HTML).
+                           "\"\\([^\"]*\\(\"[ \n\r\t]*,[ \n\r\t]*\"[^\"]*\\)+\\)\""
+                           "\\|"
+                           ;; Comma separated list of literals with single quotes
+                           ;; (bad HTML).
+                           "'\\([^']*\\('[ \n\r\t]*,[ \n\r\t]*'[^']*\\)+\\)'"
+                           "\\|"
+                           ;; Literal with double quotes.
+                           "\"\\([^\"]*\\)\""
+                           "\\|"
+                           ;; Literal with single quotes.
+                           "'\\([^']*\\)'"
+                           "\\|"
+                           ;; Handle bad HTML conflicting with NET-enabling
+                           ;; start-tags.
+                           "\\([^ \t\n\r>]+/[^ \t\n\r>]+\\)[ \t\n\r>]"
+                           "\\|"
+                           ;; SGML NAME-syntax attribute value.
+                           "\\([-a-z0-9.]+\\)[ \t\n\r></]"
+                           )))
+                       (cond
+                        ((or (match-beginning 5)
+                             (match-beginning 6)
+                             (match-beginning 1)
+                             (match-beginning 3))
+                         (if (or (match-beginning 1)
+                                 (match-beginning 3))
+                             (w3-debug-html
+                              :nocontext
+                              (format "Badly quoted attribute value: %s"
+                                      (match-string 0))))
+                         ;; We have an attribute value literal.
+                         (narrow-to-region (1+ (match-beginning 0))
+                                           (1- (match-end 0)))
+                         ;; Delete (bad) extra quotes from comma separated list.
+                         (cond
+                          ((match-beginning 1)
+                           (while (progn (skip-chars-forward "^\"") (not (eobp)))
+                             (delete-char 1))
+                           (goto-char (point-min)))
+                          ((match-beginning 3)
+                           (while (progn (skip-chars-forward "^'") (not (eobp)))
+                             (delete-char 1))
+                           (goto-char (point-min))))
+                     
+                         ;; In attribute value literals, EE and RS are ignored
+                         ;; and RE and SEPCHAR characters sequences are
+                         ;; replaced by SPACEs.
+                         ;;
+                         ;; (There is no way right now to get RS into one of
+                         ;; these so that it can be ignored.  This is due to
+                         ;; our using Unix line-handling conventions.)
+                         (skip-chars-forward "^&\t\n\r")
+                         (if (eobp)
+                             nil
+                           ;; We must expand entities and replace RS, RE,
+                           ;; and SEPCHAR.
+                           (goto-char (point-min))
+                           (while (progn
+                                    (skip-chars-forward "^&")
+                                    (not (eobp)))
+                             (w3-expand-entity-at-point-maybe))
+                           (subst-char-in-region (point-min) (point-max) ?\t ? )
+                           (subst-char-in-region (point-min) (point-max) ?\n ? ))
+                         ;; Set this after we have changed the size of the
+                         ;; attribute.
+                         (setq attribute-value-end (1+ (point-max))))
+                        ((match-beginning 8)
+                         (setq attribute-value-end (match-end 8))
+                         (narrow-to-region (point) attribute-value-end))
+                        ((match-beginning 7)
+                         (setq attribute-value-end (match-end 7))
+                         (narrow-to-region (point) attribute-value-end)
+                         ;; Horribly illegal non-SGML handling of bad
+                         ;; HTML on the net.  This can break valid HTML.
+                         (setq attr-value (buffer-substring (point)
+                                                            (match-end 7)))
+                         (w3-debug-html :nocontext
+                                        (format "Evil attribute value syntax: %s"
+                                                (buffer-substring (point-min) (point-max)))))
+                        (t
+                         (error "impossible attribute value"))))
+                      ((memq (char-after (point)) '(?\" ?'))
+                       ;; Missing terminating quote character.
+                       (narrow-to-region (point)
+                                         (progn
+                                           (forward-char 1)
+                                           (skip-chars-forward "^ \t\n\r'\"<>")
+                                           (setq attribute-value-end (point))))
+                       (w3-debug-html :nocontext
+                                      (format "Attribute value missing end quote: %s"
+                                              (buffer-substring (point-min) (point-max))))
+                       (narrow-to-region (1+ (point-min)) (point-max)))
+                      (t
+                       ;; We have a syntactically invalid attribute value.  Let's
+                       ;; make a best guess as to what the author intended.
+                       (narrow-to-region (point)
+                                         (progn
+                                           (skip-chars-forward "^ \t\n\r'\"<>")
+                                           (setq attribute-value-end (point))))
+                       (w3-debug-html :nocontext
+                                      (format "Bad attribute value syntax: %s"
+                                              (buffer-substring (point-min) (point-max))))))
+                     ;; Now we have isolated the attribute value.  We need to
+                     ;; munge the value depending on the syntax of the
+                     ;; attribute.
+                     ;; *** Right now, we only implement the necessary munging
+                     ;; for CDATA attributes, which is none.  I'm not sure why
+                     ;; this happens to work for other attributes right now.
+                     ;; For any other kind of attribute, we are supposed to
+                     ;; * smash case
+                     ;; * remove leading/trailing whitespace
+                     ;; * smash multiple space sequences into single spaces
+                     ;; * verify the syntax of each token
+                     (setq attr-value (buffer-substring (point-min) (point-max)))
+                     (case attr-name
+                       (class
+                        (setq attr-value (split-string attr-value "[ ,]+")))
+                       (align
+                        (if (string-match "^[ \t\r\n]*\\(.*\\)[ \t\r\n]*$"
+                                          attr-value)
+                            (setq attr-value (downcase
+                                              (substring attr-value
+                                                         (match-beginning 1)
+                                                         (match-end 1))))
+                          (setq attr-value (downcase attr-value)))
+                        (setq attr-value (intern attr-value)))
+                       ((src href)
+                        ;; I should expand URLs here
+                        )
+                       (otherwise nil)
+                       )
+                     (widen)
+                     (goto-char attribute-value-end))
+                    (t
+                     ;; No value was specified, in which case NAME should be
+                     ;; taken as ATTRIBUTE=NAME where NAME is one of the
+                     ;; enumerated values for ATTRIBUTE.
+                     ;; We assume here that ATTRIBUTE is the same as NAME.
+                     ;; *** Another piece of code will fix the attribute name if it
+                     ;; is wrong.
+                     (setq attr-value (symbol-name attr-name))))
+             
+                   ;; Accumulate the attributes.
+                   (setq tag-attributes (cons (cons attr-name attr-value)
+                                              tag-attributes)))
+
+                 (if (and (eq w3-p-d-tag-name 'img)
+                          (not (assq 'alt tag-attributes)))
+                     (w3-debug-html :bad-style
+                                    :outer
+                                    "IMG element has no ALT attribute"))
+                 (cond
+                  ((and (eq w3-p-d-tag-name 'base)
+                        (setq w3-p-s-baseobject
+                              (or (assq 'src tag-attributes)
+                                  (assq 'href tag-attributes))))
+                   (setq w3-p-s-baseobject (url-generic-parse-url
+                                            (cdr w3-p-s-baseobject))))
+                  ((setq w3-p-s-btdt (or (assq 'src tag-attributes)
+                                         (assq 'background tag-attributes)
+                                         (assq 'codebase tag-attributes)
+                                         (assq 'href tag-attributes)
+                                         (assq 'action tag-attributes)))
+                   (setcdr w3-p-s-btdt (url-expand-file-name (cdr w3-p-s-btdt)
+                                                             w3-p-s-baseobject))
+                   (setq w3-p-s-btdt (if (url-have-visited-url (cdr w3-p-s-btdt))
+                                         ":visited"
+                                       ":link"))
+                   (if (assq 'class tag-attributes)
+                       (setcdr (assq 'class tag-attributes)
+                               (cons w3-p-s-btdt
+                                     (cdr (assq 'class tag-attributes))))
+                     (setq tag-attributes (cons (cons 'class (list w3-p-s-btdt))
+                                                tag-attributes))))
+                  )
+                 (if (not (eq w3-p-d-tag-name 'input))
+                     nil
+                   (setq w3-p-s-btdt (concat ":"
+                                             (downcase
+                                              (or (cdr-safe
+                                                   (assq 'type tag-attributes))
+                                                  "text"))))
+                   (if (assq 'class tag-attributes)
+                       (setcdr (assq 'class tag-attributes)
+                               (cons w3-p-s-btdt
+                                     (cdr (assq 'class tag-attributes))))
+                     (setq tag-attributes (cons (cons 'class (list w3-p-s-btdt))
+                                                tag-attributes))))
+                 )
           
-             ;; Process the end of the tag.
-             (skip-chars-forward " \t\n\r")
-             (cond ((eq ?> (char-after (point)))
-                    ;; Ordinary tag end.
-                    (forward-char 1))
-                   ((and (eq ?/ (char-after (point)))
-                         (not w3-p-d-end-tag-p))
-                    ;; This is a NET-enabling start-tag.
-                    (setq net-tag-p t)
-                    (forward-char 1))
-                   ((eq ?< (char-after (point)))
-                    ;; *** Strictly speaking, the following text has to
-                    ;; lexically be STAGO or ETAGO, which means that it
-                    ;; can't match some other lexical unit.
-                    ;; Unclosed tag.
-                    nil)
-                   (t
-                    ;; Syntax error.
-                    (w3-debug-html
-                     (format "Bad unclosed %s%s tag"
-                             (if w3-p-d-end-tag-p "/" "")
-                             (w3-sgml-name-to-string w3-p-d-tag-name)))))
+               ;; Process the end of the tag.
+               (skip-chars-forward " \t\n\r")
+               (cond ((eq ?> (char-after (point)))
+                      ;; Ordinary tag end.
+                      (forward-char 1))
+                     ((and (eq ?/ (char-after (point)))
+                           (not w3-p-d-end-tag-p))
+                      ;; This is a NET-enabling start-tag.
+                      (setq net-tag-p t)
+                      (forward-char 1))
+                     ((eq ?< (char-after (point)))
+                      ;; *** Strictly speaking, the following text has to
+                      ;; lexically be STAGO or ETAGO, which means that it
+                      ;; can't match some other lexical unit.
+                      ;; Unclosed tag.
+                      nil)
+                     (t
+                      ;; Syntax error.
+                      (w3-debug-html
+                       (format "Bad unclosed %s%s tag"
+                               (if w3-p-d-end-tag-p "/" "")
+                               (w3-sgml-name-to-string w3-p-d-tag-name)))))
             
-             (setq tag-end (point)))
+               (setq tag-end (point)))
            
-            ((looking-at "/?>")
-             ;; We are looking at an empty tag (<>, </>).
-             (setq w3-p-d-end-tag-p (eq ?/ (char-after (point))))
-             (setq w3-p-d-tag-name (if w3-p-d-end-tag-p
-                                       (w3-element-name w3-p-d-current-element)
-                                     ;; *** Strictly speaking, if OMITTAG NO, then
-                                     ;; we should use the most recently closed tag.
-                                     ;; But OMITTAG YES in HTML and I'm lazy.
-                                     (w3-element-name w3-p-d-current-element)))
-             (setq tag-attributes nil)
-             ;; *** Make sure this is not at top level.
-             (setq between-tags-end (1- (point)))
-             (setq tag-end (match-end 0)))
+              ((looking-at "/?>")
+               ;; We are looking at an empty tag (<>, </>).
+               (setq w3-p-d-end-tag-p (eq ?/ (char-after (point))))
+               (setq w3-p-d-tag-name (if w3-p-d-end-tag-p
+                                         (w3-element-name w3-p-d-current-element)
+                                       ;; *** Strictly speaking, if OMITTAG NO, then
+                                       ;; we should use the most recently closed tag.
+                                       ;; But OMITTAG YES in HTML and I'm lazy.
+                                       (w3-element-name w3-p-d-current-element)))
+               (setq tag-attributes nil)
+               ;; *** Make sure this is not at top level.
+               (setq between-tags-end (1- (point)))
+               (setq tag-end (match-end 0)))
          
-            ;; *** In SGML, <(doctype)element> is valid tag syntax.  This
-            ;; cannot occur in HTML because the CONCUR option is off in the
-            ;; SGML declaration.
+              ;; *** In SGML, <(doctype)element> is valid tag syntax.  This
+              ;; cannot occur in HTML because the CONCUR option is off in the
+              ;; SGML declaration.
          
-            ((looking-at "!--")
-             ;; We found a comment, delete to end of comment.
-             (delete-region
-              (1- (point))
-              (progn
-                (forward-char 1)
-                ;; Skip over pairs of -- ... --.
-                ;;
-                ;; This can cause us to hit a stack overflow in the regexp
-                ;; engine.  And I'm not sure its correct anyway.  Lets just
-                ;; always fall back to the (semi) non-SGML way of dealing
-                ;; with comments.  WMP  12/24/97
+              ((looking-at "!--")
+               ;; We found a comment, delete to end of comment.
+               (delete-region
+                (1- (point))
+                (progn
+                  (forward-char 1)
+                  ;; Skip over pairs of -- ... --.
+                  ;;
+                  ;; This can cause us to hit a stack overflow in the regexp
+                  ;; engine.  And I'm not sure its correct anyway.  Lets just
+                  ;; always fall back to the (semi) non-SGML way of dealing
+                  ;; with comments.  WMP  12/24/97
 ;;;               (if (looking-at "\\(--[^-]*\\(-[^-]+\\)*--[ \t\r\n]*\\)+>")
 ;;;                   (goto-char (match-end 0))
 ;;;                 ;; Syntax error!
@@ -2492,377 +2459,377 @@ Returns a data structure containing the parsed information."
 ;;;                 (forward-char 2)
 ;;;                 (or (re-search-forward "--[ \t\r\n]*>" nil t)
 ;;;                     (search-forward ">" nil t)))
-                (forward-char 2)
-                (or (re-search-forward "--[ \t\r\n]*>" nil t)
-                    (search-forward ">" nil t))
-                (point))))
+                  (forward-char 2)
+                  (or (re-search-forward "--[ \t\r\n]*>" nil t)
+                      (search-forward ">" nil t))
+                  (point))))
            
-            ((looking-at "!>\\|\\?[^>]*>")
-             ;; We are looking at an empty comment or a processing
-             ;; instruction.  Delete it.
-             (replace-match "")
-             (delete-char -1))
+              ((looking-at "!>\\|\\?[^>]*>")
+               ;; We are looking at an empty comment or a processing
+               ;; instruction.  Delete it.
+               (replace-match "")
+               (delete-char -1))
 
-            ((looking-at "![a-z]")
-             ;; We are looking at a markup declaration.  Delete it.
-             ;; *** Technically speaking, to handle valid HTML I think we
-             ;; need to handle "<!USEMAP ... >" declarations.  In the future,
-             ;; to handle general SGML, we should parse "<!DOCTYPE ... >"
-             ;; declarations as well (which can contain other declarations).
-             ;; In the very distant future, perhaps we will handle "<!SGML
-             ;; ... >" declarations.
-             ;; *** Should warn if it's not SGML, DOCTYPE, or USEMAP.
-             (backward-char 1)
-             (delete-region
-              (point)
-              (progn
-                (condition-case nil
-                    (forward-sexp 1)
-                  (error
-                   ;; *** This might not actually be bad syntax, but might
-                   ;; instead be a -- ... -- comment with unbalanced
-                   ;; parentheses somewhere inside the declaration.  Handling
-                   ;; this properly would require full parsing of markup
-                   ;; declarations, a goal for the future.
-                   (w3-debug-html "Bad <! syntax.")
-                   (skip-chars-forward "^>")
-                   (if (eq ?> (char-after (point)))
-                       (forward-char))))
-                (point))))
+              ((looking-at "![a-z]")
+               ;; We are looking at a markup declaration.  Delete it.
+               ;; *** Technically speaking, to handle valid HTML I think we
+               ;; need to handle "<!USEMAP ... >" declarations.  In the future,
+               ;; to handle general SGML, we should parse "<!DOCTYPE ... >"
+               ;; declarations as well (which can contain other declarations).
+               ;; In the very distant future, perhaps we will handle "<!SGML
+               ;; ... >" declarations.
+               ;; *** Should warn if it's not SGML, DOCTYPE, or USEMAP.
+               (backward-char 1)
+               (delete-region
+                (point)
+                (progn
+                  (condition-case nil
+                      (forward-sexp 1)
+                    (error
+                     ;; *** This might not actually be bad syntax, but might
+                     ;; instead be a -- ... -- comment with unbalanced
+                     ;; parentheses somewhere inside the declaration.  Handling
+                     ;; this properly would require full parsing of markup
+                     ;; declarations, a goal for the future.
+                     (w3-debug-html "Bad <! syntax.")
+                     (skip-chars-forward "^>")
+                     (if (eq ?> (char-after (point)))
+                         (forward-char))))
+                  (point))))
          
-            ((looking-at "!\\\[\\(\\([ \t\n\r]*[a-z]+\\)+[ \t\n\r]*\\)\\\[")
-             ;; We are looking at a marked section.
-             ;; *** Strictly speaking, we should issue a warning if the
-             ;; keywords are invalid or missing or if the "[" does not follow.
-             ;; We must look at the keywords to understand how to parse it.
-             ;; *** Strictly speaking, we should perform parameter entity
-             ;; substitution on the keywords first.
-             (goto-char (match-beginning 1))
-             (insert ?\))
-             (goto-char (1- (match-beginning 0)))
-             (delete-char 3)
-             (insert ?\()
-             (backward-char 1)
-             (let* ((keywords (read (current-buffer)))
-                    ;; Multiple keywords may appear, but only the most
-                    ;; significant takes effect.  Rank order is IGNORE, CDATA,
-                    ;; RCDATA, INCLUDE, and TEMP.  INCLUDE and TEMP have the
-                    ;; same effect.
-                    (keyword (car-safe (cond ((memq 'IGNORE keywords))
-                                             ((memq 'CDATA keywords))
-                                             ((memq 'RCDATA keywords))
-                                             ((memq 'INCLUDE keywords))
-                                             ((memq 'TEMP keywords))))))
-               (or (eq ?\[ (char-after (point)))
-                   ;; I probably shouldn't even check this, since it is so
-                   ;; impossible.
-                   (error "impossible ??"))
-               (forward-char 1)
-               (delete-region (1- (match-beginning 0)) (point))
-               (cond ((eq 'IGNORE keyword)
-                      ;; Scan forward skipping over matching <![ ... ]]>
-                      ;; until we find an unmatched "]]>".
-                      (let ((ignore-nesting 1)
-                            (start-pos (point)))
-                        (while (> ignore-nesting 0)
-                          (if (re-search-forward "<!\\\\\[\\|\]\]>" nil t)
-                              (setq ignore-nesting
-                                    (if (eq ?> (preceding-char))
-                                        (1- ignore-nesting)
-                                      (1+ ignore-nesting)))
-                            (w3-debug-html
-                             "Unterminated IGNORE marked section.")
-                            (setq ignore-nesting 0)
-                            (goto-char start-pos)))
-                        (delete-region start-pos (point))))
-                     ((eq 'CDATA keyword)
-                      (error "***unimplemented***"))
-                     ((eq 'RCDATA keyword)
-                      (error "***unimplemented***"))
-                     ((memq keyword '(INCLUDE TEMP))
-                      (error "***unimplemented***")))))
-            ((and (looking-at "!")
-                  w3-netscape-compatible-comments)
-             ;; Horribly illegal non-SGML handling of bad HTML on the net.
-             ;; This can break valid HTML.
-             ;; This arises because Netscape discards anything looking like
-             ;; "<!...>".  So people expect they can use this construct as
-             ;; a comment.
-             (w3-debug-html "Evil <! comment syntax.")
-             (backward-char 1)
-             (delete-region
-              (point)
-              (progn
-                (skip-chars-forward "^>")
-                (if (eq ?> (char-after (point)))
-                    (forward-char))
-                (point))))
-            (t
-             ;; This < is not a markup character.  Pretend we didn't notice
-             ;; it at all.  We have skipped over the < already, so just loop
-             ;; again.
-             )))
-       
-          ((eq ?& (char-after (point)))
-           (w3-expand-entity-at-point-maybe))
-
-          ((and (eq ?\] (char-after (point)))
-                w3-p-d-in-parsed-marked-section
-                (looking-at "]]>"))
-           ;; *** handle the end of a parsed marked section.
-           (error "***unimplemented***"))
-
-          ((and (eq ?/ (char-after (point)))
-                w3-p-d-null-end-tag-enabled)
-           ;; We are looking at a null end tag.
-           (setq w3-p-d-end-tag-p t)
-           (setq between-tags-end (point))
-           (setq tag-end (1+ (point)))
-           (setq w3-p-d-tag-name (w3-element-name w3-p-d-current-element)))
-       
-          ;; This can be slow, since we'll hardly ever get here.
-          ;; *** Strictly speaking, I think we're supposed to handle
-          ;; shortrefs that begin with the same characters as other markup,
-          ;; preferring the longest match.
-          ;; I will assume that shortrefs never begin with <, &, \], /.
-          ((setq ref (catch 'found-shortref
-                       (let ((refs w3-p-d-shortrefs))
-                         (while refs
-                           (if (looking-at (car (car refs)))
-                               (throw 'found-shortref (cdr (car refs))))
-                           (setq refs (cdr refs))))))
-           ;; We are looking at a shortref for which there is an
-           ;; expansion defined in the current syntax.  Replace with the
-           ;; expansion, leaving point at the beginning so it will be parsed
-           ;; on the next loop.
-           ;; *** eek.  This is wrong if the shortref is for an entity with
-           ;; CDATA syntax which should not be reparsed for tags.
-           (replace-match "")
-           (let ((pt (point)))
-             (insert ref)
-             (goto-char pt)))
-         
-          ((looking-at (eval-when-compile
-                         (concat "[" (w3-invalid-sgml-chars) "]")))
-           (w3-debug-html
-            (format "Invalid SGML character: %c" (char-after (point))))
-           ;; This will avoid ebola warnings... but do we reallly want
-           ;; to be nuking the invalid character if we are in a MULE
-           ;; buffer... ISO2022 could have 'invalid' HTML characters,
-           ;; but still parse well.  But would this only ever happen
-           ;; if for some reason we did not decode the SJIS/ISO2022
-           ;; encodings?  Mislabeled MIME with no charset?
-           ;;
-           ;; FIXME FIXME FIXME!!!!!
-           (insert (or (cdr-safe (assq (char-int (char-after (point)))
-                                       w3-invalid-sgml-char-replacement)) ""))
-           (delete-char 1))
-          ((eobp)
-           ;; We have finished the buffer.  Make sure we process the last
-           ;; piece of text, if any.
-           (setq between-tags-end (point))
-           ;; We have to test what's on the element stack because this
-           ;; piece of code gets executed twice.
-           (cond ((not (eq '*holder (w3-element-name w3-p-d-current-element)))
-                  ;; This forces the calculation of implied omitted end tags.
-                  (setq w3-p-d-tag-name '*document)
-                  (setq w3-p-d-end-tag-p t)
-                  (setq tag-end (point)))))
-         
-          (t
-           (error "unreachable code, this can't happen")))
-        
-         ;; If we have determined the boundaries of a non-empty between-tags
-         ;; region of text, then handle it.
-         (cond
-          (between-tags-end
-           (cond
-            ((< between-tags-start between-tags-end)
-             ;; We have a non-empty between-tags region.
-
-             ;; We check if it's entirely whitespace, because we record the
-             ;; transitions for whitespace separately from those for
-             ;; data with non-whitespace characters.
-             (goto-char between-tags-start)
-             (skip-chars-forward " \t\n\r" between-tags-end)
-             (cond
-              ((w3-grok-tag-or-data (prog1 
-                                        (if (= between-tags-end (point))
-                                            '*space
-                                          '*data)
-                                      (goto-char between-tags-end)))
-               ;; We have to include the text in the current element's
-               ;; contents.  If this is the first item in the current
-               ;; element's contents, don't include a leading newline if
-               ;; there is one.  Add a trailing newline as a separate text
-               ;; item so that it can be removed later if it turns out to
-               ;; be the last item in the current element's contents when
-               ;; the current element is closed.
-               ;; *** We could perform this test before calling
-               ;; w3-grok-tag-or-data, but it's not clear which will be
-               ;; faster in practice.
-               (or (setq content (w3-element-content w3-p-d-current-element))
-                   ;; *** Strictly speaking, in SGML the record end is
-                   ;; carriage return, not line feed.
-                   (if (eq ?\n (char-after between-tags-start))
-                       (setq between-tags-start (1+ between-tags-start))))
-               (if (= between-tags-start (point))
-                   ;; Do nothing.
-                   nil
-                 ;; We are definitely going to add data characters to the
-                 ;; content.
-                 (cond
-                  ((and (= ?\n (preceding-char))
-                        (/= between-tags-start (1- (point))))
-                   (setq content (cons (buffer-substring between-tags-start
-                                                         (1- (point)))
-                                       content))
-                   (setq content (cons "\n" content)))
-                  (t
-                   (setq content (cons (buffer-substring between-tags-start
-                                                         (point))
-                                       content))))
-                 (w3-set-element-content w3-p-d-current-element content))))))
-          
-           (setq between-tags-end nil)))
-      
-         ;; If the previous expression modified (point), then it went to
-         ;; the value of between-tags-end.
-      
-         ;; If we found a start or end-tag, we need to handle it.
-         (cond
-          (w3-p-d-tag-name
-        
-           ;; Move past the tag and prepare for next between-tags region.
-           (goto-char tag-end)
-           (setq between-tags-start (point))
-        
-           (cond
-            (w3-p-d-end-tag-p
-             ;; Handle an end-tag.
-             (if (eq w3-p-d-tag-name (w3-element-name w3-p-d-current-element))
-                 (w3-close-element)
-               ;; Handle the complex version.  We have to search up (down?)
-               ;; the open element stack to find the element that matches (if
-               ;; any).  Then we close all of the elements.  On a conforming
-               ;; SGML document this can do no wrong and it's not
-               ;; unreasonable on a non-conforming document.
-            
-               ;; Can't safely modify stack until we know the element we want
-               ;; to find is in there, so work with a copy.
-               (setq open-list w3-p-d-open-element-stack)
-               (while (and open-list
-                           (not (eq w3-p-d-tag-name
-                                    (w3-element-name (car open-list)))))
-                 (setq open-list (cdr open-list)))
-               (cond (open-list
-                      ;; We found a match.  Pop elements.
-                      ;; We will use the following value as a sentinel.
-                      (setq open-list (cdr open-list))
-                      (while (not (eq open-list w3-p-d-open-element-stack))
-                        (w3-close-element t))
-                      (w3-close-element))
-                     (t
-                      ;; Bogus end tag.
-                      (w3-debug-html
-                       (format "Unmatched end-tag </%s>"
-                               (w3-sgml-name-to-string w3-p-d-tag-name)))))))
-            (t
-             ;; Handle a start-tag.
-             (cond
-              ;; Check if the new element is allowed in the current element's
-              ;; content model.
-              ((w3-grok-tag-or-data w3-p-d-tag-name)
-               (w3-open-element w3-p-d-tag-name tag-attributes)
-            
-               ;; Handle NET-enabling start tags.
-               (cond ((and net-tag-p
-                           (not w3-p-d-null-end-tag-enabled))
-                      ;; Save old values.
-                      (w3-set-element-undo-list 
-                       w3-p-d-current-element 
-                       (cons (cons 'w3-p-d-non-markup-chars
-                                   w3-p-d-non-markup-chars)
-                             (cons '(w3-p-d-null-end-tag-enabled . nil)
-                                   (w3-element-undo-list w3-p-d-current-element))))
-                      ;; Alter syntax.
-                      (setq w3-p-d-null-end-tag-enabled t)
-                      (w3-update-non-markup-chars)))
-            
-               (setq content-model
-                     (w3-element-content-model w3-p-d-current-element))
-            
-               ;; If the element does not have parsed contents, then we
-               ;; can find its contents immediately.
-               (cond
-                ((memq content-model '(EMPTY CDATA XCDATA XXCDATA RCDATA))
-                 (cond
-                  ((eq 'EMPTY content-model)
-                   (w3-close-element))
-                  ((eq 'CDATA content-model)
-                   ;; CDATA: all data characters until an end-tag.  We'll
-                   ;; process the end-tag on the next loop.
-                   (if (re-search-forward (if w3-p-d-null-end-tag-enabled
-                                              "</[a-z>]\\|/"
-                                            "</[a-z>]")
-                                          nil 'move)
-                       (goto-char (match-beginning 0))))
-                  ((eq 'XCDATA content-model)
-                   ;; XCDATA: special non-SGML-standard mode which includes
-                   ;; all data characters until "</foo" is seen where "foo"
-                   ;; is the name of this element (for XMP and LISTING).
-                   (if (search-forward 
-                        (concat "</" (symbol-name
-                                      (w3-element-name w3-p-d-current-element)))
-                        nil 'move)
-                       (goto-char (match-beginning 0))))
-                  ((eq 'XXCDATA content-model)
-                   ;; XXCDATA: special non-SGML-standard mode which includes
-                   ;; all data until end-of-entity (end-of-buffer for us)
-                   ;; (for PLAINTEXT).
-                   (goto-char (point-max)))
-                  ((eq 'RCDATA content-model)
-                   ;; RCDATA: all data characters until end-tag is seen,
-                   ;; except that entities are expanded first, although the
-                   ;; expansions are _not_ scanned for end-tags, although the
-                   ;; expansions _are_ scanned for further entity
-                   ;; references.
-                   (while (progn
-                            (if (re-search-forward (if w3-p-d-null-end-tag-enabled
-                                                       "</[a-z>]\\|[/&]"
-                                                     "</[a-z>]\\|&")
-                                                   nil 'move)
-                                (goto-char (match-beginning 0)))
-                            (eq ?& (char-after (point))))
-                     (w3-expand-entity-at-point-maybe)))))))
+              ((looking-at "!\\\[\\(\\([ \t\n\r]*[a-z]+\\)+[ \t\n\r]*\\)\\\[")
+               ;; We are looking at a marked section.
+               ;; *** Strictly speaking, we should issue a warning if the
+               ;; keywords are invalid or missing or if the "[" does not follow.
+               ;; We must look at the keywords to understand how to parse it.
+               ;; *** Strictly speaking, we should perform parameter entity
+               ;; substitution on the keywords first.
+               (goto-char (match-beginning 1))
+               (insert ?\))
+               (goto-char (1- (match-beginning 0)))
+               (delete-char 3)
+               (insert ?\()
+               (backward-char 1)
+               (let* ((keywords (read (current-buffer)))
+                      ;; Multiple keywords may appear, but only the most
+                      ;; significant takes effect.  Rank order is IGNORE, CDATA,
+                      ;; RCDATA, INCLUDE, and TEMP.  INCLUDE and TEMP have the
+                      ;; same effect.
+                      (keyword (car-safe (cond ((memq 'IGNORE keywords))
+                                               ((memq 'CDATA keywords))
+                                               ((memq 'RCDATA keywords))
+                                               ((memq 'INCLUDE keywords))
+                                               ((memq 'TEMP keywords))))))
+                 (or (eq ?\[ (char-after (point)))
+                     ;; I probably shouldn't even check this, since it is so
+                     ;; impossible.
+                     (error "impossible ??"))
+                 (forward-char 1)
+                 (delete-region (1- (match-beginning 0)) (point))
+                 (cond ((eq 'IGNORE keyword)
+                        ;; Scan forward skipping over matching <![ ... ]]>
+                        ;; until we find an unmatched "]]>".
+                        (let ((ignore-nesting 1)
+                              (start-pos (point)))
+                          (while (> ignore-nesting 0)
+                            (if (re-search-forward "<!\\\\\[\\|\]\]>" nil t)
+                                (setq ignore-nesting
+                                      (if (eq ?> (preceding-char))
+                                          (1- ignore-nesting)
+                                        (1+ ignore-nesting)))
+                              (w3-debug-html
+                               "Unterminated IGNORE marked section.")
+                              (setq ignore-nesting 0)
+                              (goto-char start-pos)))
+                          (delete-region start-pos (point))))
+                       ((eq 'CDATA keyword)
+                        (error "***unimplemented***"))
+                       ((eq 'RCDATA keyword)
+                        (error "***unimplemented***"))
+                       ((memq keyword '(INCLUDE TEMP))
+                        (error "***unimplemented***")))))
+              ((and (looking-at "!")
+                    w3-netscape-compatible-comments)
+               ;; Horribly illegal non-SGML handling of bad HTML on the net.
+               ;; This can break valid HTML.
+               ;; This arises because Netscape discards anything looking like
+               ;; "<!...>".  So people expect they can use this construct as
+               ;; a comment.
+               (w3-debug-html "Evil <! comment syntax.")
+               (backward-char 1)
+               (delete-region
+                (point)
+                (progn
+                  (skip-chars-forward "^>")
+                  (if (eq ?> (char-after (point)))
+                      (forward-char))
+                  (point))))
               (t
-               ;; The element is illegal here.  We'll just discard the start
-               ;; tag as though we never saw it.
-               ))))
-        
-           (setq w3-p-d-tag-name nil)
-           (setq w3-p-d-end-tag-p nil)
-           (setq net-tag-p nil)
-           (setq tag-attributes nil)
-           (setq tag-end nil)))
-        
-         ;; End of main while loop.
-         )
-    
-       ;; We have finished parsing the buffer!
-       (if status-message-format
-           (message "%sdone" (format status-message-format 100)))
-    
-       (if (fboundp 'clear-progress) (clear-progress))
+               ;; This < is not a markup character.  Pretend we didn't notice
+               ;; it at all.  We have skipped over the < already, so just loop
+               ;; again.
+               )))
+       
+            ((eq ?& (char-after (point)))
+             (w3-expand-entity-at-point-maybe))
 
-       ;; *** For debugging, save the true parse tree.
-       ;; *** Make this look inside *DOCUMENT.
-       (setq w3-last-parse-tree
-             (w3-element-content w3-p-d-current-element))
+            ((and (eq ?\] (char-after (point)))
+                  w3-p-d-in-parsed-marked-section
+                  (looking-at "]]>"))
+             ;; *** handle the end of a parsed marked section.
+             (error "***unimplemented***"))
 
-       (set-syntax-table old-syntax-table)
-       (w3-element-content w3-p-d-current-element)
-       ))))
+            ((and (eq ?/ (char-after (point)))
+                  w3-p-d-null-end-tag-enabled)
+             ;; We are looking at a null end tag.
+             (setq w3-p-d-end-tag-p t)
+             (setq between-tags-end (point))
+             (setq tag-end (1+ (point)))
+             (setq w3-p-d-tag-name (w3-element-name w3-p-d-current-element)))
+       
+            ;; This can be slow, since we'll hardly ever get here.
+            ;; *** Strictly speaking, I think we're supposed to handle
+            ;; shortrefs that begin with the same characters as other markup,
+            ;; preferring the longest match.
+            ;; I will assume that shortrefs never begin with <, &, \], /.
+            ((setq ref (catch 'found-shortref
+                         (let ((refs w3-p-d-shortrefs))
+                           (while refs
+                             (if (looking-at (car (car refs)))
+                                 (throw 'found-shortref (cdr (car refs))))
+                             (setq refs (cdr refs))))))
+             ;; We are looking at a shortref for which there is an
+             ;; expansion defined in the current syntax.  Replace with the
+             ;; expansion, leaving point at the beginning so it will be parsed
+             ;; on the next loop.
+             ;; *** eek.  This is wrong if the shortref is for an entity with
+             ;; CDATA syntax which should not be reparsed for tags.
+             (replace-match "")
+             (let ((pt (point)))
+               (insert ref)
+               (goto-char pt)))
+         
+            ((looking-at (eval-when-compile
+                           (concat "[" (w3-invalid-sgml-chars) "]")))
+             (w3-debug-html
+              (format "Invalid SGML character: %c" (char-after (point))))
+             ;; This will avoid ebola warnings... but do we reallly want
+             ;; to be nuking the invalid character if we are in a MULE
+             ;; buffer... ISO2022 could have 'invalid' HTML characters,
+             ;; but still parse well.  But would this only ever happen
+             ;; if for some reason we did not decode the SJIS/ISO2022
+             ;; encodings?  Mislabeled MIME with no charset?
+             ;;
+             ;; FIXME FIXME FIXME!!!!!
+             (insert (or (cdr-safe (assq (char-int (char-after (point)))
+                                         w3-invalid-sgml-char-replacement)) ""))
+             (delete-char 1))
+            ((eobp)
+             ;; We have finished the buffer.  Make sure we process the last
+             ;; piece of text, if any.
+             (setq between-tags-end (point))
+             ;; We have to test what's on the element stack because this
+             ;; piece of code gets executed twice.
+             (cond ((not (eq '*holder (w3-element-name w3-p-d-current-element)))
+                    ;; This forces the calculation of implied omitted end tags.
+                    (setq w3-p-d-tag-name '*document)
+                    (setq w3-p-d-end-tag-p t)
+                    (setq tag-end (point)))))
+         
+            (t
+             (error "unreachable code, this can't happen")))
+        
+           ;; If we have determined the boundaries of a non-empty between-tags
+           ;; region of text, then handle it.
+           (cond
+            (between-tags-end
+             (cond
+              ((< between-tags-start between-tags-end)
+               ;; We have a non-empty between-tags region.
+
+               ;; We check if it's entirely whitespace, because we record the
+               ;; transitions for whitespace separately from those for
+               ;; data with non-whitespace characters.
+               (goto-char between-tags-start)
+               (skip-chars-forward " \t\n\r" between-tags-end)
+               (cond
+                ((w3-grok-tag-or-data (prog1 
+                                          (if (= between-tags-end (point))
+                                              '*space
+                                            '*data)
+                                        (goto-char between-tags-end)))
+                 ;; We have to include the text in the current element's
+                 ;; contents.  If this is the first item in the current
+                 ;; element's contents, don't include a leading newline if
+                 ;; there is one.  Add a trailing newline as a separate text
+                 ;; item so that it can be removed later if it turns out to
+                 ;; be the last item in the current element's contents when
+                 ;; the current element is closed.
+                 ;; *** We could perform this test before calling
+                 ;; w3-grok-tag-or-data, but it's not clear which will be
+                 ;; faster in practice.
+                 (or (setq content (w3-element-content w3-p-d-current-element))
+                     ;; *** Strictly speaking, in SGML the record end is
+                     ;; carriage return, not line feed.
+                     (if (eq ?\n (char-after between-tags-start))
+                         (setq between-tags-start (1+ between-tags-start))))
+                 (if (= between-tags-start (point))
+                     ;; Do nothing.
+                     nil
+                   ;; We are definitely going to add data characters to the
+                   ;; content.
+                   (cond
+                    ((and (= ?\n (preceding-char))
+                          (/= between-tags-start (1- (point))))
+                     (setq content (cons (buffer-substring between-tags-start
+                                                           (1- (point)))
+                                         content))
+                     (setq content (cons "\n" content)))
+                    (t
+                     (setq content (cons (buffer-substring between-tags-start
+                                                           (point))
+                                         content))))
+                   (w3-set-element-content w3-p-d-current-element content))))))
+          
+             (setq between-tags-end nil)))
+      
+           ;; If the previous expression modified (point), then it went to
+           ;; the value of between-tags-end.
+      
+           ;; If we found a start or end-tag, we need to handle it.
+           (cond
+            (w3-p-d-tag-name
+        
+             ;; Move past the tag and prepare for next between-tags region.
+             (goto-char tag-end)
+             (setq between-tags-start (point))
+        
+             (cond
+              (w3-p-d-end-tag-p
+               ;; Handle an end-tag.
+               (if (eq w3-p-d-tag-name (w3-element-name w3-p-d-current-element))
+                   (w3-close-element)
+                 ;; Handle the complex version.  We have to search up (down?)
+                 ;; the open element stack to find the element that matches (if
+                 ;; any).  Then we close all of the elements.  On a conforming
+                 ;; SGML document this can do no wrong and it's not
+                 ;; unreasonable on a non-conforming document.
+            
+                 ;; Can't safely modify stack until we know the element we want
+                 ;; to find is in there, so work with a copy.
+                 (setq open-list w3-p-d-open-element-stack)
+                 (while (and open-list
+                             (not (eq w3-p-d-tag-name
+                                      (w3-element-name (car open-list)))))
+                   (setq open-list (cdr open-list)))
+                 (cond (open-list
+                        ;; We found a match.  Pop elements.
+                        ;; We will use the following value as a sentinel.
+                        (setq open-list (cdr open-list))
+                        (while (not (eq open-list w3-p-d-open-element-stack))
+                          (w3-close-element t))
+                        (w3-close-element))
+                       (t
+                        ;; Bogus end tag.
+                        (w3-debug-html
+                         (format "Unmatched end-tag </%s>"
+                                 (w3-sgml-name-to-string w3-p-d-tag-name)))))))
+              (t
+               ;; Handle a start-tag.
+               (cond
+                ;; Check if the new element is allowed in the current element's
+                ;; content model.
+                ((w3-grok-tag-or-data w3-p-d-tag-name)
+                 (w3-open-element w3-p-d-tag-name tag-attributes)
+            
+                 ;; Handle NET-enabling start tags.
+                 (cond ((and net-tag-p
+                             (not w3-p-d-null-end-tag-enabled))
+                        ;; Save old values.
+                        (w3-set-element-undo-list 
+                         w3-p-d-current-element 
+                         (cons (cons 'w3-p-d-non-markup-chars
+                                     w3-p-d-non-markup-chars)
+                               (cons '(w3-p-d-null-end-tag-enabled . nil)
+                                     (w3-element-undo-list w3-p-d-current-element))))
+                        ;; Alter syntax.
+                        (setq w3-p-d-null-end-tag-enabled t)
+                        (w3-update-non-markup-chars)))
+            
+                 (setq content-model
+                       (w3-element-content-model w3-p-d-current-element))
+            
+                 ;; If the element does not have parsed contents, then we
+                 ;; can find its contents immediately.
+                 (cond
+                  ((memq content-model '(EMPTY CDATA XCDATA XXCDATA RCDATA))
+                   (cond
+                    ((eq 'EMPTY content-model)
+                     (w3-close-element))
+                    ((eq 'CDATA content-model)
+                     ;; CDATA: all data characters until an end-tag.  We'll
+                     ;; process the end-tag on the next loop.
+                     (if (re-search-forward (if w3-p-d-null-end-tag-enabled
+                                                "</[a-z>]\\|/"
+                                              "</[a-z>]")
+                                            nil 'move)
+                         (goto-char (match-beginning 0))))
+                    ((eq 'XCDATA content-model)
+                     ;; XCDATA: special non-SGML-standard mode which includes
+                     ;; all data characters until "</foo" is seen where "foo"
+                     ;; is the name of this element (for XMP and LISTING).
+                     (if (search-forward 
+                          (concat "</" (symbol-name
+                                        (w3-element-name w3-p-d-current-element)))
+                          nil 'move)
+                         (goto-char (match-beginning 0))))
+                    ((eq 'XXCDATA content-model)
+                     ;; XXCDATA: special non-SGML-standard mode which includes
+                     ;; all data until end-of-entity (end-of-buffer for us)
+                     ;; (for PLAINTEXT).
+                     (goto-char (point-max)))
+                    ((eq 'RCDATA content-model)
+                     ;; RCDATA: all data characters until end-tag is seen,
+                     ;; except that entities are expanded first, although the
+                     ;; expansions are _not_ scanned for end-tags, although the
+                     ;; expansions _are_ scanned for further entity
+                     ;; references.
+                     (while (progn
+                              (if (re-search-forward (if w3-p-d-null-end-tag-enabled
+                                                         "</[a-z>]\\|[/&]"
+                                                       "</[a-z>]\\|&")
+                                                     nil 'move)
+                                  (goto-char (match-beginning 0)))
+                              (eq ?& (char-after (point))))
+                       (w3-expand-entity-at-point-maybe)))))))
+                (t
+                 ;; The element is illegal here.  We'll just discard the start
+                 ;; tag as though we never saw it.
+                 ))))
+        
+             (setq w3-p-d-tag-name nil)
+             (setq w3-p-d-end-tag-p nil)
+             (setq net-tag-p nil)
+             (setq tag-attributes nil)
+             (setq tag-end nil)))
+        
+           ;; End of main while loop.
+           )
+    
+         ;; We have finished parsing the buffer!
+         (if status-message-format
+             (message "%sdone" (format status-message-format 100)))
+    
+         (if (fboundp 'clear-progress) (clear-progress))
+
+         ;; *** For debugging, save the true parse tree.
+         ;; *** Make this look inside *DOCUMENT.
+         (setq w3-last-parse-tree
+               (w3-element-content w3-p-d-current-element))
+
+         (set-syntax-table old-syntax-table)
+         (w3-element-content w3-p-d-current-element)
+         )))))
 
 
 

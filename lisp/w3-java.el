@@ -1,7 +1,7 @@
 ;;; w3-java.el --- Rudimentary java support
 ;; Author: $Author: wmperry $
-;; Created: $Date: 1999/11/12 16:30:10 $
-;; Version: $Revision: 1.1 $
+;; Created: $Date: 1999/12/05 08:36:07 $
+;; Version: $Revision: 1.2 $
 ;; Keywords: hypermedia, scripting
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -24,6 +24,7 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'mailcap)
 
 (defgroup w3-java nil
   "Emacs/W3 Java Runtime support"
@@ -45,7 +46,7 @@ Java applet."
   :group 'w3-java)
 
 (defun w3-java-run-applet (options params)
-  (let ((file (url-generate-unique-filename "%s-runjava.html")))
+  (let ((file (mailcap-generate-unique-filename "%s-runjava.html")))
     (save-excursion
       (set-buffer (get-buffer-create " *java*"))
       (erase-buffer)
