@@ -1,5 +1,7 @@
 1998-12-25  William M. Perry  <wmperry@aventail.com>
 
+* Emacs/W3 4.0pre36 released
+
 * lisp/url.el (url-default-expander): Make sure that we remove any query
   strings from the URL before we remove relative links.
   (url-remove-relative-links): Tack on a trailing '/' if necessary so that 
