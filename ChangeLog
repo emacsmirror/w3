@@ -1,3 +1,7 @@
+2006-04-28  Dave Love  <fx@gnu.org>
+
+	* texi/w3.txi: Change licence to GFDL. 
+
 2003-06-26  Sam Steingold  <sds@gnu.org>
 
 	* lisp/w3-imap.el (w3-image-loadable-p): fixed the logic
