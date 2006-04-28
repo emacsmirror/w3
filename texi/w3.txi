@@ -12,7 +12,7 @@
 @c site: http://www.cs.indiana.edu/elisp/w3/docs.html
 @c
 @setfilename w3.info
-@settitle Emacs/W3 $State: v4.0pre.47 $ User's Manual
+@settitle Emacs/W3 $State: Exp $ User's Manual
 @iftex
 @c @finalout
 @end iftex
@@ -29,24 +29,21 @@
 @direntry
 * Emacs/W3: (w3).                 Emacs/W3 World Wide Web browser.
 @end direntry
-@ifinfo
-This file documents the Emacs/W3 World Wide Web browser.
 
-Copyright (C) 1993, 1994, 1995, 1996 William M. Perry
-Copyright (C) 1996, 1997 Free Software Foundation
+@copying
+@end copying
+Copyright @copyright{} 1993, 1994, 1995, 1996, 1997, 1999, 2000
+Free Software Foundation, Inc.
 
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-@ignore
-Permission is granted to process this file through Tex and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-
-@end ignore
-@end ifinfo
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual''.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+@end quotation
 @c
 @titlepage
 @sp 6
@@ -59,15 +56,6 @@ notice identical to this one except for the removal of this paragraph
 @sp 5
 @center William M. Perry
 @center @i{wmperry@@cs.indiana.edu}
-@page
-@vskip 0pt plus 1filll
-Copyright @copyright{} 1993 - 1995 William M. Perry@*
-Copyright @copyright{} 1996 - 1999 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of@*
-this manual provided the copyright notice and this permission notice@*
-are preserved on all copies.
-
 @end titlepage
 @page
 @node Top, Getting Started, (dir), (dir)
@@ -89,7 +77,7 @@ cannot be modified to your satisfaction, please send mail to the
 @t{w3-beta@@xemacs.org} mailing list with any suggestions.
 @xref{Reporting Bugs}.
 
-This manual corresponds to Emacs/W3 $State: v4.0pre.47 $
+This manual corresponds to Emacs/W3 $State: Exp $
 
 @menu
 * Getting Started::             Getting up and running with Emacs/W3
