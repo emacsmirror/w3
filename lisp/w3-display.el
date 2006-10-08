@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.43 $
+;; Version: $Revision: 1.44 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,6 +36,10 @@
 (require 'w3-widget)
 (require 'w3-imap)
 (require 'w3-sysdp)
+
+;; Some mm-* "functions" are macros.  Ensure that they are loaded.
+(eval-when-compile
+  (require 'mm-decode))
 
 (autoload 'sentence-ify "flame")
 (autoload 'string-ify "flame")
