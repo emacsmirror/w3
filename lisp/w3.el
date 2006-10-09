@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
-;; Author: $Author: wmperry $
-;; Created: $Date: 2003/01/12 22:10:25 $
-;; Version: $Revision: 1.32 $
+;; Author: $Author: legoscia $
+;; Created: $Date: 2006/10/09 09:09:23 $
+;; Version: $Revision: 1.33 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -49,6 +49,11 @@
 (require 'w3-vars)
 (eval-and-compile
   (require 'w3-display))
+
+;; Some mm-* "functions" are macros.  Ensure that they are loaded.
+(eval-when-compile
+  (require 'mm-decode))
+
 (autoload 'w3-parse-hotlist "w3-hot")
 (autoload 'w3-menu-install-menus "w3-menu")
 
