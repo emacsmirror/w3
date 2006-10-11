@@ -1,3 +1,9 @@
+2006-10-11  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/w3.el (w3-fetch-redirect-callback): New function.
+	(w3-fetch): Use it as url-retrieve callback instead of
+	w3-fetch-callback.
+
 2006-10-09  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3.el: Require mm-decode here too.

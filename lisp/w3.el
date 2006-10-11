@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2006/10/09 09:09:23 $
-;; Version: $Revision: 1.33 $
+;; Created: $Date: 2006/10/11 01:23:17 $
+;; Version: $Revision: 1.34 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -298,6 +298,14 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 	(w3-setup-reload-timer uri (url-view-url t)
 			       (string-to-int (or reload "5"))))))
 
+(defun w3-fetch-redirect-callback (&rest args)
+  ;; Web page was fetched, but `url-retrieve' might have added
+  ;; information about redirections.
+  (w3-fetch-callback
+   (if (eq (car args) :redirect)
+       (cadr args)
+     (car args))))
+
 (defun w3-fetch-callback (url)
   (w3-nasty-disgusting-http-equiv-handling (current-buffer) url)
   ;; Process any cookie and refresh headers.
@@ -436,7 +444,7 @@ With prefix argument, use the URL of the hyperlink under point instead."
 		(not (funcall url-confirmation-func
 			      (format "Reuse URL in buffer %s? "
 				      (buffer-name buf)))))))
-	  (url-retrieve url 'w3-fetch-callback (list url))
+	  (url-retrieve url 'w3-fetch-redirect-callback (list url))
 	(w3-notify-when-ready buf))))))
 
 
