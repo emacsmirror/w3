@@ -1,3 +1,11 @@
+2006-10-12  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/w3-display.el (w3-finalize-image-download-skip-redirects):
+	New function.
+	(w3-maybe-start-background-image-download)
+	(w3-maybe-start-image-download): Use it instead of
+	w3-finalize-image-download.
+
 2006-10-11  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3.el (w3-fetch-redirect-callback): New function.

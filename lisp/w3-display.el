@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.44 $
+;; Version: $Revision: 1.45 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -832,7 +832,7 @@ If the face already exists, it is unmodified."
 	    (setq w3-graphics-list (cons (cons src (make-glyph))
 				     w3-graphics-list))
 	  (add-to-list 'w3-graphics-list (cons src (list 'image))))
-	(url-retrieve src 'w3-finalize-image-download
+	(url-retrieve src 'w3-finalize-image-download-skip-redirects
 		      (list src (widget-get widget 'buffer) widget)))))))
 
 (defun w3-maybe-start-background-image-download (src face)
@@ -869,7 +869,17 @@ If the face already exists, it is unmodified."
 	    (setq w3-graphics-list (cons (cons src (make-glyph))
 				     w3-graphics-list))
 	  (add-to-list 'w3-graphics-list (cons src (list 'image))))
-	(url-retrieve src 'w3-finalize-image-download (list src buf 'background face)))))))
+	(url-retrieve src 'w3-finalize-image-download-skip-redirects (list src buf 'background face)))))))
+
+(defun w3-finalize-image-download-skip-redirects (&rest args)
+  ;; Skip any number of redirects, conserving the real URL of the
+  ;; image.
+  (let ((url (if (eq (car args) :redirect)
+		 (cadr args)
+	       (car args))))
+    (while (eq (car args) :redirect)
+      (setq args (cddr args)))
+    (apply 'w3-finalize-image-download args)))
 
 (defun w3-finalize-image-download (url buffer &optional widget face)
   (let ((glyph nil)
