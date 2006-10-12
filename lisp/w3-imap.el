@@ -1,7 +1,7 @@
 ;;; w3-imap.el --- Imagemap functions
-;; Author: $Author: sds $
-;; Created: $Date: 2003/06/26 18:43:27 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: legoscia $
+;; Created: $Date: 2006/10/12 21:32:16 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -210,7 +210,8 @@ vectors."
 
 (defun w3-image-loadable-p (href force)
   (or force
-      (let ((attribs (url-file-attributes href)))
+      (let ((attribs (condition-case nil (url-file-attributes href)
+		       (error nil))))
         (and attribs
              ;; this is clearly an error: `file-attributes' returns
              ;; the permissions string as the 8th element, not a mime type!

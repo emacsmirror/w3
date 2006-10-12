@@ -1,5 +1,8 @@
 2006-10-12  Magnus Henoch  <mange@freemail.hu>
 
+	* lisp/w3-imap.el (w3-image-loadable-p): Ignore errors in
+	url-file-attributes.
+
 	* lisp/w3-display.el (w3-finalize-image-download-skip-redirects):
 	New function.
 	(w3-maybe-start-background-image-download)
