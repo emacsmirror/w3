@@ -1,3 +1,8 @@
+2006-10-13  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/w3-parse.el (w3-slow-parse-buffer): Don't call
+	w3-element-content-model on nil values.
+
 2006-10-12  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3-imap.el (w3-image-loadable-p): Ignore errors in

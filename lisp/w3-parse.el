@@ -2490,9 +2490,11 @@ Returns a data structure containing the parsed information."
                      ((looking-at "/>")
                       (forward-char 2)
                       (or ;; XHTML-style empty tag
-                       (eq 'EMPTY
-                           (w3-element-content-model
-                            (get w3-p-d-tag-name 'html-element-info))) 
+                       (let ((html-element-info (get w3-p-d-tag-name 'html-element-info)))
+                         (and html-element-info
+                              (eq 'EMPTY
+                                  (w3-element-content-model
+                                   html-element-info)))) 
                        ;; XHTML empty element which is not ordinarily
                        ;; empty.  Simulate by inserting an end tag.
                        (save-excursion
