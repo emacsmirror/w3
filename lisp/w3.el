@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2006/10/11 01:23:17 $
-;; Version: $Revision: 1.34 $
+;; Created: $Date: 2006/10/17 20:24:48 $
+;; Version: $Revision: 1.35 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1537,11 +1537,8 @@ as high as possible in w3-explicit-conversion-tree"
 	    (t (url-view-url t)))))
     (if x
 	(progn
-	  (setq kill-ring (cons x kill-ring))
-	  (setq kill-ring-yank-pointer kill-ring)
-	  (message "Stored URL in kill-ring.")
-	  (if (fboundp 'w3-store-in-clipboard)
-	      (w3-store-in-clipboard x)))
+	  (kill-new x)
+	  (message "Stored URL in kill-ring."))
       (error "No URL to store"))))
 
 (fset 'w3-end-of-document 'end-of-buffer)

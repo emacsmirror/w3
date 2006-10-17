@@ -1,7 +1,7 @@
 ;;; w3-xemac.el --- XEmacs specific functions for emacs-w3
-;; Author: $Author: wmperry $
-;; Created: $Date: 1999/12/05 08:36:12 $
-;; Version: $Revision: 1.2 $
+;; Author: $Author: legoscia $
+;; Created: $Date: 2006/10/17 20:24:48 $
+;; Version: $Revision: 1.3 $
 ;; Keywords: faces, help, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -89,21 +89,6 @@
 	  nil))
     )
   )
-
-(defun w3-store-in-clipboard (str)
-  "Store string STR into the clipboard in X"
-  ;; If possible, let's use the builtin XEmacs device-independent version
-  ;; of this function.  This exists as of XEmacs 21.0, so we should still
-  ;; provide our own version in case we are not on the bleeding edge.
-  (if (fboundp 'own-selection)
-      (own-selection str)
-    (case (device-type)
-      (x
-       (x-own-selection str))
-      (mswindows
-       (mswindows-own-selection str))
-      (otherwise
-       nil))))
 
 (defun w3-mode-motion-hook (e)
   (let* ((glyph  (event-glyph e))

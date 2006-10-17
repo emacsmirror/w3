@@ -1,3 +1,9 @@
+2006-10-17  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/w3.el (w3-save-url): Use kill-new.
+
+	* lisp/w3-xemac.el (w3-store-in-clipboard): Remove.
+
 2006-10-13  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3-parse.el (w3-slow-parse-buffer): Don't call
