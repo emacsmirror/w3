@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.45 $
+;; Version: $Revision: 1.46 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -872,14 +872,34 @@ If the face already exists, it is unmodified."
 	(url-retrieve src 'w3-finalize-image-download-skip-redirects (list src buf 'background face)))))))
 
 (defun w3-finalize-image-download-skip-redirects (&rest args)
-  ;; Skip any number of redirects, conserving the real URL of the
-  ;; image.
-  (let ((url (if (eq (car args) :redirect)
-		 (cadr args)
-	       (car args))))
-    (while (eq (car args) :redirect)
-      (setq args (cddr args)))
-    (apply 'w3-finalize-image-download args)))
+  (let (redirect-url errorp)
+    ;; Handle both styles of `url-retrieve' callbacks...
+    (cond
+     ((listp (car args))
+      ;; Emacs 22 style.  First argument is a list.
+      (let ((status (car args)))
+	(when (eq (car status) :error)
+	  (setq errorp (cadr status))
+	  (setq status (cddr status)))
+	(when (eq (car status) :redirect)
+	  (setq redirect-url (second (car args))))
+
+	(setq args (cdr args))))
+
+     ((eq (car args) :redirect)
+      ;; Pre-22 redirect.
+      (setq redirect-url (cadr args))
+      (while (eq (car args) :redirect)
+	(setq args (cddr args)))))
+
+    (if errorp
+	(progn
+	  ;;(message "Reading of %s failed: %s" (or redirect-url (car args)) errorp)
+	  (url-mark-buffer-as-dead (current-buffer)))
+      ;; Actually, for images we don't want to know the real URL, as the
+      ;; original address is used when putting the images in the right
+      ;; place.  Thus we ignore redirect-url.
+      (apply 'w3-finalize-image-download args))))
 
 (defun w3-finalize-image-download (url buffer &optional widget face)
   (let ((glyph nil)

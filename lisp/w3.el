@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2006/10/17 20:24:48 $
-;; Version: $Revision: 1.35 $
+;; Created: $Date: 2006/11/01 00:21:50 $
+;; Version: $Revision: 1.36 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -299,12 +299,28 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 			       (string-to-int (or reload "5"))))))
 
 (defun w3-fetch-redirect-callback (&rest args)
-  ;; Web page was fetched, but `url-retrieve' might have added
-  ;; information about redirections.
-  (w3-fetch-callback
-   (if (eq (car args) :redirect)
-       (cadr args)
-     (car args))))
+  (let (redirect-url errorp)
+    ;; Handle both styles of `url-retrieve' callbacks...
+    (cond
+     ((listp (car args))
+      ;; Emacs 22 style.  First argument is a list.
+      (let ((status (car args)))
+	(when (eq (car status) :error)
+	  (setq errorp t)
+	  (setq status (cddr args)))
+	(when (eq (car status) :redirect)
+	  (setq redirect-url (second (car args))))
+
+	(setq args (cdr args))))
+
+     ((eq (car args) :redirect)
+      ;; Pre-22 redirect.
+      (setq redirect-url (cadr args))
+      (while (eq (car args) :redirect)
+	(setq args (cddr args)))))
+
+    ;; w3-fetch-callback can handle errors, too.
+    (w3-fetch-callback (or redirect-url (car args)))))
 
 (defun w3-fetch-callback (url)
   (w3-nasty-disgusting-http-equiv-handling (current-buffer) url)
