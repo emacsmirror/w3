@@ -1,3 +1,8 @@
+2006-11-29  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/w3.el (w3-download-redirect-callback): New function.
+	(w3-download-url): Use it instead of w3-download-callback.
+
 2006-11-01  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3.el (w3-fetch-redirect-callback): Handle both old and new
