@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2006/11/01 00:21:50 $
-;; Version: $Revision: 1.36 $
+;; Created: $Date: 2006/11/29 11:59:06 $
+;; Version: $Revision: 1.37 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1867,6 +1867,31 @@ Emacs."
 		    (setq result (cons x result))))
     result))
 
+(defun w3-download-redirect-callback (&rest args)
+  (let (redirect-url errorp)
+    ;; Handle both styles of `url-retrieve' callbacks...
+    (cond
+     ((listp (car args))
+      ;; Emacs 22 style.  First argument is a list.
+      (let ((status (car args)))
+	(when (eq (car status) :error)
+	  (setq errorp t)
+	  (setq status (cddr args)))
+	(when (eq (car status) :redirect)
+	  (setq redirect-url (second (car args))))
+
+	(setq args (cdr args))))
+
+     ((eq (car args) :redirect)
+      ;; Pre-22 redirect.
+      (setq redirect-url (cadr args))
+      (while (eq (car args) :redirect)
+	(setq args (cddr args)))))
+
+    (if errorp
+	(message "Download of %s failed." (url-view-url t))
+      (w3-download-callback (car args)))))
+
 (defun w3-download-callback (fname)
   (let ((coding-system-for-write 'binary))
     (write-region (point-min) (point-max) fname))
@@ -1904,7 +1929,7 @@ Emacs."
 				     stub-fname
 				     nil
 				     stub-fname) dir))))
-    (url-retrieve url 'w3-download-callback (list fname))))
+    (url-retrieve url 'w3-download-redirect-callback (list fname))))
 
 ;;;###autoload
 (defun w3-follow-link-other-frame (&optional p)
