@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2006/11/29 11:59:06 $
-;; Version: $Revision: 1.37 $
+;; Created: $Date: 2006/12/07 00:21:26 $
+;; Version: $Revision: 1.38 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -354,7 +354,10 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 				  (mm-handle-media-type handle)))))
       ;; Fixme: can handle be null?
       (cond
-       ((equal (mm-handle-media-type handle) "text/html")
+       ((or (equal (mm-handle-media-type handle) "text/html")
+	    ;; Ultimately this should be handled by an XML parser, but
+	    ;; this will mostly work for now:
+	    (equal (mm-handle-media-type handle) "application/xhtml+xml"))
 	;; Special case text/html if it comes through w3-fetch
 	(set-buffer (generate-new-buffer " *w3-html*"))
 	(mm-disable-multibyte)
