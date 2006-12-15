@@ -2,7 +2,7 @@
 
 ;; Author: wmperry
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2002/10/23 03:33:41 $
+;; Created: $Date: 2006/12/15 14:40:54 $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
@@ -307,7 +307,7 @@ These are for use in the `weight' field of an X font string.")
       (setq num (string-to-number spec))
       (cond
        ((member type '("pixel" "px" "pix"))
-	(setq retval (* num (/ pix-width mm-width) (/ 25.4 72.0))))
+	(setq retval (* num (/ mm-width pix-width) (/ 72.0 25.4))))
        ((member type '("point" "pt"))
 	(setq retval num))
        ((member type '("pica" "pa"))
