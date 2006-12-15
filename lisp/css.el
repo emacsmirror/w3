@@ -1,7 +1,7 @@
 ;;; css.el -- Cascading Style Sheet parser
-;; Author: $Author: fx $
-;; Created: $Date: 2002/01/22 19:01:57 $
-;; Version: $Revision: 1.8 $
+;; Author: $Author: legoscia $
+;; Created: $Date: 2006/12/15 15:21:47 $
+;; Version: $Revision: 1.9 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -409,6 +409,7 @@ For a terminal frame, the value is always 1."
    ((and (string-match "\\([+-]?\\([0-9]+\\|[0-9]*\\.[0-9]+\\)\\)%" spec)
 	 (fboundp 'frame-char-height))
     ;; A percentage
+    ;; XXX: should be relative to encosing element
     (setq spec (/ (string-to-int (match-string 1 spec)) 100.0))
     (if height
 	(round (* (frame-char-height) spec))
@@ -421,7 +422,12 @@ For a terminal frame, the value is always 1."
       (max 0 (round (* (/ (frame-pixel-width) (frame-width)) spec)))))
    ((string-match "\\([+-]?\\([0-9]+\\|[0-9]*\\.[0-9]+\\)\\)e[mx]" spec)
     ;; Character based
-    (max 0 (round (string-to-number (match-string 1 spec)))))
+    ;; XXX: should be relative to font size of enclosing element
+    (round (font-spatial-to-canonical
+            (concat (number-to-string
+                     (* (string-to-number (match-string 1 spec))
+                        (if height (frame-char-height) (frame-char-width))))
+                    "px"))))
    (t
     (truncate (font-spatial-to-canonical spec)))
    )
