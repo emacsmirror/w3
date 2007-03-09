@@ -1,7 +1,7 @@
 ;;; css.el -- Cascading Style Sheet parser
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2006/12/15 15:21:47 $
-;; Version: $Revision: 1.9 $
+;; Created: $Date: 2007/03/09 21:36:27 $
+;; Version: $Revision: 1.10 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -461,54 +461,58 @@ For a terminal frame, the value is always 1."
 			  "\\|") "\\)$"))))
 
 (defun css-expand-color (color)
-  (cond
-   ((string-match "^\\(transparent\\|none\\)$" color)
-    (setq color nil))
-   ((string-match "^#" color)
-    (let (r g b)
+  (condition-case e
       (cond
-       ((string-match "^#...$" color)
-	;; 3-char rgb spec, expand out to six chars by replicating
-	;; digits, not adding zeros.
-	(setq r (css-unhex (make-string 2 (aref color 1)))
-	      g (css-unhex (make-string 2 (aref color 2)))
-	      b (css-unhex (make-string 2 (aref color 3)))))
-       ((string-match "^#\\(..\\)\\(..\\)\\(..\\)$" color)
-	(setq r (css-unhex (match-string 1 color))
-	      g (css-unhex (match-string 2 color))
-	      b (css-unhex (match-string 3 color))))
+       ((string-match "^\\(transparent\\|none\\)$" color)
+	(setq color nil))
+       ((string-match "^#" color)
+	(let (r g b)
+	  (cond
+	   ((string-match "^#...$" color)
+	    ;; 3-char rgb spec, expand out to six chars by replicating
+	    ;; digits, not adding zeros.
+	    (setq r (css-unhex (make-string 2 (aref color 1)))
+		  g (css-unhex (make-string 2 (aref color 2)))
+		  b (css-unhex (make-string 2 (aref color 3)))))
+	   ((string-match "^#\\(..\\)\\(..\\)\\(..\\)$" color)
+	    (setq r (css-unhex (match-string 1 color))
+		  g (css-unhex (match-string 2 color))
+		  b (css-unhex (match-string 3 color))))
+	   (t
+	    (setq color (substring color 1))
+	    (let* ((n (/ (length color) 3))
+		   (max (float (css-pow 16 n))))
+	      (setq r (css-unhex (substring color 0 n))
+		    g (css-unhex (substring color n (* n 2)))
+		    b (css-unhex (substring color (* n 2) (* n 3)))
+		    r (round (* (/ r max) 255))
+		    g (round (* (/ g max) 255))
+		    b (round (* (/ b max) 255))))))
+	  (setq color (vector 'rgb r g b))))
+       ((string-match "^rgb *( *\\([0-9]+\\)[, ]+\\([0-9]+\\)[, ]+\\([0-9]+\\) *) *$" color)
+	;; rgb(r,g,b) 0 - 255, cutting off at 255
+	(setq color (vector
+		     'rgb
+		     (min (string-to-int (match-string 1 color)) 255)
+		     (min (string-to-int (match-string 2 color)) 255)
+		     (min (string-to-int (match-string 3 color)) 255))))
+       ((string-match "^rgb *( *\\([0-9]+\\) *%[, ]+\\([0-9]+\\) *%[, ]+\\([0-9]+\\) *% *) *$" color)
+	;; rgb(r%,g%,b%) 0 - 100%, cutting off at 100%
+	(let ((r (min (string-to-number (match-string 1 color)) 100.0))
+	      (g (min (string-to-number (match-string 2 color)) 100.0))
+	      (b (min (string-to-number (match-string 3 color)) 100.0)))
+	  (setq r (round (* r 2.55))
+		g (round (* g 2.55))
+		b (round (* b 2.55))
+		color (vector 'rgb r g b))))
        (t
-	(setq color (substring color 1))
-	(let* ((n (/ (length color) 3))
-	       (max (float (css-pow 16 n))))
-	  (setq r (css-unhex (substring color 0 n))
-		g (css-unhex (substring color n (* n 2)))
-		b (css-unhex (substring color (* n 2) (* n 3)))
-		r (round (* (/ r max) 255))
-		g (round (* (/ g max) 255))
-		b (round (* (/ b max) 255))))))
-      (setq color (vector 'rgb r g b))))
-   ((string-match "^rgb *( *\\([0-9]+\\)[, ]+\\([0-9]+\\)[, ]+\\([0-9]+\\) *) *$" color)
-    ;; rgb(r,g,b) 0 - 255, cutting off at 255
-    (setq color (vector
-		 'rgb
-		 (min (string-to-int (match-string 1 color)) 255)
-		 (min (string-to-int (match-string 2 color)) 255)
-		 (min (string-to-int (match-string 3 color)) 255))))
-   ((string-match "^rgb *( *\\([0-9]+\\) *%[, ]+\\([0-9]+\\) *%[, ]+\\([0-9]+\\) *% *) *$" color)
-    ;; rgb(r%,g%,b%) 0 - 100%, cutting off at 100%
-    (let ((r (min (string-to-number (match-string 1 color)) 100.0))
-	  (g (min (string-to-number (match-string 2 color)) 100.0))
-	  (b (min (string-to-number (match-string 3 color)) 100.0)))
-      (setq r (round (* r 2.55))
-	    g (round (* g 2.55))
-	    b (round (* b 2.55))
-	    color (vector 'rgb r g b))))
-    (t
-     ;; Hmmm... pass it through unmangled and hope the underlying
-     ;; windowing system can handle it.
-     )
-    )
+	;; Hmmm... pass it through unmangled and hope the underlying
+	;; windowing system can handle it.
+	)
+       )
+    (error
+     (w3-warn 'css (format "Couldn't interpret color value %s" color))
+     (setq color nil)))
   color
   )
 
