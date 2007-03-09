@@ -1,3 +1,8 @@
+2007-03-09  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/css.el (css-expand-color): Catch errors and display a
+	warning instead.
+
 2006-12-15  Klaus Straubinger <KSNetz@UseNet.ArcorNews.DE> (tiny change)
 
 	* lisp/font.el (font-spatial-to-canonical): Fix conversion from
