@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.49 $
+;; Version: $Revision: 1.50 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -805,7 +805,7 @@ If the face already exists, it is unmodified."
 	  (eq (device-type) 'tty))	; Why bother?
       (w3-add-delayed-graphic widget))
      ((not (w3-image-loadable-p src nil)) ; Hey, we can't load it!
-      (message "Skipping image %s" (url-basepath src t))
+      (message "Skipping image %s" (w3-url-file-nondirectory src))
       (w3-add-delayed-graphic widget))
      (t					; Grab the images
       (let ((url-request-method "GET")
@@ -841,7 +841,7 @@ If the face already exists, it is unmodified."
 	  (eq (device-type) 'tty))	; Why bother?
       nil)
      ((not (w3-image-loadable-p src nil)) ; Hey, we can't load it!
-      (message "Skipping image %s" (url-basepath src t))
+      (message "Skipping image %s" (w3-url-file-nondirectory src))
       nil)
      (t					; Grab the images
       (let ((url-request-method "GET")
@@ -996,11 +996,11 @@ If the face already exists, it is unmodified."
 		   (cond
 		    ((null w3-auto-image-alt) "")
 		    ((eq t w3-auto-image-alt)
-		     (concat "[IMAGE(" (url-basepath src t) ")] "))
+		     (concat "[IMAGE(" (w3-url-file-nondirectory src) ")] "))
 		    ((stringp w3-auto-image-alt)
-		     (format w3-auto-image-alt (url-basepath src t)))
+		     (format w3-auto-image-alt (w3-url-file-nondirectory src)))
 		    ((functionp w3-auto-image-alt)
-		     (funcall w3-auto-image-alt (url-basepath src t))))))
+		     (funcall w3-auto-image-alt (w3-url-file-nondirectory src))))))
 	  c)
      (while (setq c (string-match "[\C-i\C-j\C-l\C-m]" alt))
        (aset alt c ? ))

@@ -1,5 +1,15 @@
 2007-11-15  Magnus Henoch  <mange@freemail.hu>
 
+	* lisp/w3-display.el: Use w3-url-file-nondirectory instead of
+	url-basepath (in many places).
+
+	* lisp/w3.el: Require w3-compat.
+	(w3-download-url): Use w3-url-file-nondirectory instead of
+	url-basepath.
+
+	* lisp/w3-compat.el: New file.
+	(w3-url-file-nondirectory): New function.
+
 	* lisp/images.el: Don't require w3-sysdp.
 
 	* lisp/css.el: Ditto.

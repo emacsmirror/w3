@@ -1,7 +1,7 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2007/11/15 12:22:34 $
-;; Version: $Revision: 1.39 $
+;; Created: $Date: 2007/11/15 12:59:53 $
+;; Version: $Revision: 1.40 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,6 +33,7 @@
 ;;; format.				                                    ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(require 'w3-compat)
 (require 'w3-cfg)
 
 (or (featurep 'efs)
@@ -1924,7 +1925,7 @@ Emacs."
   (interactive (list (w3-read-url-with-default)))
   (let* ((url-mime-accept-string "*/*")
 	 (urlobj (url-generic-parse-url url))
-	 (stub-fname (url-basepath (or (url-filename urlobj) "") t))
+	 (stub-fname (w3-url-file-nondirectory (or (url-filename urlobj) "")))
 	 (dir (or mailcap-download-directory "~/"))
 	 (fname (or file-name
 		    (expand-file-name
