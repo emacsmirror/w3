@@ -1,11 +1,11 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.46 $
+;; Version: $Revision: 1.47 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; This file is part of GNU Emacs.
@@ -35,7 +35,6 @@
 (require 'mailcap)
 (require 'w3-widget)
 (require 'w3-imap)
-(require 'w3-sysdp)
 
 ;; Some mm-* "functions" are macros.  Ensure that they are loaded.
 (eval-when-compile

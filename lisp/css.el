@@ -1,12 +1,12 @@
 ;;; css.el -- Cascading Style Sheet parser
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2007/03/09 21:36:27 $
-;; Version: $Revision: 1.10 $
+;; Created: $Date: 2007/11/15 12:22:34 $
+;; Version: $Revision: 1.11 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;; Copyright (c) 1996, 97, 98, 1999, 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -30,7 +30,6 @@
 (eval-and-compile
   (require 'cl)
   (require 'font))
-(require 'w3-sysdp)			; for copy-tree
 (autoload 'url-expand-file-name "url-expand")
 (autoload 'url-insert-file-contents "url-handlers")
 (autoload 'url-view-url "url-util")

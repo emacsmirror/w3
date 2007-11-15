@@ -1,12 +1,12 @@
 ;;; images.el --- Automatic image converters
-;; Author: $Author: wmperry $
-;; Created: $Date: 2002/02/01 17:42:48 $
-;; Version: $Revision: 1.5 $
+;; Author: $Author: legoscia $
+;; Created: $Date: 2007/11/15 12:22:34 $
+;; Version: $Revision: 1.6 $
 ;; Keywords: images
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Copyright (c) 1996 - 1999, 2007 Free Software Foundation Inc.
 ;;; Copyright (c) 1995 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -25,16 +25,6 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; The emacsen compatibility package - load it up before anything else
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(eval-and-compile
-  (if (not (and (featurep 'xemacs)
-		(or (> emacs-major-version 19)
-		    (>= emacs-minor-version 14))))
-      (require 'w3-sysdp)))
 
 (defvar image-temp-stack nil "Do no touch - internal storage.")
 (defvar image-converters nil "Storage for the image converters.")

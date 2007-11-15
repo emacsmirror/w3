@@ -1,11 +1,11 @@
 ;;; w3-dired.el --- W3 Dired minor mode
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2001/05/29 15:50:37 $
-;; Version: $Revision: 1.4 $
+;; Created: $Date: 2007/11/15 12:22:34 $
+;; Version: $Revision: 1.5 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999, 2007 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -35,7 +35,6 @@
 
 ;; Fixme: should we have both this and url-dired?
 
-(require 'w3-sysdp)			; for add-minor-mode
 (autoload 'dired-get-filename "dired")
 (autoload 'w3-open-local "w3")
 (autoload 'w3-fetch "w3")

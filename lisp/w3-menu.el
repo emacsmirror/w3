@@ -1,11 +1,11 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.14 $
+;; Version: $Revision: 1.15 $
 ;; Keywords: menu, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001, 2007 Free Software Foundation, Inc.
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -27,7 +27,6 @@
 
 (require 'w3-vars)
 (require 'w3-mouse)
-(require 'w3-sysdp)			; for copy-tree
 (eval-when-compile
   (require 'cl)
   (defvar w3-html-bookmarks))

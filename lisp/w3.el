@@ -1,12 +1,12 @@
 ;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2006/12/07 00:21:26 $
-;; Version: $Revision: 1.38 $
+;; Created: $Date: 2007/11/15 12:22:34 $
+;; Version: $Revision: 1.39 $
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Copyright (c) 1996, 97, 98, 99, 2001, 2007 Free Software Foundation, Inc.
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 97, 98, 99, 2001 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -33,7 +33,6 @@
 ;;; format.				                                    ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'w3-sysdp)
 (require 'w3-cfg)
 
 (or (featurep 'efs)
@@ -1897,7 +1896,9 @@ Emacs."
 
 (defun w3-download-callback (fname)
   (let ((coding-system-for-write 'binary))
-    (write-region (point-min) (point-max) fname))
+    (goto-char (point-min))
+    (search-forward "\n\n" nil t)
+    (write-region (point) (point-max) fname))
   (url-mark-buffer-as-dead (current-buffer))
   (message "Download of %s complete." (url-view-url t))
   (sit-for 3))
