@@ -1,11 +1,11 @@
 ;;; css.el -- Cascading Style Sheet parser
 ;; Author: $Author: legoscia $
-;; Created: $Date: 2007/11/15 12:22:34 $
-;; Version: $Revision: 1.11 $
+;; Created: $Date: 2007/11/15 12:28:29 $
+;; Version: $Revision: 1.12 $
 ;; Keywords: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 1999, 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 1999, 2000, 2001, 2007 Free Software Foundation, Inc.
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;;
 ;;; This file is part of GNU Emacs.
@@ -453,11 +453,11 @@ For a terminal frame, the value is always 1."
     rval))
 
 (defmacro css-symbol-list-as-regexp (&rest keys)
-  (` (eval-when-compile
-       (concat "^\\("
-	       (mapconcat 'symbol-name
-			  (quote (, keys))
-			  "\\|") "\\)$"))))
+  `(eval-when-compile
+     (concat "^\\("
+	     (mapconcat 'symbol-name
+			(quote ,keys)
+			"\\|") "\\)$")))
 
 (defun css-expand-color (color)
   (condition-case e
@@ -865,15 +865,14 @@ For a terminal frame, the value is always 1."
     types))
 
 (defmacro css-rule-specificity-internal (rule)
-  (`
-   (progn
-     (setq tmp (cdr (, rule)))
+  `(progn
+     (setq tmp (cdr ,rule))
      (if (listp tmp)
 	 (while tmp
 	   (if (= ?# (aref (car tmp) 0))
 	       (incf a)
 	     (incf b))
-	   (setq tmp (cdr tmp)))))))
+	   (setq tmp (cdr tmp))))))
 
 (defsubst css-specificity (rule)
   ;; To find specificity, according to the september 1996 CSS draft

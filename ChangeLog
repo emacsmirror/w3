@@ -2,7 +2,10 @@
 
 	* lisp/images.el: Don't require w3-sysdp.
 	* lisp/css.el: Ditto.
-	* lisp/w3-dired.el: Ditto.
+	(css-rule-specificity-internal): Drop old-style backquotes.
+	(css-symbol-list-as-regexp): Ditto.
+
+	* lisp/w3-dired.el: Don't require w3-sysdp.
 	* lisp/w3-display.el: Ditto.
 	* lisp/w3-menu.el: Ditto.
 	* lisp/w3.el: Ditto.
