@@ -1,15 +1,20 @@
 2007-11-15  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/images.el: Don't require w3-sysdp.
+
 	* lisp/css.el: Ditto.
 	(css-rule-specificity-internal): Drop old-style backquotes.
 	(css-symbol-list-as-regexp): Ditto.
 
 	* lisp/w3-dired.el: Don't require w3-sysdp.
-	* lisp/w3-display.el: Ditto.
+
+	* lisp/w3-display.el: Ditto.  Also drop old-style backquotes.
+
 	* lisp/w3-menu.el: Ditto.
+
 	* lisp/w3.el: Ditto.
 	(w3-download-callback): Skip HTTP headers when saving file.
+
 	* lisp/w3-sysdp.el: Remove.
 
 2007-03-09  Magnus Henoch  <mange@freemail.hu>

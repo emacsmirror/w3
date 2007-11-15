@@ -1,10 +1,10 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.47 $
+;; Version: $Revision: 1.48 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001, 2007 Free Software Foundation, Inc.
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -592,25 +592,22 @@ If the face already exists, it is unmodified."
 ;; Various macros
 (eval-when-compile
   (defmacro w3-node-visible-p ()
-    (` (not (eq (car break-style) 'none))))
+    `(not (eq (car break-style) 'none)))
 
   (defmacro w3-handle-empty-tag ()
-    (`
-     (progn
+    `(progn
        (push (cons tag args) w3-display-open-element-stack)
        (push content content-stack)
-       (setq content nil))))
+       (setq content nil)))
 
   (defmacro w3-handle-content (node)
-    (`
-     (progn
+    `(progn
        (push (cons tag args) w3-display-open-element-stack)
        (push content content-stack)
-       (setq content (nth 2 (, node))))))
+       (setq content (nth 2 ,node)))))
 
   (defmacro w3-display-handle-list-type ()
-    (`
-     (add-text-properties
+    `(add-text-properties
       (point)
       (progn
 	(case (car break-style)
@@ -660,11 +657,10 @@ If the face already exists, it is unmodified."
       (list 'start-open t
 	    'end-open t
 	    'rear-nonsticky nil
-	    'face 'nil))))
+	    'face 'nil)))
 
   (defmacro w3-display-set-margins ()
-    (`
-     (progn
+    `(progn
        (push (+ (w3-get-style-info 'margin-left node 0)
 		(car left-margin-stack)) left-margin-stack)
        (push (-
@@ -672,17 +668,15 @@ If the face already exists, it is unmodified."
 	      (w3-get-style-info 'margin-right node 0)) right-margin-stack)
        (setq fill-column (car right-margin-stack))
        (w3-set-fill-prefix-length (car left-margin-stack))
-       (w3-display-handle-list-type))))
+       (w3-display-handle-list-type)))
 
   (defmacro w3-display-restore-margins ()
-    (`
-     (progn
+    `(progn
        (pop right-margin-stack)
-       (pop left-margin-stack))))
+       (pop left-margin-stack)))
 
   (defmacro w3-display-handle-break ()
-    (`
-     (case (car break-style)
+    `(case (car break-style)
        (block				; Full paragraph break
 	(if (eq (cadr break-style) 'list-item)
 	    (setf (cadr break-style) 'line)
@@ -722,16 +716,14 @@ If the face already exists, it is unmodified."
 	 w3-display-alignment-stack))
        (otherwise			; Assume 'inline' rendering as default
 	nil))
-     )
     )
+    
 
   (defmacro w3-display-progress-meter ()
-    (`
-     (url-lazy-message "Drawing... %c" (aref "/|\\-" (random 4)))))
+    `(url-lazy-message "Drawing... %c" (aref "/|\\-" (random 4))))
     
   (defmacro w3-display-handle-end-break ()
-    (`
-     (case (pop break-style)
+    `(case (pop break-style)
        (block				; Full paragraph break
 	(w3-display-line-break 1)
 	(w3-display-restore-margins)
@@ -749,7 +741,7 @@ If the face already exists, it is unmodified."
 	nil))
      )
     )
-  )
+
 
 ;; <link> handling
 (defun w3-parse-link (args)
@@ -999,8 +991,7 @@ If the face already exists, it is unmodified."
     (concat "[" (file-name-sans-extension fname) "]")))
 
 (defmacro w3-image-alt (src)
-  (`
-   (let* ((doc-alt (w3-get-attribute 'alt))
+  `(let* ((doc-alt (w3-get-attribute 'alt))
 	  (alt (or (and (stringp doc-alt) (string-match "[^ \t\n]" doc-alt) doc-alt)
 		   (cond
 		    ((null w3-auto-image-alt) "")
@@ -1013,7 +1004,7 @@ If the face already exists, it is unmodified."
 	  c)
      (while (setq c (string-match "[\C-i\C-j\C-l\C-m]" alt))
        (aset alt c ? ))
-     alt)))
+     alt))
 
 (defmacro w3-handle-image ()
   `(let* ((height (w3-get-attribute 'height))
