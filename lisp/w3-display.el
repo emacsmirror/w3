@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.48 $
+;; Version: $Revision: 1.49 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -604,7 +604,7 @@ If the face already exists, it is unmodified."
     `(progn
        (push (cons tag args) w3-display-open-element-stack)
        (push content content-stack)
-       (setq content (nth 2 ,node)))))
+       (setq content (nth 2 ,node))))
 
   (defmacro w3-display-handle-list-type ()
     `(add-text-properties
@@ -740,7 +740,7 @@ If the face already exists, it is unmodified."
        (otherwise			; Assume 'inline' rendering as default
 	nil))
      )
-    )
+)  
 
 
 ;; <link> handling
