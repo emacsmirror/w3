@@ -42,5 +42,29 @@
  (t
   (error "Couldn't define `w3-url-file-nondirectory'")))
 
+;; `alist-to-plist' is only in XEmacs, it seems.
+(cond
+ ((fboundp 'alist-to-plist)
+  (defalias 'w3-alist-to-plist 'alist-to-plist))
+ (t
+  ;; Stolen from Gnus, `mm-alist-to-plist'
+  (defun w3-alist-to-plist (alist)
+  "Convert association list ALIST into the equivalent property-list form.
+The plist is returned.  This converts from
+
+\((a . 1) (b . 2) (c . 3))
+
+into
+
+\(a 1 b 2 c 3)
+
+The original alist is not modified.  See also `destructive-alist-to-plist'."
+  (let (plist)
+    (while alist
+      (let ((el (car alist)))
+	(setq plist (cons (cdr el) (cons (car el) plist))))
+      (setq alist (cdr alist)))
+    (nreverse plist)))))
+
 (provide 'w3-compat)
 ;;; w3-compat.el ends here

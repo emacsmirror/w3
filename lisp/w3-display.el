@@ -1,6 +1,6 @@
 ;;; w3-display.el --- W3 display engine
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.50 $
+;; Version: $Revision: 1.51 $
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -749,7 +749,7 @@ If the face already exists, it is unmodified."
 	 (desc (w3-get-attribute type))
 	 (dc-desc (and desc (downcase desc))) ; canonical case
 	 (dest (w3-get-attribute 'href))
-	 (plist (alist-to-plist args))
+	 (plist (w3-alist-to-plist args))
 	 (node-1 (assq type w3-current-links))
 	 (node-2 (and node-1 desc (or (assoc desc
 					     (cdr node-1))
@@ -1942,7 +1942,7 @@ Can sometimes make the structure of a document clearer")
     color))
 
 (defun w3-display-normalize-form-info (args)
-  (let* ((plist (alist-to-plist args))
+  (let* ((plist (w3-alist-to-plist args))
 	 (type (intern (downcase
 			(or (plist-get plist 'type) "text"))))
 	 (name (plist-get plist 'name))
@@ -2643,7 +2643,7 @@ Format: (((image-alt row column) . offset) ...)")
 	     (w3-handle-empty-tag)
 	     )
 	    (style
-	     (w3-handle-style (alist-to-plist
+	     (w3-handle-style (w3-alist-to-plist
 			       (cons (cons 'data (apply 'concat (nth 2 node)))
 				     (nth 1 node))))
 	     (w3-handle-empty-tag))
