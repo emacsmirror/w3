@@ -1,3 +1,8 @@
+2007-12-09  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/w3-compat.el (w3-url-file-nondirectory): Fix thinko: alias
+	to url-file-nondirectory, not url-file-directory.
+
 2007-11-16  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3-compat.el (w3-alist-to-plist): Define.
