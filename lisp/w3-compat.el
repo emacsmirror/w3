@@ -34,7 +34,7 @@
 ;; `url-file-nondirectory' post Emacs 22.
 (cond
  ((fboundp 'url-file-nondirectory)
-  (defalias 'w3-url-file-nondirectory 'url-file-directory))
+  (defalias 'w3-url-file-nondirectory 'url-file-nondirectory))
  ((fboundp 'url-basepath)
   (defsubst w3-url-file-nondirectory (file)
     "Return the directory part of FILE, for a URL."
