@@ -26,6 +26,7 @@ W3_SOURCES =								\
 	css.el								\
 	url-hotlist.el							\
 	w3-cfg.el							\
+	w3-compat.el							\
 	w3-cus.el							\
 	w3-dired.el							\
 	w3-display.el							\
@@ -68,7 +69,7 @@ ALLSOURCES = $(W3_SOURCES) $(UTIL_SOURCES) $(AUTO_SOURCES)
 ALLOBJECTS = $(W3_OBJECTS) $(UTIL_OBJECTS) $(AUTO_OBJECTS)
 
 # Warning!  Currently, the following file can _NOT_ be bytecompiled.
-EXTRAS = w3-sysdp.el docomp.el
+EXTRAS = docomp.el
 
 .SUFFIXES: .elc .el
 

@@ -1,3 +1,8 @@
+2008-02-04  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/Makefile.in (EXTRAS): Remove w3-sysdp.el.
+	(W3_SOURCES): Add w3-compat.el.
+
 2007-12-09  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3-compat.el (w3-url-file-nondirectory): Fix thinko: alias
@@ -439,7 +444,7 @@
 2001-05-31  Dave Love  <fx@gnu.org>
 
 	* lisp/w3-menu.el (w3-menu-file-menu): Fix
-	"---:shadowDoubleEtchedIn".  From Pavel Janík.
+	"---:shadowDoubleEtchedIn".  From Pavel JanÃ­k.
 
 	* lisp/w3-parse.el (decode-char): Define with older Mule-UCS.
 	(w3-expand-entity-at-point-maybe): Sanitize regexp for numeric
@@ -489,7 +494,7 @@
 	to work around a byte-optimizer bug in Emacs 21 that caused this
 	module to fail to byte-compile.
 
-2001-05-24  Pavel Janík <Pavel@janik.cz>
+2001-05-24  Pavel JanÃ­k <Pavel@janik.cz>
 
 	* lisp/w3-display.el (w3-resurrect-hyperlinks): Look for next
 	single property change from `st' instead of `nd' to avoid
