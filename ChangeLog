@@ -1,5 +1,10 @@
 2008-02-04  Magnus Henoch  <mange@freemail.hu>
 
+	* lisp/font.el (font-x-font-regexp-foundry-and-family): Add from
+	last version of w3-sysdp.
+	(x-font-create-object): Use it instead of
+	x-font-regexp-foundry-and-family.
+
 	* lisp/Makefile.in (EXTRAS): Remove w3-sysdp.el.
 	(W3_SOURCES): Add w3-compat.el.
 

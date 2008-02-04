@@ -2,7 +2,7 @@
 
 ;; Author: wmperry
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2006/12/15 14:40:54 $
+;; Created: $Date: 2008/02/04 06:29:13 $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
@@ -448,6 +448,13 @@ These are for use in the `weight' field of an X font string.")
 	   registry - encoding "\\'"
 	   ))))
 
+(defvar font-x-font-regexp-foundry-and-family
+  (let ((- 		"[-?]")
+	(foundry		"[^-]+")
+	(family 		"[^-]+")
+	)
+    (concat "\\`[-?*]" foundry - "\\(" family "\\)" -)))
+
 (defvar font-x-registry-and-encoding-regexp
   (or (and (featurep 'xemacs)
 	   (boundp 'x-font-regexp-registry-and-encoding)
@@ -506,7 +513,7 @@ These are for use in the `weight' field of an X font string.")
 	    (retval nil)
 	    (case-fold-search t)
 	    )
-	(if (not (string-match x-font-regexp-foundry-and-family fontname))
+	(if (not (string-match font-x-font-regexp-foundry-and-family fontname))
 	    nil
 	  (setq family (list (downcase (match-string 1 fontname)))))
 	(if (string= "*" weight)  (setq weight  nil))
