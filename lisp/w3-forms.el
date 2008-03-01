@@ -5,8 +5,8 @@
 ;; Keywords: faces, help, comm, data, languages
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Copyright (c) 1996 - 1999, 2008 Free Software Foundation, Inc.
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -407,7 +407,7 @@
 			   (list 'choice-item
 				 :format "%[%t%]"
 				 :emacspeak-help 'w3-form-summarize-field
-				 :menu-tag-get (` (lambda (zed) (, (car x))))
+				 :menu-tag-get `(lambda (zed) ,(car x))
 				 :tag (truncate-string-to-width (car x)
 								size nil ? )
 				 :button-face face

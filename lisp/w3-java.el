@@ -5,7 +5,7 @@
 ;; Keywords: hypermedia, scripting
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1999, 2008 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -76,12 +76,11 @@ Java applet."
 	  (let ((process-connection-type nil)
 		(proc nil))
 	    (setq proc (eval
-			(`
-			 (start-process name buffer w3-java-vm-program
-					(,@ w3-java-vm-arguments)))))
+			`(start-process name buffer w3-java-vm-program
+					,@w3-java-vm-arguments)))
 	    (process-kill-without-query proc)
 	    proc)
-	(eval (` (funcall w3-java-vm-program
-			  (,@ w3-java-vm-arguments))))))))
+	(eval `(funcall w3-java-vm-program
+			  ,@w3-java-vm-arguments))))))
 
 (provide 'w3-java)

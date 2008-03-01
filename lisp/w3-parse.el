@@ -69,15 +69,15 @@ w3-parse-buffer which it is w3-parse-buffer's responsibility to
   (defmacro w3-p-s-var-def (var)
     "Declare VAR as a scratch variable which w3-parse-buffer must
 \"let\"-bind."
-    (` (eval-when-compile
-         (defvar (, var))
-         (or (memq '(, var) w3-p-s-var-list)
-             (setq w3-p-s-var-list (cons '(, var) w3-p-s-var-list))))))
+    `(eval-when-compile
+         (defvar ,var)
+         (or (memq ',var w3-p-s-var-list)
+             (setq w3-p-s-var-list (cons ',var w3-p-s-var-list)))))
 
   (defmacro w3-p-s-let-bindings (&rest body)
     "\"let\"-bind all of the variables in w3-p-s-var-list in BODY."
-    (` (let (, w3-p-s-var-list)
-         (,@ body))))
+    `(let ,w3-p-s-var-list
+         ,@body))
   (put 'w3-p-s-let-bindings 'lisp-indent-function 0)
   (put 'w3-p-s-let-bindings 'edebug-form-spec t)
 
@@ -193,15 +193,15 @@ which must be a string to use as the error message."
                         'w3-debug-html))
       (if mandatory-if
           (setq condition
-                (` (or (, mandatory-if)
-                       (, condition)))))
-      (` (if (, condition)
-             (let ((message (progn (,@ body))))
+                `(or ,mandatory-if
+                       ,condition)))
+      `(if ,condition
+             (let ((message (progn ,@body)))
                (if message
                    (w3-debug-html-aux message
-                                      (,@ (if nocontext
+                                      ,@(if nocontext
                                               (list outer nocontext)
-                                            (if outer '(t)))))))))))
+                                            (if outer '(t)))))))))
 
   ;; This is unsatisfactory.
   (put 'w3-debug-html 'lisp-indent-function 0)
@@ -721,11 +721,11 @@ available.  Codes in the range [128,160] are substituted using
       (let* ((field (symbol-name (car fields)))
              (get-sym (intern (concat "w3-element-" field)))
              (set-sym (intern (concat "w3-set-element-" field))))
-        (eval (` (progn
-                   (defmacro (, get-sym) (element)
-                     (list 'aref element (, index)))
-                   (defmacro (, set-sym) (element value)
-                     (list 'aset element (, index) value))))))
+        (eval `(progn
+                   (defmacro ,get-sym (element)
+                     (list 'aref element ,index))
+                   (defmacro ,set-sym (element value)
+                     (list 'aset element ,index value)))))
       (setq fields (cdr fields))
       (setq index (1- index))))
 
@@ -734,14 +734,14 @@ available.  Codes in the range [128,160] are substituted using
 
   ;; *** move this to be with DTD declaration.
   (defmacro w3-fresh-element-for-tag (tag)
-    (` (copy-sequence
-        (or (get (, tag) 'html-element-info)
+    `(copy-sequence
+        (or (get ,tag 'html-element-info)
             (error "unimplemented element %s"
-                   (w3-sgml-name-to-string (, tag)))))))
+                   (w3-sgml-name-to-string ,tag)))))
 
   ;; *** move this to be with DTD declaration.
   (defmacro w3-known-element-p (tag)
-    (` (get (, tag) 'html-element-info)))
+    `(get ,tag 'html-element-info))
   
   (defsubst w3-sgml-name-to-string (sym)
     (upcase (symbol-name sym)))

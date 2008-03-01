@@ -18,10 +18,10 @@
 (defmacro w3-within-cell (cell-info table-info &rest forms)
   "Enables to recursively enter the current cell using `extract-rectangle'
 using CELL-INFO and TABLE-INFO and process FORMS inside it (for instance to process subtables)"
-  (` (let* ((cell-row (w3-cell-info-row (, cell-info)))
-	    (cell-col (w3-cell-info-column (, cell-info)))
-	    (cell-beg (w3-cell-info-start (, cell-info)))
-	    (cell-end (w3-cell-info-end (, cell-info)))
+  `(let* ((cell-row (w3-cell-info-row ,cell-info))
+	    (cell-col (w3-cell-info-column ,cell-info))
+	    (cell-beg (w3-cell-info-start ,cell-info))
+	    (cell-end (w3-cell-info-end ,cell-info))
 	    (cell-contents (extract-rectangle cell-beg cell-end))
 	    (cell-x (count-lines (save-excursion (goto-char cell-beg) (beginning-of-line) (point))
 				 (save-excursion (beginning-of-line) (point))))
@@ -31,11 +31,11 @@ using CELL-INFO and TABLE-INFO and process FORMS inside it (for instance to proc
 				    (- (point) cell-beg)))
 	    cell-table-structure)
        ;; really inside cell ?
-       (when (and (, cell-info)
+       (when (and ,cell-info
 		  (>= (point) cell-beg)
 		  (<= (point) cell-end))
 	 ;; find current subtables structure
-	 (loop for subtable in (w3-table-info-subtables (, table-info))
+	 (loop for subtable in (w3-table-info-subtables ,table-info)
 	   if (and (= cell-row (car subtable))
 		   (= cell-col (cadr subtable)))
 	   do (setq cell-table-structure (cons (cddr subtable) cell-table-structure)))
@@ -54,7 +54,7 @@ using CELL-INFO and TABLE-INFO and process FORMS inside it (for instance to proc
 	   (forward-line cell-x)
 	   (move-to-column cell-y)
 	   (setq w3-table-structure (nreverse cell-table-structure))
-	   (,@ forms))))))
+	   ,@forms))))
 
 (put 'w3-within-cell 'lisp-indent-function 2)
 (put 'w3-within-cell 'edebug-form-spec '(sexp sexp &rest form))
@@ -62,15 +62,15 @@ using CELL-INFO and TABLE-INFO and process FORMS inside it (for instance to proc
 (defmacro w3-table-compute-relative-movement (&rest forms)
   "Record a movement done by &rest FORMS (e.g. inside a temporary buffer)
 and return it as (horizontal-offset . vertical-offset)"
-  (` (let ((origin-line-beg (save-excursion (beginning-of-line) (point)))
+  `(let ((origin-line-beg (save-excursion (beginning-of-line) (point)))
 	   (origin-char-col (current-column)))
-       (,@ forms)
+       ,@forms
        (cons (- (current-column) origin-char-col)
 	     (let* ((new-line-beg (save-excursion (beginning-of-line) (point)))
 		    (line-diff (count-lines new-line-beg origin-line-beg)))
 	       (if (< new-line-beg origin-line-beg)
 		   (- line-diff)
-		 line-diff))))))
+		 line-diff)))))
 (put 'w3-table-compute-relative-movement 'lisp-indent-function 0)
 (put 'w3-table-compute-relative-movement 'edebug-form-spec '(&rest form))
 
@@ -85,31 +85,31 @@ and return it as (horizontal-offset . vertical-offset)"
 (defmacro w3-table-move-within-cell (at-depth cell-info move-function)
   "Move within a cell (in a temporary buffer) and reflect the same movement
 in the containing table in the original buffer"
-  (` (if (null (, cell-info))
+  `(if (null ,cell-info)
 	 (error "Not inside a W3 cell")
        (let (table-movement)
-	 (w3-within-cell (, cell-info) table-info
+	 (w3-within-cell ,cell-info table-info
 			 (setq table-movement
 			       (w3-table-compute-relative-movement
-				(funcall (, move-function) (1- at-depth)))))
-	 (w3-table-redo-relative-movement table-movement)))))
+				(funcall ,move-function (1- at-depth)))))
+	 (w3-table-redo-relative-movement table-movement))))
 (put 'w3-table-move-within-cell 'lisp-indent-function 2)
 (put 'w3-table-move-within-cell 'edebug-form-spec '(sexp sexp &rest form))
 
 (defmacro w3-table-move-within-subtable (at-depth cell-info move-function)
   "Move within a subtable (in a temporary buffer) and reflect the same movement
 in the containing table in the original buffer"
-  (` (if (null (, cell-info))
+  `(if (null ,cell-info)
 	 (error "Not inside a W3 cell")
-       (let ((subtable-info (w3-cell-info-current-subtable (, cell-info)))
+       (let ((subtable-info (w3-cell-info-current-subtable ,cell-info))
 	     table-movement)
 	 (if (null subtable-info)
 	     (error "Not inside a W3 table")
-	   (w3-within-cell (, cell-info) table-info
+	   (w3-within-cell ,cell-info table-info
 			   (setq table-movement
 				 (w3-table-compute-relative-movement
-				  (funcall (, move-function) (1- at-depth) subtable-info))))
-	   (w3-table-redo-relative-movement table-movement))))))
+				  (funcall ,move-function (1- at-depth) subtable-info))))
+	   (w3-table-redo-relative-movement table-movement)))))
 
 (put 'w3-table-move-within-subtable 'lisp-indent-function 2)
 (put 'w3-table-move-within-subtable 'edebug-form-spec '(sexp sexp &rest form))

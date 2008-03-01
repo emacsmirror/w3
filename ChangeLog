@@ -1,5 +1,13 @@
 2008-03-01  Magnus Henoch  <mange@freemail.hu>
 
+	* lisp/w3-speak-table.el: Modernize backquotes.
+
+	* lisp/w3-parse.el: Modernize backquotes.
+
+	* lisp/w3-java.el: Modernize backquotes.
+
+	* lisp/w3-forms.el: Modernize backquotes.
+
 	* lisp/Makefile.in (UTIL_SOURCES): Remove base64.el, md5.el,
 	socks.el
 
