@@ -1,5 +1,16 @@
 2008-03-01  Magnus Henoch  <mange@freemail.hu>
 
+	* lisp/Makefile.in (UTIL_SOURCES): Remove base64.el, md5.el,
+	socks.el
+
+	* lisp/base64.el: Remove.  Emacs has this builtin.
+
+	* lisp/md5.el: Remove.  Emacs has this builtin.
+
+	* lisp/socks.el: Remove.  Emacs already has it.
+
+	* lisp/ssl.el: Don't require base64.
+
 	* lisp/url-vars.el: Remove.  Emacs already has it.
 
 2008-02-04  Magnus Henoch  <mange@freemail.hu>
