@@ -1,3 +1,7 @@
+2008-03-01  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/url-vars.el: Remove.  Emacs already has it.
+
 2008-02-04  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/font.el (font-x-font-regexp-foundry-and-family): Add from
