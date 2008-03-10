@@ -1369,8 +1369,10 @@ Can sometimes make the structure of a document clearer")
 	       (mapcar
 		(function
 		 (lambda (td)
-		   (setq colspan (string-to-int (or (cdr-safe (assq 'colspan (nth 1 td))) "1"))
-			 rowspan (string-to-int (or (cdr-safe (assq 'rowspan (nth 1 td))) "1"))
+		   (setq colspan (string-to-int (or (let ((attr (cdr-safe (assq 'colspan (nth 1 td)))))
+						      (unless (zerop (length attr)) attr)) "1"))
+			 rowspan (string-to-int (or (let ((attr (cdr-safe (assq 'rowspan (nth 1 td)))))
+						      (unless (zerop (length attr)) attr))"1"))
 			 min  (w3-size-of-tree  (nth 2 td) 'min)
 			 max  (w3-size-of-tree  (nth 2 td) 'max)
 			 )

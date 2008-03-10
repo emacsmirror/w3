@@ -2,6 +2,7 @@
 
 	* lisp/w3-display.el (w3-display-table): Guard against empty
 	colspan and rowspan elements.
+	(w3-display-table-dimensions): Ditto.
 
 2008-03-01  Magnus Henoch  <mange@freemail.hu>
 
