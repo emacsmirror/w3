@@ -4,7 +4,7 @@
 ;; Keywords: faces, help, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001, 2007 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001, 2007, 2008 Free Software Foundation, Inc.
 ;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -1646,11 +1646,15 @@ Can sometimes make the structure of a document clearer")
 		     (push nil w3-active-voices)
 		     (let* ((node (car cols))
 			    (attributes (nth 1 node))
+			    (colspan-attr (cdr-safe (assq 'colspan attributes)))
 			    (colspan (string-to-int
-				      (or (cdr-safe (assq 'colspan attributes))
+				      (or (unless (zerop (length colspan-attr))
+					    colspan-attr)
 					  "1")))
+			    (rowspan-attr (cdr-safe (assq 'rowspan attributes)))
 			    (rowspan (string-to-int
-				      (or (cdr-safe (assq 'rowspan attributes))
+				      (or (unless (zerop (length rowspan-attr))
+					    rowspan-attr)
 					  "1")))
 			    fill-column column-width
 			    (fill-prefix "")
