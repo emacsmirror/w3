@@ -5,7 +5,7 @@
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 99, 2001, 2007 Free Software Foundation, Inc.
+;;; Copyright (c) 1996, 97, 98, 99, 2001, 2007, 2008 Free Software Foundation, Inc.
 ;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;;
 ;;; This file is part of GNU Emacs.
@@ -188,8 +188,7 @@ Return the coding system used for the decoding."
 	(mm-decode-coding-region (point-min) (point-max) coding-system)
 	;; Potentially useful is the buffer's going to be saved, and
 	;; for the mode-line indication.
-	(set-buffer-file-coding-system coding-system))
-      (mm-enable-multibyte))
+	(set-buffer-file-coding-system coding-system)))
     coding-system))
 
 (defvar http-header)			; dynamically bound below
@@ -360,7 +359,6 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 	    (equal (mm-handle-media-type handle) "application/xhtml+xml"))
 	;; Special case text/html if it comes through w3-fetch
 	(set-buffer (generate-new-buffer " *w3-html*"))
-	(mm-disable-multibyte)
 	(mm-insert-part handle)
 	(w3-decode-charset handle)
 	(setq url-current-object (url-generic-parse-url url))
