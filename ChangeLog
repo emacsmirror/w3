@@ -1,3 +1,7 @@
+2008-05-20  Magnus Henoch  <mange@freemail.hu>
+
+	* lisp/w3.el (w3-do-setup): Change homepage link.
+
 2008-03-26  Magnus Henoch  <mange@freemail.hu>
 
 	* lisp/w3.el (w3-fetch-callback): Don't disable multibyte.

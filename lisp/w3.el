@@ -1850,11 +1850,11 @@ Emacs."
     (or w3-hotlist (w3-parse-hotlist))
 
     ;; Set the default home page, honoring their defaults, then the
-    ;; standard WWW_HOME, then default to the documentation @ IU
+    ;; standard WWW_HOME, then default to the documentation @ gnu.org
     (or w3-default-homepage
 	(setq w3-default-homepage
 	      (or (getenv "WWW_HOME")
-		  "http://www.cs.indiana.edu/elisp/w3/docs.html")))
+		  "http://www.gnu.org/software/w3/")))
 
     (run-hooks 'w3-load-hook)))
 
