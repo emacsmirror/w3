@@ -1,31 +1,29 @@
-;;; css.el -- Cascading Style Sheet parser
+;;; css.el --- Cascading Style Sheet parser
+
+;; Copyright (c) 1996-2001, 2007, 2013 Free Software Foundation, Inc.
+
 ;; Author: $Author: legoscia $
 ;; Created: $Date: 2007/11/15 12:28:29 $
-;; Version: $Revision: 1.12 $
 ;; Keywords: 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 1999, 2000, 2001, 2007 Free Software Foundation, Inc.
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
 
 (eval-and-compile
   (require 'cl)
@@ -34,14 +32,14 @@
 (autoload 'url-insert-file-contents "url-handlers")
 (autoload 'url-view-url "url-util")
 
-(if (not (fboundp 'frame-char-height))
+(if (eval-when-compile (not (fboundp 'frame-char-height)))
     (defun frame-char-height (&optional frame)
       "Height in pixels of a line in the font in frame FRAME.
 If FRAME is omitted, the selected frame is used.
 For a terminal frame, the value is always 1."
       (font-height (face-font 'default frame))))
 
-(if (not (fboundp 'frame-char-width))
+(if (eval-when-compile (not (fboundp 'frame-char-width)))
     (defun frame-char-width (&optional frame)
       "Width in pixels of characters in the font in frame FRAME.
 If FRAME is omitted, the selected frame is used.
@@ -176,11 +174,9 @@ For a terminal screen, the value is always 1."
 (put 'border 'css-shorthand t)
 (put 'list-style 'css-shorthand t)
 
-(mapcar
- (lambda (entry)
-   (put (aref entry 0) 'css-inherit (aref entry 1))
-   (put (aref entry 0) 'css-type    (aref entry 2)))
- css-properties)
+(dolist (entry css-properties)
+  (put (aref entry 0) 'css-inherit (aref entry 1))
+  (put (aref entry 0) 'css-type    (aref entry 2)))
 
 (defconst css-weights
   '(nil					;never used
@@ -196,25 +192,23 @@ For a terminal screen, the value is always 1."
   "List of CSS font weights.")
 
 (defvar css-syntax-table
-  (copy-syntax-table emacs-lisp-mode-syntax-table)
+  (let ((st (copy-syntax-table emacs-lisp-mode-syntax-table)))
+    (modify-syntax-entry ?' "\"" st)
+    (modify-syntax-entry ?` "\"" st)
+    (modify-syntax-entry ?{ "(" st)
+    (modify-syntax-entry ?} ")" st)
+    st)
   "The syntax table for parsing stylesheets")
 
-(modify-syntax-entry ?' "\"" css-syntax-table)
-(modify-syntax-entry ?` "\"" css-syntax-table)
-(modify-syntax-entry ?{ "(" css-syntax-table)
-(modify-syntax-entry ?} ")" css-syntax-table)
-
-(eval-when-compile
-  (defvar css-scratch-val nil)
-  (defvar css-scratch-id nil)
-  (defvar css-scratch-class nil)
-  (defvar css-scratch-possibles nil)
-  (defvar css-scratch-current nil)
-  (defvar css-scratch-classes nil)
-  (defvar css-scratch-class-match nil)
-  (defvar css-scratch-current-rule nil)
-  (defvar css-scratch-current-value nil)
-  )
+(defvar css-scratch-val)
+(defvar css-scratch-id)
+(defvar css-scratch-class)
+(defvar css-scratch-possibles)
+(defvar css-scratch-current)
+(defvar css-scratch-classes)
+(defvar css-scratch-class-match)
+(defvar css-scratch-current-rule)
+(defvar css-scratch-current-value)
 
 (defsubst css-replace-regexp (regexp to-string)
   (goto-char (point-min))
@@ -253,11 +247,10 @@ For a terminal screen, the value is always 1."
       (setq rule (cdr rule)))
     matched))
 
-(defsubst css-get-internal (tag args)
-  (declare (special tag sheet element-stack default))
+(defsubst css-get-internal (tag args sheet element-stack)
   (setq css-scratch-id (or (cdr-safe (assq 'id args))
 			   (cdr-safe (assq 'name args)))
-	css-scratch-class (or (cdr-safe (assq 'class args)) t)  
+	css-scratch-class (or (cdr-safe (assq 'class args)) t)
 	css-scratch-possibles (gethash tag sheet))
   (while css-scratch-possibles
     (setq css-scratch-current (car css-scratch-possibles)
@@ -298,14 +291,14 @@ For a terminal screen, the value is always 1."
 
   ;; check for things without the class
   (if (listp css-scratch-class)
-      (css-get-internal tag nil))
+      (css-get-internal tag nil sheet element-stack))
 
   ;; check for global class values
-  (css-get-internal '*document args)
+  (css-get-internal '*document args sheet element-stack)
 
   ;; Now check for things with the class - they will be stuck on the front
   ;; of the list, which will mean we do the right thing
-  (css-get-internal tag args)
+  (css-get-internal tag args sheet element-stack)
 
   ;; Defaults are up to the calling application to provide
   css-scratch-val)
@@ -394,13 +387,6 @@ For a terminal screen, the value is always 1."
 	  (push (cons 'font-family (css-expand-value 'string-list family)) retval))
       retval)))
 
-(if (not (fboundp 'frame-char-height))
-    (defun frame-char-height (&optional frame)
-      "Height in pixels of a line in the font in frame FRAME.
-If FRAME is omitted, the selected frame is used.
-For a terminal frame, the value is always 1."
-      (font-height (face-font 'default frame))))
-
 (defun css-expand-length (spec &optional height)
   (cond
    ((not (stringp spec)) spec)
@@ -409,13 +395,13 @@ For a terminal frame, the value is always 1."
 	 (fboundp 'frame-char-height))
     ;; A percentage
     ;; XXX: should be relative to encosing element
-    (setq spec (/ (string-to-int (match-string 1 spec)) 100.0))
+    (setq spec (/ (string-to-number (match-string 1 spec)) 100.0))
     (if height
 	(round (* (frame-char-height) spec))
       (max 0 (round (* (frame-char-width) spec)))))
    ((string-match "\\([+-]?\\([0-9]+\\|[0-9]*\\.[0-9]+\\)\\)%" spec)
     ;; No frame-char-width/height
-    (setq spec (/ (string-to-int (match-string 1 spec)) 100.0))
+    (setq spec (/ (string-to-number (match-string 1 spec)) 100.0))
     (if height
 	(max 0 (round (* (/ (frame-pixel-height) (frame-height)) spec)))
       (max 0 (round (* (/ (frame-pixel-width) (frame-width)) spec)))))
@@ -460,7 +446,7 @@ For a terminal frame, the value is always 1."
 			"\\|") "\\)$")))
 
 (defun css-expand-color (color)
-  (condition-case e
+  (condition-case _
       (cond
        ((string-match "^\\(transparent\\|none\\)$" color)
 	(setq color nil))
@@ -492,9 +478,9 @@ For a terminal frame, the value is always 1."
 	;; rgb(r,g,b) 0 - 255, cutting off at 255
 	(setq color (vector
 		     'rgb
-		     (min (string-to-int (match-string 1 color)) 255)
-		     (min (string-to-int (match-string 2 color)) 255)
-		     (min (string-to-int (match-string 3 color)) 255))))
+		     (min (string-to-number (match-string 1 color)) 255)
+		     (min (string-to-number (match-string 2 color)) 255)
+		     (min (string-to-number (match-string 3 color)) 255))))
        ((string-match "^rgb *( *\\([0-9]+\\) *%[, ]+\\([0-9]+\\) *%[, ]+\\([0-9]+\\) *% *) *$" color)
 	;; rgb(r%,g%,b%) 0 - 100%, cutting off at 100%
 	(let ((r (min (string-to-number (match-string 1 color)) 100.0))
@@ -510,10 +496,13 @@ For a terminal frame, the value is always 1."
 	)
        )
     (error
-     (w3-warn 'css (format "Couldn't interpret color value %s" color))
+     (display-warning 'css (format "Couldn't interpret color value %s" color))
      (setq color nil)))
   color
   )
+
+(defvar css--url)
+(defvar css--purl)
 
 (defun css-expand-value (type value)
   (if value
@@ -528,7 +517,6 @@ For a terminal frame, the value is always 1."
 	(color				; CSS, Section 6.3
 	 (setq value (css-expand-color value)))
 	(url				; CSS, Section 6.4
-	 (declare (special url purl))
 	 ;; Potentially remove url(...) from around the URL
 	 (if (string-match "url *(\\([^ )]+\\) *)" value)
 	     (setq value (match-string 1 value)))
@@ -538,7 +526,7 @@ For a terminal frame, the value is always 1."
 	 ;; Nuke whitespace
 	 (if (string-match " *\\([^ ]+\\) *" value)
 	     (setq value (match-string 1 value)))
-	 (setq value (url-expand-file-name value (or url purl))))
+	 (setq value (url-expand-file-name value (or css--url css--purl))))
 	(angle				; ACSS, Section 2.2.1
 	 )
 	(time				; ACSS, Section 2.2.2
@@ -731,23 +719,23 @@ For a terminal frame, the value is always 1."
 	(save-excursion
 	  (insert data)))))
 
+(defvar url-mime-accept-string)
+(defvar url-current-object)
+
 (defun css-handle-import (data)
-  (declare (special url-current-object))
-  (let (url purl)
-    (setq purl url-current-object)
-    (setq url (css-expand-value 'url data))
+  (let ((purl url-current-object)       ;FIXME: Should this be css--purl?
+        (url (css-expand-value 'url data)))
     (and url
-	 (let ((url-mime-accept-string "text/css ; level=2")
-	       (sheet nil))
-	   (save-excursion
-	     (set-buffer (generate-new-buffer " *styleimport*"))
-	     ;; ftp/file URLs can signal an error.
-	     (ignore-errors
-	       (url-insert-file-contents url))
-	     (css-clean-buffer)
-	     (setq sheet (buffer-string))
-	     (set-buffer-modified-p nil)
-	     (kill-buffer (current-buffer)))
+	 (let* ((url-mime-accept-string "text/css ; level=2")
+                (sheet
+                 (with-current-buffer (generate-new-buffer " *styleimport*")
+                   ;; ftp/file URLs can signal an error.
+                   (ignore-errors
+                     (url-insert-file-contents url))
+                   (css-clean-buffer)
+                   (prog1 (buffer-string)
+                     (set-buffer-modified-p nil)
+                     (kill-buffer (current-buffer))))))
 	   (insert sheet)))))
 
 (defun css-clean-buffer ()
@@ -767,59 +755,47 @@ For a terminal frame, the value is always 1."
   (css-replace-regexp "[ \t\r]+$" "")	; Nuke whitespace at end of line
   (goto-char (point-min)))
 
-(if (featurep 'xemacs)
-    (defun css-color-light-p (color-or-face)
-      (let (face color)
-	(cond
-	 ((or (facep color-or-face)
-	      (and (symbolp color-or-face)
-		   (find-face color-or-face)))
-	  (setq color (specifier-instance (face-background color-or-face))))
-	 ((color-instance-p color-or-face)
-	  (setq color color-or-face))
-	 ((color-specifier-p color-or-face)
-	  (setq color (specifier-instance color-or-face)))
-	 ((stringp color-or-face)
-	  (setq color (make-color-instance color-or-face)))
-	 (t (signal 'wrong-type-argument 'color-or-face-p)))
-	(if color
-	    (not (< (apply '+ (color-instance-rgb-components color))
-		    (/ (apply '+ (color-instance-rgb-components
-				  (make-color-instance "white"))) 3)))
-	  t)))
-  (defun css-color-values (color)
-    (cond
-     ((fboundp 'display-color-p)
-      (color-values color))
-     ((eq window-system 'x)
-      (x-color-values color))
-     ((eq window-system 'pm)
-      (pm-color-values color))
-     ((eq window-system 'ns)
-      (ns-color-values color))
-     (t nil)))
-  (defun css-color-light-p (color-or-face)
-    (let (colors)
-      (cond
-       ((null window-system)
-	nil)
-       ((facep color-or-face)
-	(setq color-or-face (face-background color-or-face))
-	(if (null color-or-face)
-	    (setq color-or-face (cdr-safe
-				 (assq 'background-color (frame-parameters)))))
-	(setq colors (css-color-values color-or-face)))
-       ((stringp color-or-face)
-	(setq colors (css-color-values color-or-face)))
-       ((font-rgb-color-p color-or-face)
-	(setq colors (list (font-rgb-color-red color-or-face)
-			   (font-rgb-color-green color-or-face)
-			   (font-rgb-color-blue color-or-face))))
-       (t
-	(signal 'wrong-type-argument 'color-or-face-p)))
-      (not (< (apply '+ colors)
-	      (/ (apply '+ (css-color-values "white")) 3)))))
-  )
+(defalias 'css-color-light-p
+  (if (featurep 'xemacs)
+      (lambda (color-or-face)
+        (let (color)
+          (cond
+           ((or (facep color-or-face)
+                (and (symbolp color-or-face)
+                     (find-face color-or-face)))
+            (setq color (specifier-instance (face-background color-or-face))))
+           ((color-instance-p color-or-face)
+            (setq color color-or-face))
+           ((color-specifier-p color-or-face)
+            (setq color (specifier-instance color-or-face)))
+           ((stringp color-or-face)
+            (setq color (make-color-instance color-or-face)))
+           (t (signal 'wrong-type-argument 'color-or-face-p)))
+          (if color
+              (not (< (apply '+ (color-instance-rgb-components color))
+                      (/ (apply '+ (color-instance-rgb-components
+                                    (make-color-instance "white"))) 3)))
+            t)))
+
+    (lambda (color-or-face)
+      (let ((colors
+             (cond
+              ((null window-system)
+               nil)
+              ((facep color-or-face)
+               (color-values (or (face-background color-or-face)
+                                 (frame-parameter nil 'background-color))))
+              ((stringp color-or-face)
+               (color-values color-or-face))
+              ((font-rgb-color-p color-or-face)
+               (list (font-rgb-color-red color-or-face)
+                     (font-rgb-color-green color-or-face)
+                     (font-rgb-color-blue color-or-face)))
+              (t
+               (signal 'wrong-type-argument 'color-or-face-p)))))
+        (not (< (apply '+ colors)
+                (/ (apply '+ (color-values "white")) 3)))))
+    ))
 
 (defun css-active-device-types (&optional device)
   (let ((types (list 'all
@@ -879,7 +855,7 @@ For a terminal frame, the value is always 1."
   ;; a = # of ID attributes in the selector
   ;; b = # of class attributes in the selector
   ;; c = # of tag names in the selector
-  (let ((a 0) (b 0) (c 0) cur tmp)
+  (let ((a 0) (b 0) (c 0) tmp)
     (if (not (listp (car rule)))
 	(css-rule-specificity-internal rule)
       (setq c (length rule))
@@ -897,8 +873,7 @@ For a terminal frame, the value is always 1."
 	(puthash k (copy-tree v) new))) sheet)
     new))
 
-(defsubst css-store-rule (attrs applies-to)
-  (declare (special sheet))
+(defsubst css-store-rule (attrs applies-to sheet)
   (let (rules cur tag node)
     (while applies-to
       (setq cur (pop applies-to)
@@ -924,25 +899,20 @@ For a terminal frame, the value is always 1."
   )
 
 (defun css-parse (url &optional string inherit)
-  (declare (special url-current-object))
-  (let (
+  (let ((css--url url)
 	(url-mime-accept-string
 	 "text/css ; level=2")
 	(save-pos nil)
 	(applies-to nil)		; List of tags to apply style to
 	(attrs nil)			; List of name/value pairs
-	(att nil)
-	(cur nil)
-	(val nil)
 	(device-type nil)
-	(purl (url-view-url t))
+	(css--purl (url-view-url t))
 	(pobj url-current-object)
 	(active-device-types (css-active-device-types (selected-device)))
 	(sheet inherit))
     (if (not sheet)
 	(setq sheet (make-hash-table :size 13 :test 'eq)))
-    (save-excursion
-      (set-buffer (generate-new-buffer " *style*"))
+    (with-current-buffer (generate-new-buffer " *style*")
       (setq url-current-object pobj)
       (set-syntax-table css-syntax-table)
       (erase-buffer)
@@ -1027,7 +997,7 @@ For a terminal frame, the value is always 1."
 	      nil
 	    (setq attrs (css-parse-args (1+ save-pos) (point)))
 	    (skip-chars-forward "}\r\n")
-	    (css-store-rule attrs applies-to))
+	    (css-store-rule attrs applies-to sheet))
 	  )
 	 )
 	(skip-chars-forward " \t\r\n"))
@@ -1062,34 +1032,32 @@ For a terminal frame, the value is always 1."
 	    "# This is a mixture of the default stylesheet and any\n"
 	    "# styles specified by the document.  The rules are in no\n"
 	    "# particular order.\n\n")
-    (let (tmp cur goal-col)
+    (let (tmp cur)
       (maphash
-       (function
-	(lambda (k v)
-	  (while v
-	    (setq cur (pop v))
-	    (insert (css-rule-name (car cur)))
-	    (insert " { ")
-	    (setq goal-col (point))
-	    (insert "\n")
-	    ;; Display the rules
-	    (setq tmp (cdr cur))
-	    (let (prop val)
-	      (while tmp
-		(setq prop (caar tmp)
-		      val (cdar tmp)
-		      tmp (cdr tmp))
-		(case (get prop 'css-type)
-		  (symbol-list
-		   (setq val (mapconcat 'symbol-name val ",")))
-		  (weight
-		   (setq val (substring (symbol-name val) 1 nil)))
-		  (otherwise
-		   nil)
-		  )
-		(insert (format "  %s: %s;\n" prop val))))
-	    (insert "}\n\n");
-	    )))
+       (lambda (_k v)
+         (while v
+           (setq cur (pop v))
+           (insert (css-rule-name (car cur)))
+           (insert " { ")
+           (insert "\n")
+           ;; Display the rules
+           (setq tmp (cdr cur))
+           (let (prop val)
+             (while tmp
+               (setq prop (caar tmp)
+                     val (cdar tmp)
+                     tmp (cdr tmp))
+               (case (get prop 'css-type)
+                 (symbol-list
+                  (setq val (mapconcat 'symbol-name val ",")))
+                 (weight
+                  (setq val (substring (symbol-name val) 1 nil)))
+                 (otherwise
+                  nil)
+                 )
+               (insert (format "  %s: %s;\n" prop val))))
+           (insert "}\n\n")             ;
+           ))
        sheet))))
 
 (provide 'css)

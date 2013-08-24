@@ -1,30 +1,29 @@
 ;;; w3-imap.el --- Imagemap functions
+
+;; Copyright (c) 1996-1999, 2013 Free Software Foundation, Inc.
+
 ;; Author: $Author: legoscia $
 ;; Created: $Date: 2006/10/12 21:32:16 $
-;; Version: $Revision: 1.5 $
 ;; Keywords: hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
 
 (require 'w3-vars)
 (require 'url)
@@ -37,38 +36,38 @@
   (defmacro x-coord (pt) (list 'aref pt 0))
   (defmacro y-coord (pt) (list 'aref pt 1)))
 
-(defun w3-point-in-rect (point coord1 coord2 &rest ignore)
-  "Return t iff POINT is within a rectangle defined by COORD1 and COORD2.
-All arguments are vectors of [X Y] coordinates."
-  ;; D'uhhh, this is hard.
-  (and (>= (x-coord point) (x-coord coord1))
-       (<= (x-coord point) (x-coord coord2))
-       (>= (y-coord point) (y-coord coord1))
-       (<= (y-coord point) (y-coord coord2))))
+;; (defun w3-point-in-rect (point coord1 coord2 &rest _ignore)
+;;   "Return t iff POINT is within a rectangle defined by COORD1 and COORD2.
+;; All arguments are vectors of [X Y] coordinates."
+;;   ;; D'uhhh, this is hard.
+;;   (and (>= (x-coord point) (x-coord coord1))
+;;        (<= (x-coord point) (x-coord coord2))
+;;        (>= (y-coord point) (y-coord coord1))
+;;        (<= (y-coord point) (y-coord coord2))))
 
-(defun w3-point-in-circle (point coord1 coord2 &rest ignore)
-  "Return t iff POINT is within a circle defined by COORD1 and COORD2.
-All arguments are vectors of [X Y] coordinates."
-  ;; D'uhhh, this is (barely) slightly harder.
-  (let (radius1 radius2)
-    (setq radius1 (+
-		   (*
-		    (- (y-coord coord1) (y-coord coord2))
-		    (- (y-coord coord1) (y-coord coord2)))
-		   (*
-		    (- (x-coord coord1) (x-coord coord2))
-		    (- (x-coord coord1) (x-coord coord2)))
-		   )
-	  radius2 (+
-		   (*
-		    (- (y-coord coord1) (y-coord point))
-		    (- (y-coord coord1) (y-coord point)))
-		   (*
-		    (- (x-coord coord1) (x-coord point))
-		    (- (x-coord coord1) (x-coord point)))
-		   )
-	  )
-    (<= radius2 radius1)))
+;; (defun w3-point-in-circle (point coord1 coord2 &rest _ignore)
+;;   "Return t iff POINT is within a circle defined by COORD1 and COORD2.
+;; All arguments are vectors of [X Y] coordinates."
+;;   ;; D'uhhh, this is (barely) slightly harder.
+;;   (let (radius1 radius2)
+;;     (setq radius1 (+
+;; 		   (*
+;; 		    (- (y-coord coord1) (y-coord coord2))
+;; 		    (- (y-coord coord1) (y-coord coord2)))
+;; 		   (*
+;; 		    (- (x-coord coord1) (x-coord coord2))
+;; 		    (- (x-coord coord1) (x-coord coord2)))
+;; 		   )
+;; 	  radius2 (+
+;; 		   (*
+;; 		    (- (y-coord coord1) (y-coord point))
+;; 		    (- (y-coord coord1) (y-coord point)))
+;; 		   (*
+;; 		    (- (x-coord coord1) (x-coord point))
+;; 		    (- (x-coord coord1) (x-coord point)))
+;; 		   )
+;; 	  )
+;;     (<= radius2 radius1)))
 
 ;; A polygon is a vector
 ;; poly[0] = # of sides
@@ -170,8 +169,8 @@ vectors."
 	(setq i (1+ i)))
       (= 1 (% hitcount 2)))))
 
-(defun w3-point-in-default (point &rest ignore)
-  t)
+;; (defun w3-point-in-default (_point &rest _ignore)
+;;   t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

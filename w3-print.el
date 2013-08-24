@@ -1,30 +1,32 @@
 ;;; w3-print.el --- Printing support for emacs-w3
+
+;; Copyright (c) 1996 - 1999, 2013 Free Software Foundation, Inc.
+
 ;; Author: $Author: fx $
 ;; Created: $Date: 2001/06/07 17:16:57 $
-;; Version: $Revision: 1.3 $
 ;; Keywords: faces, help, printing, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
+
+(require 'w3-vars)
+
 (defvar w3-postscript-print-function 'ps-print-buffer-with-faces
   "*Name of the function to use to print a buffer as PostScript.
 This should take no arguments, and act on the current buffer.
@@ -48,12 +50,10 @@ ps-spool-buffer-with-faces   - spool for later")
 		      nil t))))
     (cond
      ((equal "HTML Source" format)
-      (save-excursion
-	(set-buffer (generate-new-buffer " *w3-print*"))
+      (with-current-buffer (generate-new-buffer " *w3-print*")
 	(insert w3-current-source)
 	(lpr-buffer)))
-     ((or (equal "Formatted Text" format)
-	  (equal "" format))
+     ((member form '("Formatted Text" ""))
       (lpr-buffer))
      ((equal "PostScript" format)
       (funcall w3-postscript-print-function)))))

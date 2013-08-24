@@ -1,34 +1,34 @@
 ;;; w3-forms.el --- Emacs-w3 forms parsing code for new display engine
+
+;; Copyright (c) 1996-1999, 2008, 2013 Free Software Foundation, Inc.
+
 ;; Author: $Author: wmperry $
 ;; Created: $Date: 2002/10/23 03:33:41 $
-;; Version: $Revision: 1.11 $
 ;; Keywords: faces, help, comm, data, languages
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 - 1999, 2008 Free Software Foundation, Inc.
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; FORMS processing for HTML
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commentary:
+
+;; FORMS processing for HTML.
+
+;;; Code:
+
 (eval-when-compile
   (require 'cl))
 
@@ -169,33 +169,31 @@
 				   'end-open t
 				   'rear-nonsticky t)))))
 
+(defvar widget-push-button-gui)
+
 ;;;###autoload
 (defun w3-form-resurrect-widgets ()
   (let ((st (point-min))
 	;; FIXME! For some reason this loses on long lines right now.
 	(widget-push-button-gui nil)
-	info nd node action face)
+	info nd action face)
     (while st
-      (if (setq info (get-text-property st 'w3-form-info))
-	  (progn
-	    (setq nd (or (next-single-property-change st 'w3-form-info)
-			 (point-max))
-		  face (cdr info)
-		  info (car info)
-		  action (w3-form-element-action info)
-		  node (assoc action w3-form-elements))
-	    (goto-char st)
-	    (delete-region st nd)
-	    (if (not (w3-form-element-size info))
-		(w3-form-element-set-size info 20))
-	    (w3-form-add-element-internal info face)
-	    (setq st (next-single-property-change st 'w3-form-info)))
-	(setq st (next-single-property-change st 'w3-form-info))))))
+      (when (setq info (get-text-property st 'w3-form-info))
+        (setq nd (or (next-single-property-change st 'w3-form-info)
+                     (point-max))
+              face (cdr info)
+              info (car info)
+              action (w3-form-element-action info))
+        (goto-char st)
+        (delete-region st nd)
+        (if (not (w3-form-element-size info))
+            (w3-form-element-set-size info 20))
+        (w3-form-add-element-internal info face))
+      (setq st (next-single-property-change st 'w3-form-info)))))
 
 (defsubst w3-form-mark-widget (widget el)
   (let ((widgets (list widget))
-	(children (widget-get widget :children))
-	(parent (widget-get widget :parent)))
+	(children (widget-get widget :children)))
     (w3-form-element-set-widget el widget)
     ;; Get _all_ the children associated with this widget
     (while children
@@ -258,10 +256,9 @@
 (defvar w3-custom-options nil)
 (make-variable-buffer-local 'w3-custom-options)
 
-(defun w3-form-create-custom (el face)
+(defun w3-form-create-custom (el _face)
   (require 'cus-edit)
-  (let* ((name (w3-form-element-name el))
-	 (var-name (w3-form-element-value el))
+  (let* ((var-name (w3-form-element-value el))
 	 (type (plist-get (w3-form-element-plist el) 'custom-type))
 	 (widget (widget-create (cond ((string-equal type "variable")
 				       'custom-variable)
@@ -327,7 +324,7 @@
     (if (or (not val) (string= val ""))
 	(setq val "Push Me"))
     (widget-create 'push-button
-		   :notify 'ignore
+		   :notify #'ignore
 		   :button-face face
 		   :value-face face
 		   val)))
@@ -336,7 +333,7 @@
   (widget-create 'push-button
 		 :button-face face
 		 :value-face face
-		 :notify 'w3-form-submit/reset-callback
+		 :notify #'w3-form-submit/reset-callback
 		 :value (or
 			 (plist-get (w3-form-element-plist el) 'alt)
 			 ;; Can it have a value other than "" anyway?
@@ -356,7 +353,7 @@
 		      "Submit"
 		    "Reset")))
     (widget-create 'push-button
-		   :notify 'w3-form-submit/reset-callback
+		   :notify #'w3-form-submit/reset-callback
 		   :button-face face val)))
 
 (defun w3-form-create-file-browser (el face)
@@ -367,7 +364,7 @@
 		 :must-match t
 		 :value (w3-form-element-value el)))
 
-(defun w3-form-create-keygen-list (el face)
+(defun w3-form-create-keygen-list (_el face)
   (let* ((size (apply 'max (mapcar (lambda (pair) (length (car pair)))
 				   w3-form-valid-key-sizes)))
 	 (options (mapcar (lambda (pair)
@@ -420,10 +417,10 @@
 ;(defun w3-form-create-multiline (el face)
 ;  (widget-create 'text :value-face face (w3-form-element-value el)))
 
-(defun w3-form-create-multiline (el face)
+(defun w3-form-create-multiline (_el face)
   (widget-create 'push-button
 		 :button-face face
-		 :notify 'w3-do-text-entry
+		 :notify #'w3-do-text-entry
 		 "Multiline text area"))
 
 (defun w3-form-create-integer (el face)
@@ -476,7 +473,7 @@
 
 (defun w3-form-default-widget-creator (el face)
   (widget-create 'link
-		 :notify 'w3-form-default-button-callback
+		 :notify #'w3-form-default-button-callback
 		 :value-to-internal 'w3-form-default-button-update
 		 :size (w3-form-element-size el)
 		 :value-face face
@@ -495,20 +492,19 @@
 		     (w3-form-element-size info) nil ? )))
     v))
 
-(defun w3-form-default-button-callback (widget &rest ignore)
+(defun w3-form-default-button-callback (widget &rest _ignore)
   (let* ((obj (widget-get widget :w3-form-data))
 	 (typ (w3-form-element-type obj))
 	 (def (widget-value widget))
-	 (val nil)
-	 )
-    (case typ
-      (password
-       (setq val (funcall url-passwd-entry-func "Password: " def)))
-      (otherwise
-       (setq val (read-string
-		  (concat (capitalize (symbol-name typ)) ": ") def))))
+	 (val 
+          (case typ
+            (password
+             (read-passwd "Password: " def))
+            (otherwise
+             (read-string
+              (concat (capitalize (symbol-name typ)) ": ") def)))))
     (widget-value-set widget val))
-  (apply 'w3-form-possibly-submit widget ignore))
+  (w3-form-possibly-submit widget))
 
 ;; These properties tell the help-echo function how to summarize each
 ;; type of widget.
@@ -525,7 +521,7 @@
 (put 'password  'w3-summarize-function 'w3-form-summarize-password)
 (put 'hidden    'w3-summarize-function 'ignore)
 
-(defun w3-form-summarize-field (widget &rest ignore)
+(defun w3-form-summarize-field (widget &rest _ignore)
   "Sumarize a widget that should be a W3 form entry area.
 This can be used as the :help-echo property of all w3 form entry widgets."
   (let ((info nil)
@@ -540,8 +536,8 @@ This can be used as the :help-echo property of all w3 form entry widgets."
       (setq info (widget-get widget :w3-form-data)))
     (if (not info)
 	(signal 'wrong-type-argument (list 'w3-form-widget widget)))
-    (setq func (or (get (w3-form-element-type info) 'w3-summarize-function)
-		   'w3-form-summarize-default)
+    (setq func (or (get (w3-form-element-type info) #'w3-summarize-function)
+		   #'w3-form-summarize-default)
 	  msg (and (fboundp func) (funcall func info widget)))
     ;; FIXME!  This should be removed once emacspeak is updated to
     ;; more closely follow the widget-y way of just returning the string
@@ -551,26 +547,25 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 
 (defsubst w3-form-field-label (data)
   ;;; FIXXX!!! Need to reimplement using the new forms implementation!
-  (declare (special w3-form-labels))
   (cdr-safe
    (assoc (or (plist-get (w3-form-element-plist data) 'id)
 	      (plist-get (w3-form-element-plist data) 'label))
 	  w3-form-labels)))
 
-(defun w3-form-summarize-default (data widget)
+(defun w3-form-summarize-default (data _widget)
   (let ((label (w3-form-field-label data))
 	(name  (w3-form-element-name data))
 	(value (widget-value (w3-form-element-widget data))))
     (format "Text field %s set to: %s" (or label (concat "called " name))
 	    value)))
 
-(defun w3-form-summarize-password (data widget)
+(defun w3-form-summarize-password (data _widget)
   (let ((label (w3-form-field-label data))
 	(name  (w3-form-element-name data)))
     (format "Password field %s is a secret.  Shhh."
 	    (or label (concat "called " name)))))
 
-(defun w3-form-summarize-multiline (data widget)
+(defun w3-form-summarize-multiline (data _widget)
   (let ((name (w3-form-element-name data))
         (label (w3-form-field-label data))
         (value (w3-form-element-value data)))
@@ -578,25 +573,24 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 	    (or label (concat "called " name))
 	    value)))
 
-(defun w3-form-summarize-checkbox (data widget)
+(defun w3-form-summarize-checkbox (data _widget)
   (let ((name (w3-form-element-name data))
 	(label (w3-form-field-label data))
 	(checked (widget-value (w3-form-element-widget data))))
     (format "Checkbox %s is %s" (or label name) (if checked "on" "off"))))
 
-(defun w3-form-summarize-option-list (data widget)
+(defun w3-form-summarize-option-list (data _widget)
   (let ((name (w3-form-element-name data))
-	(label (w3-form-field-label data))
-	(default (w3-form-element-default-value data)))
+	(label (w3-form-field-label data)))
     (format "Option list (%s) set to: %s" (or label name)
 	    (widget-value (w3-form-element-widget data)))))
 
-(defun w3-form-summarize-image (data widget)
+(defun w3-form-summarize-image (data _widget)
   (let ((name (w3-form-element-name data))
 	(label (w3-form-field-label data)))
     (concat "Image entry " (or label (concat "called " name)))))
 
-(defun w3-form-summarize-submit-button (data widget)
+(defun w3-form-summarize-submit-button (data _widget)
   (let*  ((type (w3-form-element-type data))
 	  (label (w3-form-field-label data))
 	  (button-text (widget-value (w3-form-element-widget data)))
@@ -617,14 +611,14 @@ This can be used as the :help-echo property of all w3 form entry widgets."
       (format "Press this  to change radio group %s from %s to %s" (or label name) cur-value
 	      this-value))))
 
-(defun w3-form-summarize-file-browser (data widget)
+(defun w3-form-summarize-file-browser (data _widget)
   (let ((name (w3-form-element-name data))
 	(label (w3-form-field-label data))
 	(file (widget-value (w3-form-element-widget data))))
     (format "File entry %s pointing to: %s" (or label name) (or file
 								"[nothing]"))))
 
-(defun w3-form-summarize-keygen-list (data widget)
+(defun w3-form-summarize-keygen-list (data _widget)
   (format "Submitting this form will generate a %d bit key (not)"
 	  (widget-value (w3-form-element-widget data))))
 
@@ -638,7 +632,7 @@ This can be used as the :help-echo property of all w3 form entry widgets."
   ;; Return a list of data entry widgets in form number ACTN
   (cdr-safe (assoc actn w3-form-elements)))
 
-(defun w3-form-possibly-submit (widget &rest ignore)
+(defun w3-form-possibly-submit (widget &rest _ignore)
   (let* ((formobj (widget-get widget :w3-form-data))
 	 (ident (w3-form-element-action formobj))
 	 (widgets (w3-all-widgets ident))
@@ -665,7 +659,7 @@ This can be used as the :help-echo property of all w3 form entry widgets."
     (if (and (= text-fields 1) text-p)
 	(w3-submit-form ident))))
 
-(defun w3-form-submit/reset-callback (widget &rest ignore)
+(defun w3-form-submit/reset-callback (widget &rest _ignore)
   (let* ((formobj (widget-get widget :w3-form-data))
 	 (w3-submit-button formobj))
     (case (w3-form-element-type formobj)
@@ -678,7 +672,7 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 	(w3-form-element-type formobj))))))
 
 ;;;###autoload
-(defun w3-do-text-entry (widget &rest ignore)
+(defun w3-do-text-entry (widget &rest _ignore)
   (let* ((data (list widget (current-buffer)))
 	 (formobj (widget-get widget :w3-form-data))
 	 (buff (get-buffer-create (format "Form Entry: %s"
@@ -796,15 +790,12 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 			(cons (w3-form-element-name formobj)
 			      (w3-form-element-value formobj))))
 		   (file
-		    (let ((dat nil)
-			  (fname (widget-value widget)))
-		      (save-excursion
-			(set-buffer (get-buffer-create " *w3-temp*"))
+		    (let ((fname (widget-value widget)))
+		      (with-current-buffer (get-buffer-create " *w3-temp*")
 			(erase-buffer)
-			(setq dat
-			      (condition-case ()
-				  (insert-file-contents-literally fname)
-				(error (concat "Error accessing " fname))))
+                        (condition-case ()
+                            (insert-file-contents-literally fname)
+                          (error (concat "Error accessing " fname)))
 			(cons (w3-form-element-name formobj)
 			      (cons (list (cons
 					   "filename"
@@ -819,12 +810,12 @@ This can be used as the :help-echo property of all w3 form entry widgets."
 		    (condition-case ()
 			(require 'ssl)
 		      (error (error "Not configured for SSL, please read the info pages")))
-		    (if (fboundp 'ssl-req-user-cert) nil
-		      (error "This version of SSL isn't capable of requesting certificates"))
-		    (let ((challenge (plist-get (w3-form-element-plist formobj) 'challenge))
-			  (size (widget-value widget)))
-		      (cons (w3-form-element-name formobj)
-			    (ssl-req-user-cert size challenge))))
+		    (if (not (fboundp 'ssl-req-user-cert))
+                        (error "This version of SSL isn't capable of requesting certificates")
+                      (let ((challenge (plist-get (w3-form-element-plist formobj) 'challenge))
+                            (size (widget-value widget)))
+                        (cons (w3-form-element-name formobj)
+                              (ssl-req-user-cert size challenge)))))
 		   ((multiline hidden)
 		    (cons (w3-form-element-name formobj)
 			  (w3-form-element-value formobj)))

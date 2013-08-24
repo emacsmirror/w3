@@ -1,30 +1,29 @@
 ;;; font.el --- New font model
 
+;; Copyright (c) 1996-2001, 2013 Free Software Foundation, Inc.
+
 ;; Author: wmperry
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
 ;; Created: $Date: 2008/02/04 06:29:13 $
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
 
 (eval-when-compile (require 'cl))
 (require 'devices)
@@ -227,9 +226,11 @@ These are for use in the `weight' field of an X font string.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Utility functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar font-func)
+
 (defun set-font-style-by-keywords (fontobj styles)
   (make-local-variable 'font-func)
-  (declare (special font-func))
   (if (listp styles)
       (while styles
 	(setq font-func (car-safe (cdr-safe (assq (car styles) font-style-keywords)))
@@ -542,9 +543,10 @@ These are for use in the `weight' field of an X font string.")
 	  (font-set-font-encoding retval (match-string 2 fontname)))
 	retval))))
 
+(defvar device-fonts-cache)
+
 (defun x-font-families-for-device (&optional device no-resetp)
   (ignore-errors (require 'x-font-menu))
-  (declare (special device-fonts-cache))
   (or device (setq device (selected-device)))
   (if (boundp 'device-fonts-cache)
       (let ((menu (or (cdr-safe (assq device device-fonts-cache)))))
@@ -676,14 +678,14 @@ These are for use in the `weight' field of an X font string.")
 ;;; The window-system dependent code (mswindows-style)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; mswindows fonts look like:
-;;;	fontname[:[weight][ style][:pointsize[:effects]]][:charset]
-;;; A minimal mswindows font spec looks like:
-;;;	Courier New
-;;; A maximal mswindows font spec looks like:
-;;;	Courier New:Bold Italic:10:underline strikeout:western
-;;; Missing parts of the font spec should be filled in with these values:
-;;;	Courier New:Regular:10::western
+;; mswindows fonts look like:
+;;	fontname[:[weight][ style][:pointsize[:effects]]][:charset]
+;; A minimal mswindows font spec looks like:
+;;	Courier New
+;; A maximal mswindows font spec looks like:
+;;	Courier New:Bold Italic:10:underline strikeout:western
+;; Missing parts of the font spec should be filled in with these values:
+;;	Courier New:Regular:10::western
 ;;  "^[a-zA-Z ]+:[a-zA-Z ]*:[0-9]+:[a-zA-Z ]*:[a-zA-Z 0-9]*$"
 (defvar font-mswindows-font-regexp
   (let
@@ -864,45 +866,68 @@ These are for use in the `weight' field of an MS-Windows font string.")
 ;;; can deal with either syntax.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; ###autoload
-(defun font-set-face-font (&optional face font &rest args)
-  (cond
-   ((and (vectorp font) (= (length font) 12))
-    (let ((font-name (font-create-name font)))
-      (set-face-property face 'font-specification font)
+(defalias 'font-set-face-font
+  (if (featurep 'xemacs)
+      (lambda (&optional face font &rest args)
+        (cond
+         ((and (vectorp font) (= (length font) 12))
+          (let ((font-name (font-create-name font)))
+            (set-face-property face 'font-specification font)
+            (cond
+             ((null font-name)		; No matching font!
+              nil)
+             ((listp font-name)		; For TTYs
+              (let (cur)
+                (while font-name
+                  (setq cur (car font-name)
+                        font-name (cdr font-name))
+                  (apply 'set-face-property face (car cur) (cdr cur) args))))
+             ((featurep 'xemacs)
+              (apply 'set-face-font face font-name args)
+              (apply 'set-face-underline-p face (font-underline-p font) args)
+              (if (and (or (font-smallcaps-p font) (font-bigcaps-p font))
+                       (fboundp 'set-face-display-table))
+                  (apply 'set-face-display-table
+                         face font-caps-display-table args))
+              (apply 'set-face-property face 'strikethru (or
+                                                          (font-linethrough-p font)
+                                                          (font-strikethru-p font))
+                     args))
+             (t
+              (condition-case nil
+                  (apply 'set-face-font face font-name args)
+                (error
+                 (let ((args (car-safe args)))
+                   (and (or (font-bold-p font)
+                            (memq (font-weight font) '(:bold :demi-bold)))
+                        (make-face-bold face args t))
+                   (and (font-italic-p font) (make-face-italic face args t)))))
+              (apply 'set-face-underline-p face (font-underline-p font) args)))))
+         (t
+          ;; Let the original set-face-font signal any errors
+          (set-face-property face 'font-specification nil)
+          (apply 'set-face-font face font args))))
+    
+    ;; GNU Emacs.
+    (lambda (&optional face font &rest args)
       (cond
-       ((null font-name)		; No matching font!
-	nil)
-       ((listp font-name)		; For TTYs
-	(let (cur)
-	  (while font-name
-	    (setq cur (car font-name)
-		  font-name (cdr font-name))
-	    (apply 'set-face-property face (car cur) (cdr cur) args))))
-       ((featurep 'xemacs)
-	(apply 'set-face-font face font-name args)
-	(apply 'set-face-underline-p face (font-underline-p font) args)
-	(if (and (or (font-smallcaps-p font) (font-bigcaps-p font))
-		 (fboundp 'set-face-display-table))
-	    (apply 'set-face-display-table
-		   face font-caps-display-table args))
-	(apply 'set-face-property face 'strikethru (or
-						    (font-linethrough-p font)
-						    (font-strikethru-p font))
-	       args))
+       ((and (vectorp font) (= (length font) 12))
+        (set-face-property face 'font-specification font)
+        (set-face-attribute
+         face nil
+         :underline (font-underline-p font)
+         :weight (or (cdr-safe (assoc (font-weight font)
+                                      font-emacs21-weight-mappings))
+                     'normal))
+        (if (font-find-available-family font)
+            (set-face-attribute :family (font-find-available-family font)))
+        (if (and (font-size font)
+                 (/= 0 (font-size font)))
+            (set-face-attribute face nil
+                                :height (* 10 (font-spatial-to-canonical (font-size font))))))
        (t
-	(condition-case nil
-	    (apply 'set-face-font face font-name args)
-	  (error
-	   (let ((args (car-safe args)))
-	     (and (or (font-bold-p font)
-		      (memq (font-weight font) '(:bold :demi-bold)))
-		  (make-face-bold face args t))
-	     (and (font-italic-p font) (make-face-italic face args t)))))
-	(apply 'set-face-underline-p face (font-underline-p font) args)))))
-   (t
-    ;; Let the original set-face-font signal any errors
-    (set-face-property face 'font-specification nil)
-    (apply 'set-face-font face font args))))
+        (set-face-property face 'font-specification nil)
+        (apply 'set-face-font face font args))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -939,29 +964,6 @@ These are for use in the `weight' field of an MS-Windows font string.")
 	      done (try-font-name font-name device))))
     (and done cur-family)))
 
-(defun font-set-face-font-emacs21 (&optional face font &rest args)
-  (cond
-   ((and (vectorp font) (= (length font) 12))
-    (set-face-property face 'font-specification font)
-    (set-face-attribute
-     face nil
-     :underline (font-underline-p font)
-     :weight (or (cdr-safe (assoc (font-weight font)
-				  font-emacs21-weight-mappings))
-		 'normal))
-    (if (font-find-available-family font)
-	(set-face-attribute :family (font-find-available-family font)))
-    (if (and (font-size font)
-	     (/= 0 (font-size font)))
-	(set-face-attribute face nil
-			    :height (* 10 (font-spatial-to-canonical (font-size font))))))
-   (t
-    (set-face-property face 'font-specification nil)
-    (apply 'set-face-font face font args))))
-
-(if (and (not (featurep 'xemacs))
-	 (>= emacs-major-version 21))
-    (defalias 'font-set-face-font 'font-set-face-font-emacs21))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

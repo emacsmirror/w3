@@ -1,38 +1,39 @@
 ;;; w3-style.el --- Emacs/W3 binding style sheet mechanism
+
+;; Copyright (c) 1996-1999, 2013 Free Software Foundation, Inc.
+
 ;; Author: $Author: fx $
 ;; Created: $Date: 2001/10/11 13:04:58 $
-;; Version: $Revision: 1.4 $
 ;; Keywords: faces, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; A style sheet mechanism for emacs-w3
-;;;
-;;; This will eventually be able to under DSSSL[-lite] as well as the
-;;; experimental W3C mechanism
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commentary:
+
+;; A style sheet mechanism for emacs-w3
+;;
+;; This will eventually be able to under DSSSL[-lite] as well as the
+;; experimental W3C mechanism
+
+;;; Code:
+
 (require 'font)
+(require 'w3-vars)
 (eval-when-compile (require 'cl))
 (require 'css)
 
@@ -44,8 +45,6 @@
 	(media (intern (downcase (or (plist-get plist 'media) "all"))))
 	(type (downcase (or (plist-get plist 'notation) "text/css")))
 	(stylesheet nil)
-	(defines nil)
-	(buffer nil)
 	(cur-sheet w3-current-stylesheet)
 	(string (plist-get plist 'data)))
     (if (not (memq media (css-active-device-types)))

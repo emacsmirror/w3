@@ -2,11 +2,11 @@
 
 ;; Author: William M. Perry <wmperry@gnu.org>
 
-;; Copyright © 2001 Free Software Foundation
+;; Copyright © 2001, 2013 Free Software Foundation
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
+;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -19,7 +19,12 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Code:
+
 (require 'xml)
+(require 'w3-vars)
+
+(defvar w3-last-parse-tree)             ;From w3-parse.el.
 
 (defvar w3-fast-parse-tidy-program nil)
 
@@ -35,8 +40,9 @@
 (defun w3-fast-parse-find-tidy-program ()
   (w3-fast-parse-find-program "tidy" 'w3-fast-parse-tidy-program))
 
+(defvar base-object)
+
 (defun w3-fast-parse-cleanup (tree)
-  (declare (special base-object))
   (let* (node tag attrs content btdt)
     (while (setq node (car tree))
       (setq tree (cdr tree))

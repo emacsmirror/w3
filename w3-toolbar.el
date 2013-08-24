@@ -1,34 +1,36 @@
 ;;; w3-toolbar.el --- Toolbar functions for emacs-w3
+
+;; Copyright (c) 1996-1997, 2013 Free Software Foundation, Inc.
+
 ;; Author: William M. Perry <wmperry@gnu.org>
 ;; Created: $Date: 2001/07/19 14:15:52 $
-;; Version: $Revision: 1.8 $
 ;; Keywords: mouse, toolbar
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 1997 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Toolbar specific function for XEmacs and Emacs 21
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commentary:
+
+;; Toolbar specific function for XEmacs and Emacs 21
+
+;;; Code:
+
+(require 'w3-vars)
+
 (condition-case ()
     (progn
       (require 'xpm-button)
@@ -152,19 +154,16 @@ not `none'.")
       (xbm-button-create text 0))))
 
 (defun w3-toolbar-make-text-buttons ()
-  (let ((bgcol (or (cdr-safe (assq 'background-toolbar-color
-				   (frame-parameters)))
-		   "#befbbefbbefb")))
-    (setq w3-toolbar-back-icon (w3-make-text-toolbar-button "Back")
-	  w3-toolbar-forw-icon (w3-make-text-toolbar-button "Forward")
-	  w3-toolbar-home-icon (w3-make-text-toolbar-button "Home")
-	  w3-toolbar-reld-icon (w3-make-text-toolbar-button "Reload")
-	  w3-toolbar-hotl-icon (w3-make-text-toolbar-button "Hotlist")
-	  w3-toolbar-imag-icon (w3-make-text-toolbar-button "Images")
-	  w3-toolbar-open-icon (w3-make-text-toolbar-button "Open")
-	  w3-toolbar-print-icon (w3-make-text-toolbar-button "Print")
-	  w3-toolbar-find-icon (w3-make-text-toolbar-button "Find")
-	  w3-toolbar-help-icon (w3-make-text-toolbar-button "Help!"))))
+  (setq w3-toolbar-back-icon (w3-make-text-toolbar-button "Back")
+        w3-toolbar-forw-icon (w3-make-text-toolbar-button "Forward")
+        w3-toolbar-home-icon (w3-make-text-toolbar-button "Home")
+        w3-toolbar-reld-icon (w3-make-text-toolbar-button "Reload")
+        w3-toolbar-hotl-icon (w3-make-text-toolbar-button "Hotlist")
+        w3-toolbar-imag-icon (w3-make-text-toolbar-button "Images")
+        w3-toolbar-open-icon (w3-make-text-toolbar-button "Open")
+        w3-toolbar-print-icon (w3-make-text-toolbar-button "Print")
+        w3-toolbar-find-icon (w3-make-text-toolbar-button "Find")
+        w3-toolbar-help-icon (w3-make-text-toolbar-button "Help!")))
 
 (defun w3-toolbar-make-picture-buttons ()
   (mapcar
@@ -264,91 +263,96 @@ not `none'.")
     ))
 
 (defun w3-toolbar-from-orientation (orientation)
-  (cond
-   ((eq 'default w3-toolbar-orientation) default-toolbar)
-   ((eq 'bottom w3-toolbar-orientation) bottom-toolbar)
-   ((eq 'top w3-toolbar-orientation) top-toolbar)
-   ((eq 'left w3-toolbar-orientation) left-toolbar)
-   ((eq 'right w3-toolbar-orientation) right-toolbar)))
+  (if (featurep 'xemacs)
+      (cond
+       ((eq 'default orientation) default-toolbar)
+       ((eq 'bottom orientation) bottom-toolbar)
+       ((eq 'top orientation) top-toolbar)
+       ((eq 'left orientation) left-toolbar)
+       ((eq 'right orientation) right-toolbar))
+    (error "Unimplemented")))
 
-(defun w3-toolbar-dimension-from-orientation (orientation)
-  (cond
-   ((eq 'default w3-toolbar-orientation) nil)
-   ((eq 'bottom w3-toolbar-orientation) bottom-toolbar-height)
-   ((eq 'top w3-toolbar-orientation) top-toolbar-height)
-   ((eq 'left w3-toolbar-orientation) left-toolbar-width)
-   ((eq 'right w3-toolbar-orientation) right-toolbar-width)))
+;; (defun w3-toolbar-dimension-from-orientation (orientation)
+;;   (cond
+;;    ((eq 'default w3-toolbar-orientation) nil)
+;;    ((eq 'bottom w3-toolbar-orientation) bottom-toolbar-height)
+;;    ((eq 'top w3-toolbar-orientation) top-toolbar-height)
+;;    ((eq 'left w3-toolbar-orientation) left-toolbar-width)
+;;    ((eq 'right w3-toolbar-orientation) right-toolbar-width)))
 
-(defun w3-ensure-toolbar-visible (orientation)
-  ;; Make sure a certain toolbar is visible if necessary
-  ;; This can modify frame parameters, so watch out.
-  (let ((dimension (w3-toolbar-dimension-from-orientation orientation))
-	(toolbar   (w3-toolbar-from-orientation orientation))
-	(dimensions nil)
-	(widths nil)
-	(heights nil)
-	(needs nil)
-	(has nil))
-    (if (and dimension toolbar
-	     (setq toolbar (specifier-instance toolbar)))
-	(progn
-	  (setq dimensions (mapcar
-			    (function
-			     (lambda (glyph)
-			       (and (glyphp glyph)
-				    (cons (glyph-width glyph)
-					  (glyph-height glyph)))))
-			    (mapcar 'car
-				    (delq nil
-					  (mapcar
-					   (function (lambda (x)
-						       (and x
-							    (symbol-value
-							     (aref x 0)))))
-					   toolbar))))
-		widths (sort (mapcar 'car dimensions) '>=)
-		heights (sort (mapcar 'cdr dimensions) '>=)
-		needs (+ 7 (if (memq orientation '(top bottom))
-			      (car heights)
-			    (car widths)))
-		has (specifier-instance dimension))
-	  (if (<= has needs)
-	      (set-specifier dimension (cons (selected-frame) needs)))))))
+;; (defun w3-ensure-toolbar-visible (orientation)
+;;   ;; Make sure a certain toolbar is visible if necessary
+;;   ;; This can modify frame parameters, so watch out.
+;;   (let ((dimension (w3-toolbar-dimension-from-orientation orientation))
+;; 	(toolbar   (w3-toolbar-from-orientation orientation))
+;; 	(dimensions nil)
+;; 	(widths nil)
+;; 	(heights nil)
+;; 	(needs nil)
+;; 	(has nil))
+;;     (if (and dimension toolbar
+;; 	     (setq toolbar (specifier-instance toolbar)))
+;; 	(progn
+;; 	  (setq dimensions (mapcar
+;; 			    (function
+;; 			     (lambda (glyph)
+;; 			       (and (glyphp glyph)
+;; 				    (cons (glyph-width glyph)
+;; 					  (glyph-height glyph)))))
+;; 			    (mapcar 'car
+;; 				    (delq nil
+;; 					  (mapcar
+;; 					   (function (lambda (x)
+;; 						       (and x
+;; 							    (symbol-value
+;; 							     (aref x 0)))))
+;; 					   toolbar))))
+;; 		widths (sort (mapcar 'car dimensions) '>=)
+;; 		heights (sort (mapcar 'cdr dimensions) '>=)
+;; 		needs (+ 7 (if (memq orientation '(top bottom))
+;; 			      (car heights)
+;; 			    (car widths)))
+;; 		has (specifier-instance dimension))
+;; 	  (if (<= has needs)
+;; 	      (set-specifier dimension (cons (selected-frame) needs)))))))
 			     
 (defun w3-toolbar-active ()
   (interactive)
-  (let ((toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
-    (if (and toolbar (specifier-instance toolbar))
-	t
-      nil)))
+  (if (featurep 'xemacs)
+      (let ((toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
+        (and toolbar (specifier-instance toolbar)))
+    (error "Unimplemented")))
 
-(defun w3-toggle-link-toolbar ()
-  (interactive)
-  (require 'info)			; For some toolbar buttons
-  (let* ((w3-toolbar-orientation w3-link-toolbar-orientation)
-	 (toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
-    (if toolbar
-	(if (w3-toolbar-active)
-	    (set-specifier toolbar (cons (current-buffer) nil))
-	  (set-specifier toolbar w3-link-toolbar (current-buffer))))))
+;; (defun w3-toggle-link-toolbar ()
+;;   (interactive)
+;;   (require 'info)			; For some toolbar buttons
+;;   (let* ((w3-toolbar-orientation w3-link-toolbar-orientation)
+;; 	 (toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
+;;     (if toolbar
+;; 	(if (w3-toolbar-active)
+;; 	    (set-specifier toolbar (cons (current-buffer) nil))
+;; 	  (set-specifier toolbar w3-link-toolbar (current-buffer))))))
 
 (defun w3-toggle-toolbar ()
   (interactive)
-  (if (eq major-mode 'w3-mode)
-      (let ((toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
-	(cond
-	 ((w3-toolbar-active)
-	  (set-specifier toolbar (cons (current-buffer) nil)))
-	 (toolbar
-	  (set-specifier toolbar (cons (current-buffer) w3-toolbar)))
-	 (t
-	  (setq w3-toolbar-orientation 'default
-		toolbar (w3-toolbar-from-orientation w3-toolbar-orientation))
-	  (and toolbar
-	       (set-specifier toolbar (cons (current-buffer) w3-toolbar))))))
-    (if (not (eq w3-toolbar-orientation 'none))
-	(setq w3-toolbar-orientation 'none)
-      (setq w3-toolbar-orientation 'default))))
+  (cond
+   ((featurep 'xemacs)
+    (if (eq major-mode 'w3-mode)
+        (let ((toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
+          (cond
+           ((w3-toolbar-active)
+            (set-specifier toolbar (cons (current-buffer) nil)))
+           (toolbar
+            (set-specifier toolbar (cons (current-buffer) w3-toolbar)))
+           (t
+            (setq w3-toolbar-orientation 'default
+                  toolbar (w3-toolbar-from-orientation w3-toolbar-orientation))
+            (and toolbar
+                 (set-specifier toolbar (cons (current-buffer) w3-toolbar))))))
+      (setq w3-toolbar-orientation (if (not (eq w3-toolbar-orientation 'none))
+                                       'none
+                                     'default))))
+   (t (error "Unimplemented"))))
 
 (defun w3-show-info-node ()
   (interactive)
@@ -360,9 +364,11 @@ not `none'.")
 		 ["PostScript" (w3-print-this-url nil "PostScript") t]
 		 ["Formatted Text" (w3-print-this-url nil "Formatted Text") t]
 		 ["HTML Source" (w3-print-this-url nil "HTML Source") t]
-		 nil
+		 "--"
 		 ["Cancel" (beep) t])))
-    (popup-dialog-box descr)))
+    (if (fboundp 'popup-dialog-box)
+        (popup-dialog-box descr)
+      (popup-menu descr e))))
 
 (defvar w3-toolbar-map
   (if (and (featurep 'tool-bar)
@@ -395,16 +401,14 @@ not `none'.")
    ((featurep 'infodock)
     ;; Infodock handles toolbars differently
     nil)
-   ((featurep 'toolbar)
+   ((featurep 'xemacs)
     ;; XEmacs way of doing things
     (let ((toolbar (w3-toolbar-from-orientation w3-toolbar-orientation)))
       (if toolbar
 	  (set-specifier toolbar (cons (current-buffer) w3-toolbar))))
     (set-specifier toolbar-buttons-captioned-p
 		   (cons (current-buffer) (eq w3-toolbar-type 'both))))
-   ((and (featurep 'tool-bar) 
-	 (display-graphic-p)
-	 (> (frame-parameter nil 'tool-bar-lines) 0))
+   (t
     ;; Emacs 21.x way of doing things
     (set (make-local-variable 'tool-bar-map) w3-toolbar-map))
    (t

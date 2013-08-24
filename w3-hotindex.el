@@ -1,18 +1,40 @@
 ;;; w3-hotindex.el --- Keywords for the hotlist
+
+;; Copyright (C) 2013  Free Software Foundation, Inc.
+
 ;; Author: Laurent Martelli <martelli@iie.cnam.fr>
 ;; Created: 1997/12/31
-;; Version: 0.1
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
 ;; TODO:
 ;;   patch w3-hot.el so that it removes hotindex entries.
 ;;   update w3-hotindex-key-list when removing entries.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Structure for hotindexes
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; (
-;;;  ("name of item1" "key1" "key2")
-;;; )  ; end of hotlist
-;;; Every "name of item" must be in the hotlist
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Structure for hotindexes
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (
+;;  ("name of item1" "key1" "key2")
+;; )  ; end of hotlist
+;; Every "name of item" must be in the hotlist
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Code:
 
 (require 'w3-vars)
 (require 'w3-hot)
@@ -150,14 +172,16 @@ Case is therefore important."
     (while index
       (if (member-nocase key (cdr (car index)))
 	  (progn
-	    (setq result (cons (assoc-ignore-case (caar index) w3-hotlist) result))
+	    (push (assoc-string (caar index) w3-hotlist t) result)
 	    (message "MATCH in %S" (car index))
-	    (message "ADDING %S" (assoc-ignore-case (caar index) w3-hotlist)))
+	    (message "ADDING %S" (assoc-string (caar index) w3-hotlist t)))
 	(message "no match in %S" (car index)))
       (setq index (cdr index)))
     (let ((w3-hotlist result)
 	  (w3-reuse-buffers 'no))
       (w3-hotlist-view))))
+
+(defvar print-readably)
 
 (defun w3-hotindex-save (filename)
   "*Save the index structure in filename. If filename is nil, 
@@ -166,8 +190,7 @@ save into w3-configuration-directory/hotindex."
   (let ((output-buffer 
 	 (find-file-noselect (or filename w3-hotindex-file)))
 	output-marker)
-    (save-excursion
-      (set-buffer output-buffer)
+    (with-current-buffer output-buffer
       ;; Delete anything that is in the file
       (delete-region (point-min) (point-max))
       (setq output-marker (point-marker))
@@ -181,8 +204,7 @@ save into w3-configuration-directory/hotindex."
 	(princ ")\n;; ==================\n")
 	(princ ";; End of W3 HotIndex\n")))
     (set-marker output-marker nil)
-    (save-excursion
-      (set-buffer output-buffer)
+    (with-current-buffer output-buffer
       (save-buffer))
     ))
 
@@ -191,7 +213,7 @@ save into w3-configuration-directory/hotindex."
 Raises an error if some entries are unresolved."
   (let ((index w3-hotindex) unresolved)
     (while index
-      (unless (assoc-ignore-case (caar index) w3-hotlist)
+      (unless (assoc-string (caar index) w3-hotlist t)
 	(setq unresolved (cons (caar index) unresolved)))
       (setq index (cdr index)))
     (if unresolved

@@ -1,30 +1,29 @@
 ;;; w3-cus.el --- Customization support for Emacs-W3
+
+;; Copyright (c) 1996-1999, 2013 Free Software Foundation, Inc.
+
 ;; Author: $Author: fx $
 ;; Created: $Date: 2001/10/11 12:59:46 $
-;; Version: $Revision: 1.9 $
 ;; Keywords: comm, help, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
 
 (defgroup w3 '((url custom-group))
   "Emacs-W3 - the web browser of choice."
@@ -93,7 +92,7 @@ default to  the hypertext documentation for W3 at Indiana University."
 		 (file)))
 
 (defcustom w3-hotlist-file nil
-  "*Hotlist filename.
+  "Hotlist filename.
 This should be the name of a file that is stored in either
 NCSA's Mosaic/X or Netscape/X format.  It is used to keep a listing
 of commonly accessed URL's without having to go through 20 levels of
@@ -115,7 +114,7 @@ explicit encodings for URLs."
 
 ;;; Display related variables
 (defcustom w3-display-frames t
-  "*Fetch frames - can be:
+  "Fetch frames - can be:
 nil		no frame display whatsoever
 'as-links	display frame hyperlinks, but do not fetch them
 'ask		display frame hyperlinks and ask whether to fetch them
@@ -140,7 +139,7 @@ This maps to characters to use as the bullet character."
 		       (character :tag "Character"))))
 
 (defcustom w3-echo-link '(title url text name)
-  "*Whether to display the URL of a link when tabbing through links.
+  "Whether to display the URL of a link when tabbing through links.
 Value is a list of one or more of the following symbols:
 
   url    == url of the target
@@ -168,7 +167,7 @@ If nil W3 will use a terminal graphic character if possible."
 		 (character)))
 
 (defcustom w3-force-conversion-alist nil
-  "*An alist of URL host/filename regexps and coding systems to use for them."
+  "An alist of URL host/filename regexps and coding systems to use for them."
   :group 'w3-display
   :type `(repeat (cons (string :tag "Host / filename")
 		       ;; Fixme: Emacs 21 has coding-system :type.
@@ -176,19 +175,19 @@ If nil W3 will use a terminal graphic character if possible."
 
 ;;; these four variables control how w3-setup-terminal-chars works
 (defcustom w3-use-terminal-characters nil
-  "*Use terminal graphics characters for drawing tables and rules if available."
+  "Use terminal graphics characters for drawing tables and rules if available."
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-use-terminal-characters-on-tty nil
-  "*Use terminal graphics characters for tables and rules even on a tty.
+  "Use terminal graphics characters for tables and rules even on a tty.
 This triggers display bugs on both Emacs and XEmacs.
 \(Though it's usually tolerable at least in Emacs.)"
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-use-terminal-glyphs nil
-  "*Use glyphs if possible rather than properties for terminal graphics characters.
+  "Use glyphs if possible rather than properties for terminal graphics characters.
 
 Glyphs are probably more efficient but don't work with the most recent versions
 of XEmacs and there are some cute tricks we can play with text-properties that
@@ -201,14 +200,14 @@ work at all if we're using text-properties)."
 		 (const :tag "Use Text Properties" :value nil)))
 
 (defcustom w3-use-unicode-table-characters nil
-  "*Non-nil means use Unicode box-drawing characters for tables if avilable.
+  "Non-nil means use Unicode box-drawing characters for tables if avilable.
 This only works for Emacs 21.  You might wat to turn this off if your
 Unicode font isn't available in appropriate sizes."
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-do-incremental-display nil
-  "*Non-nil means do incremental display of pages."
+  "Non-nil means do incremental display of pages."
   :group 'w3-display
   :type 'boolean)
 
@@ -230,7 +229,7 @@ or the links menu, for instance."
 
 ;;; Parsing related variables
 (defcustom w3-debug-html nil
-  "*Non-nil means to gripe about bad HTML."
+  "Non-nil means to gripe about bad HTML."
   :group 'w3-parsing
   :type '(choice (const :tag "HTML Errors" :value t)
 		 (const :tag "Errors and stylistic issues" :value style)
@@ -243,7 +242,7 @@ or the links menu, for instance."
 
 ;;; Image related variables
 (defcustom w3-auto-image-alt 'w3-default-image-alt-func
-  "*Whether to create an alt attribute for an image that is missing it.
+  "Whether to create an alt attribute for an image that is missing it.
 If nil, Emacs-W3 will not automatically create an ALT attribute.
 
 If a string, it should be a string suitable for running through format,
@@ -264,7 +263,7 @@ argument, the filename of the graphic that is not loaded."
 					 (featurep 'jpeg)
 					 (featurep 'imagick)
 					 (featurep 'png)))
-  "*Non-nil means delay loading images, not automatically retrieve them."
+  "Non-nil means delay loading images, not automatically retrieve them."
   :group 'w3-images
   :type 'boolean)
 
@@ -307,7 +306,7 @@ the first part as a submenu, followed by the rest of the menu."
   :type 'integer)
 
 (defcustom w3-max-menu-width 40
-  "*The maximum width of a pulldown menu choice."
+  "The maximum width of a pulldown menu choice."
   :group 'w3-menus
   :type 'integer)
 
@@ -329,12 +328,12 @@ the first part as a submenu, followed by the rest of the menu."
   :type 'sexp)
 
 (defcustom w3-netscape-compatible-comments nil
-  "*Whether to honor netscape-style <! > comments."
+  "Whether to honor netscape-style <! > comments."
   :group 'w3-parsing
   :type 'boolean)
 
 (defcustom w3-notify 'semibully
-  "*Selects the behavior when w3 page is ready.
+  "Selects the behavior when w3 page is ready.
 This variable may have one of the following values:
 
 newframe   -- put the w3 page in its own frame
@@ -366,7 +365,7 @@ Any other value of `w3-notify' is equivalent to `meek'."
 			:value meek)))
 
 (defcustom w3-popup-menu-on-mouse-3 t
-  "*Non-nil value means W3 should provide context-sensitive menus on mouse-3.
+  "Non-nil value means W3 should provide context-sensitive menus on mouse-3.
 A nil value means W3 should not change the binding of mouse-3."
   :group 'w3-display
   :type 'boolean)
@@ -389,38 +388,38 @@ This will also accept:
 		 (const :tag "Always ask" :value ask)))
 
 (defcustom w3-right-margin 2
-  "*Default right margin for Emacs-W3 buffers.
+  "Default right margin for Emacs-W3 buffers.
 This amount is subtracted from (window-width) for each new WWW buffer
 and used as the new fill column."
   :group 'w3-display
   :type 'integer)
 
 (defcustom w3-maximum-line-length nil
-  "*Maximum length of a line.
+  "Maximum length of a line.
 If nil, then lines can extend all the way to the window margin."
   :group 'w3-display
   :type '(radio (const :tag "Use all available space" :value nil)
 		(integer :tag "Limit to")))
 
 (defcustom w3-track-mouse t
-  "*Non-nil means track the mouse and message the url under the mouse."
+  "Non-nil means track the mouse and message the url under the mouse."
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-honor-stylesheets nil
-  "*Whether to let a document specify a CSS stylesheet."
+  "Whether to let a document specify a CSS stylesheet."
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-user-colors-take-precedence nil
-  "*Non-nil means don't let a document define certain colors itself.
+  "Non-nil means don't let a document define certain colors itself.
 Like foreground and background colors and pixmaps, color of links and
 visited links, etc."
   :group 'w3-display
   :type 'boolean)
 
 (defcustom w3-user-fonts-take-precedence nil
-  "*Non-nil means don't let a document define certain fonts.
+  "Non-nil means don't let a document define certain fonts.
 Certain fonts can cause problems under Emacs."
   :group 'w3-display
   :type 'boolean)

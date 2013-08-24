@@ -1,58 +1,56 @@
 ;;; w3-widget.el --- An image widget
+
+;; Copyright (c) 1996-1997, 2001, 2013 Free Software Foundation, Inc.
+
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Created: $Date: 2002/02/01 17:42:49 $
-;; Version: $Revision: 1.8 $
 ;; Keywords: faces, images
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 1997, 2001 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; This is a widget that will do the best it can with an image.
-;;;
-;;; It can handle all the common occurences of images on the world wide web
-;;; 1. A plain image - displays either a glyph of the image, or the
-;;;    alternative text
-;;; 2. A hyperlinked image - an image that is also a hypertext link to
-;;;    another page.  Displays either a glyph of the image, or the
-;;;    alternative text.  When activated with the mouse or the keyboard,
-;;;    the 'href' property of the widget is retrieved.
-;;; 3. Server side imagemaps - an image that has hotzones that lead to
-;;;    different areas.  Unfortunately, we cannot tell where the links go
-;;;    from the client - all processing is done by the server.  Displays
-;;;    either a glyph of the image, or the alternative text.  When activated
-;;;    with the mouse or the keyboard, the coordinates clicked on are
-;;;    sent to the remote server as HREF?x,y.  If the link is activated
-;;;    by the keyboard, then 0,0 are sent as the coordinates.
-;;; 4. Client side imagemaps - an image that has hotzones that lead to
-;;;    different areas.  All processing is done on the client side, so
-;;;    we can actually show a decent representation on a TTY.  Displays
-;;;    either a glyph of the image, or a drop-down-list of the destinations
-;;;    These are either URLs (http://foo/...) or alternative text.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commentary:
 
-;; I don't think there's currently any way to get the pixel position
-;; of a mouse event on an Emacs 21 image, so image maps aren't going
-;; to work properly.  -- fx
+;; This is a widget that will do the best it can with an image.
+;;
+;; It can handle all the common occurences of images on the world wide web
+;; 1. A plain image - displays either a glyph of the image, or the
+;;    alternative text
+;; 2. A hyperlinked image - an image that is also a hypertext link to
+;;    another page.  Displays either a glyph of the image, or the
+;;    alternative text.  When activated with the mouse or the keyboard,
+;;    the 'href' property of the widget is retrieved.
+;; 3. Server side imagemaps - an image that has hotzones that lead to
+;;    different areas.  Unfortunately, we cannot tell where the links go
+;;    from the client - all processing is done by the server.  Displays
+;;    either a glyph of the image, or the alternative text.  When activated
+;;    with the mouse or the keyboard, the coordinates clicked on are
+;;    sent to the remote server as HREF?x,y.  If the link is activated
+;;    by the keyboard, then 0,0 are sent as the coordinates.
+;; 4. Client side imagemaps - an image that has hotzones that lead to
+;;    different areas.  All processing is done on the client side, so
+;;    we can actually show a decent representation on a TTY.  Displays
+;;    either a glyph of the image, or a drop-down-list of the destinations
+;;    These are either URLs (http://foo/...) or alternative text.
+
+;; FIXME: Current Emacs do provide pixel position of a mouse event, so
+;; we should be able to make image-maps work.
+
+;;; Code:
 
 (require 'widget)
 (require 'url-util)
@@ -63,21 +61,9 @@
 (defvar widget-image-keymap (make-sparse-keymap)
   "Keymap used over glyphs in an image widget")
 
-(defconst widget-mouse-button1 nil)
-(defconst widget-mouse-button2 nil)
-(defconst widget-mouse-button3 nil)
-
-(if (featurep 'xemacs)
-    (if (featurep 'mouse)
-	(setq widget-mouse-button1 'button1
-	      widget-mouse-button2 'button2
-	      widget-mouse-button3 'button3)
-      (setq widget-mouse-button1 'return
-	    widget-mouse-button2 'return
-	    widget-mouse-button3 'return))
-  (setq widget-mouse-button1 'mouse-1
-	widget-mouse-button2 'mouse-2
-	widget-mouse-button3 'mouse-3))
+(defconst widget-mouse-button1 'mouse1)
+(defconst widget-mouse-button2 'mouse2)
+(defconst widget-mouse-button3 'mouse3)
 
 (defvar widget-image-inaudible-p nil
   "*Whether to make images inaudible or not.")
@@ -90,8 +76,8 @@
 (define-widget 'image 'default
   "A fairly complex image widget."
   :convert-widget 'widget-image-convert
-  :value-to-internal (lambda (widget value) value)
-  :value-to-external (lambda (widget value) value)
+  :value-to-internal (lambda (_widget value) value)
+  :value-to-external (lambda (_widget value) value)
   :value-set 'widget-image-value-set
   :create 'widget-image-create
   :delete 'widget-image-delete
@@ -152,7 +138,7 @@
 	  (setq usemap (substring usemap 1 nil)))
       (cdr-safe (assoc usemap w3-imagemaps)))))
 
-(defun widget-image-callback (widget widget-ignore &optional event)
+(defun widget-image-callback (widget _widget-ignore &optional _event)
   (if (widget-get widget :href)
       (w3-fetch (widget-get widget :href) (widget-get widget :target))))
 
@@ -176,7 +162,6 @@
 	(where (or (widget-get widget 'where) (point)))
 	(glyph (widget-get widget 'glyph))
 	(alt (widget-get widget 'alt))
-	(align (widget-get widget 'align))
 	(real-widget nil)
 	(invalid-glyph nil))
     (if target (setq target (intern (downcase target))))

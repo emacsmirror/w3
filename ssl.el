@@ -1,29 +1,29 @@
-;;; ssl.el,v --- ssl functions for Emacsen without them builtin
+;;; ssl.el,v --- SSL functions for Emacsen without them builtin
+
+;; Copyright (c) 1996-2001, 2008, 2013 Free Software Foundation, Inc.
+
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
 ;; $Revision: 1.5 $
 ;; Keywords: comm
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 99, 2001, 2008 Free Software Foundation, Inc.
-;;; Copyright (c) 1995, 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
 
 (eval-when-compile (require 'cl))
 (require 'url)				; for `url-configuration-directory'
@@ -79,14 +79,14 @@ This means a directory of pem encoded certificates with hash symlinks."
   '("s_client"
     "-quiet"
     "-host" host
-    "-port" service
+    "-port" port
     "-verify" (int-to-string ssl-certificate-verification-policy)
     "-CApath" ssl-certificate-directory
     )
   "*Arguments that should be passed to the program `ssl-program-name'.
 This should be used if your SSL program needs command line switches to
 specify any behaviour (certificate file locations, etc).
-The special symbols 'host and 'port may be used in the list of arguments
+The special symbols `host' and `port' may be used in the list of arguments
 and will be replaced with the hostname and service/port that will be connected
 to."
   :group 'ssl
@@ -111,8 +111,7 @@ Maybe a way of passing a file should be implemented."
 			     (base64-encode-string der)
 			     "\n-----END CERTIFICATE-----\n"))
 	(exit-code 0))
-    (save-excursion
-      (set-buffer (get-buffer-create " *openssl*"))
+    (with-current-buffer (get-buffer-create " *openssl*")
       (erase-buffer)
       (insert certificate)
       (setq exit-code
@@ -209,10 +208,13 @@ Third arg is name of the host to connect to, or its IP address.
 Fourth arg SERVICE is name of the service desired, or an integer
 specifying a port number to connect to."
   (if (integerp service) (setq service (int-to-string service)))
+  (defvar port) (defvar host) (defvar service)
   (let* ((process-connection-type nil)
+         (host host)
+         (service service)
 	 (port service)
-	 (proc (eval `(start-process name buffer ,@(ssl-get-command)))))
-    (process-kill-without-query proc)
+	 (proc (eval `(start-process ',name ',buffer ,@(ssl-get-command)))))
+    (set-process-query-on-exit-flag proc nil)
     proc))
 
 (provide 'ssl)

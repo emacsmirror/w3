@@ -459,14 +459,14 @@ the first one it finds.
 
 Wed May  1 21:36:37 1996  William Perry  <wmperry@indiana.edu>
 
-* w3-e19.el: fixed mouse waggling under fsf
+* w3-e19.el: fixed mouse waggling under Emacs
 
 * w3-vars.el: Added default for w3-source-file-hook ... automatically goes into
 html-mode (should probably do font-lock as well to get netscap'y look)
 
 * w3-draw.el: Fixed <body> tags yet again... god am I stupid
 
-* w3-e19.el: Fixed mouse movement under FSF
+* w3-e19.el: Fixed mouse movement under Emacs
 
 
 * w3.el: auto-autoload w3-do-setup
@@ -519,7 +519,7 @@ Sat Apr 27 04:31:57 1996  William Perry  <wmperry@indiana.edu>
 * w3-auto.el: autoload widget-forward/backward
 
 * widget-edit.el: Fix for file widget
-use 'keymap property when in xemacs, 'local-map when in fsf
+use 'keymap property when in xemacs, 'local-map when in Emacs
 
 * w3-menu.el:
 Don't put the toggle toolbar menu item up in Emacs or a XEmacs with no
@@ -781,7 +781,7 @@ Wed Mar  6 01:52:32 1996  William Perry  <wmperry@indiana.edu>
 
 
 * w3-imap.el:
-Fixed problem with button2 usage in w3-imap.el when compiling with FSFMacs
+Fixed problem with button2 usage in w3-imap.el when compiling with Emacs
 
 Fri Feb 23 01:58:21 1996  William Perry  <wmperry@indiana.edu>
 
@@ -827,7 +827,7 @@ Sat Feb 17 23:50:00 1996  William Perry  <wmperry@indiana.edu>
 
 
 * w3-menu.el:
-Now explicitly require easymenu for FSF19 - some older versions don't
+Now explicitly require easymenu for Emacs-19 - some older versions don't
 autoload it.  *sigh*
 
 Fri Feb 16 21:39:19 1996  William Perry  <wmperry@indiana.edu>
@@ -2257,7 +2257,7 @@ Thu Jun 15 23:42:26 1995  William Perry  <wmperry@indiana.edu>
 * w3-xemac.el: Don't call device-type with an argument.
 
 * w3-beta.el, w3-draw.el:
-Fixed a few problems with compatibility with FSF19 in X mode
+Fixed a few problems with compatibility with Emacs-19 in X mode
 
 
 * dist.Makefile: Added urlauth to makefile
@@ -2360,7 +2360,7 @@ Deal gracefully with markers passed into w3-add-zone (for WinEmacs)
 
 
 * w3-draw.el:
-Fixed stupid FSF 19 lossage where x-color-defined-p signals an error
+Fixed stupid Emacs 19 lossage where x-color-defined-p signals an error
 in a tty instead of failing gracefully.  Robustness?  Whassat?
 
 
@@ -2983,7 +2983,7 @@ Thu Apr 13 21:12:33 1995  William Perry  <wmperry@indiana.edu>
 
 * w3-style.el: w3-blend-colors now works in XEmacs 19.12
 
-* w3-style.el: Added function w3-blend-colors (FSF Emacs-19 specific)
+* w3-style.el: Added function w3-blend-colors (Emacs-19 specific)
 
 * w3-parse.el:
 Make sure to clear the minibuffer when done parsing - otherwise it
@@ -3341,7 +3341,7 @@ Tue Mar 14 16:04:04 1995  William Perry  <wmperry@indiana.edu>
 Mon Mar 13 05:51:41 1995  William Perry  <wmperry@indiana.edu>
 
 * w3-beta.el, w3-draw.el, w3-e19.el, w3-mac.el, w3-next.el, w3-old.el, w3-vars.el, w3-xemac.el:
-Lots and lots of doc fixes to meet FSF/GNU guidelines.
+Lots and lots of doc fixes to meet GNU guidelines.
 
 * w3-parse.el, w3.el, w3-e19.el, w3-draw.el: Few doc string fixes
 
@@ -3667,9 +3667,9 @@ Sun Jan 29 22:15:48 1995  William Perry  <wmperry@indiana.edu>
 Added new variable w3-right-justify-address to control whether
 text within an <address> tag is right justified.  Defaults to t.
 
-* w3-vars.el: Few new variables for fsf19
+* w3-vars.el: Few new variables for Emacs-19
 
-* w3.el: Removed special cases for fsf19 to use the old lmenu package.
+* w3.el: Removed special cases for Emacs-19 to use the old lmenu package.
 
 * w3-e19.el: No longer needs the lmenu package.
 
@@ -4467,7 +4467,7 @@ url-file-attributes, even if we had the image loaded. (with
 url-be-anal-about-file-attributes == t, it would do a HEAD, which was
 stupid)
 
-* w3.el: Fixed forms doubling problem in FSF emacs 19 when doing a reset.
+* w3.el: Fixed forms doubling problem in Emacs 19 when doing a reset.
 
 * w3-vars.el, w3.el:
 New variable w3-track-last-buffer.  If non-nil, M-x w3 will take you
@@ -5033,7 +5033,7 @@ completion-ignore-case to t
 
 Thu Jun  9 12:51:03 1994  William Perry  <wmperry@indiana.edu>
 
-* w3-e19.el: Activated the Help menu in FSF v19 again.
+* w3-e19.el: Activated the Help menu in Emacs v19 again.
 
 Wed Jun  8 01:20:36 1994  William Perry  <wmperry@indiana.edu>
 
@@ -5666,7 +5666,7 @@ Sun Apr 10 21:51:40 1994  William Perry  <wmperry@indiana.edu>
 * w3.el: No longer send the SUBMIT button when submitting forms
 
 * w3.el: New code to parse the Mosaic documents.menu file to add user-specified
-menus in lucid/FSF19
+menus in lucid/Emacs19
 
 
 Sat Apr  9 20:49:30 1994  William Perry  <wmperry@indiana.edu>
@@ -7044,7 +7044,7 @@ Fri Nov 26 03:52:19 1993  William M. Perry  (wmperry@indiana.edu)
   wasn't one by default.
 * w3-emacs19.el: Added a few patches from Jin S Choi (jsc@mit.edu).
   Mostly fixed the hotlist menu updating code, as well as a few cosmetic
-  changes to the FSF19 menus.
+  changes to the Emacs-19 menus.
 * w3-epoch.el: Added a few patches from Henry Rowley <har@cs.cmu.edu> to
   fix a few functions that assumed epoch was compiled with
   add-graphic-zone.
@@ -7605,7 +7605,7 @@ Wed Sep  8 11:58:21 1993  William M. Perry  (wmperry@indiana.edu)
   Will toy with it later.
 
 Tue Sep  7 07:13:36 1993  William M. Perry  (wmperry@indiana.edu)
-* w3-forms.el: added a (delete-overlay zone) if running FSF19 so that not
+* w3-forms.el: added a (delete-overlay zone) if running Emacs-19 so that not
   all edits are sent when you submit a form.
 * w3-forms.el: now, if a checkbox's VALUE/DEFAULT field is empty, it is
   sent as name=PRIMED, ala xmosaic.

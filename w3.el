@@ -1,47 +1,38 @@
-;;; w3.el --- Main functions for emacs-w3 on all platforms/versions
-;; Author: $Author: legoscia $
-;; Created: $Date: 2007/11/15 12:59:53 $
-;; Version: $Revision: 1.40 $
+;;; w3.el --- Fully customizable, largely undocumented web browser for Emacs
+
+;; Copyright (c) 1996-2001, 2007-2008, 2013 Free Software Foundation, Inc.
+
+;; Author: William Perry and many more
+;; Version: 4.0.48
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 99, 2001, 2007, 2008 Free Software Foundation, Inc.
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; This is a major mode for browsing documents written in Hypertext Markup ;;;
-;;; Language (HTML).  These documents are typicallly part of the World Wide ;;;
-;;; Web (WWW), a project to create a global information net in hypertext    ;;;
-;;; format.				                                    ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commentary:
+
+;; This is a major mode for browsing documents written in Hypertext Markup
+;; Language (HTML).  These documents are typicallly part of the World Wide
+;; Web (WWW), a project to create a global information net in hypertext
+;; format.
+
+;;; Code:
 
 (require 'w3-compat)
-(require 'w3-cfg)
-
-(or (featurep 'efs)
-    (featurep 'efs-auto)
-    (condition-case ()
-	(require 'ange-ftp)
-      (error nil)))
-
 (eval-when-compile (require 'cl))
 (require 'css)
 (require 'url-vars)
@@ -69,8 +60,7 @@ See the variable `w3-notify' for the different notification behaviors."
     ;; we must not leave a different buffer current.
     ;; We can't rely on the editor command loop to reselect
     ;; the selected window's buffer.
-    (save-excursion
-      (set-buffer buff)
+    (with-current-buffer buff
       (make-frame)))
    ((eq w3-notify 'bully)
     (pop-to-buffer buff)
@@ -215,9 +205,8 @@ variable `http-header'."
 (defun w3-nasty-disgusting-http-equiv-handling (buffer url)
   "Propagate information from <meta http-equiv...> elements to MIME headers.
 Operate on BUFFER."
-  (let (content-type end-of-headers extra-headers)
-    (save-excursion
-      (set-buffer buffer)
+  (let (content-type end-of-headers)
+    (with-current-buffer buffer
       (goto-char (point-min))
       (mail-narrow-to-head)
       (setq content-type (mail-fetch-field "content-type"))
@@ -295,17 +284,16 @@ MUST-BE-VIEWING is the current URL when the timer expires."
 		  (setq uri (match-string 1 uri)))
 	      (setq uri (url-expand-file-name uri (url-view-url t)))))
 	(w3-setup-reload-timer uri (url-view-url t)
-			       (string-to-int (or reload "5"))))))
+			       (string-to-number (or reload "5"))))))
 
 (defun w3-fetch-redirect-callback (&rest args)
-  (let (redirect-url errorp)
+  (let (redirect-url)
     ;; Handle both styles of `url-retrieve' callbacks...
     (cond
      ((listp (car args))
       ;; Emacs 22 style.  First argument is a list.
       (let ((status (car args)))
 	(when (eq (car status) :error)
-	  (setq errorp t)
 	  (setq status (cddr args)))
 	(when (eq (car status) :redirect)
 	  (setq redirect-url (second (car args))))
@@ -344,8 +332,7 @@ MUST-BE-VIEWING is the current URL when the timer expires."
     (let ((handle (mm-dissect-buffer t))
 	  (w3-explicit-coding-system
 	   (or w3-explicit-coding-system
-	       (w3-recall-explicit-coding-system url)))
-	  (buff nil))
+	       (w3-recall-explicit-coding-system url))))
       (message "Downloading of `%s' complete." url)
       (url-mark-buffer-as-dead (current-buffer))
       (unless headers
@@ -441,9 +428,7 @@ With prefix argument, use the URL of the hyperlink under point instead."
    ((and (interactive-p) current-prefix-arg)
     (w3-download-url url))
    (t
-    (let ((x (url-view-url t))
-	  (lastbuf (current-buffer))
-	  (w3-current-buffer (current-buffer))
+    (let ((w3-current-buffer (current-buffer))
 	  (buf (w3-buffer-visiting url)))
       (if (or (not buf)
 	      (cond
@@ -553,10 +538,8 @@ the cdr is the 'next' node."
 	    (kill-buffer (get-buffer "Document Information")))
 	(w3-fetch "about:document"))
     (setq buff (or buff (current-buffer)))
-    (save-excursion
-      (set-buffer buff)
+    (with-current-buffer buff
       (let* ((url (url-view-url t))
-	     (cur-links w3-current-links)
 	     (title (buffer-name))
 	     (case-fold-search t)
 	     (attributes (url-file-attributes url))
@@ -568,13 +551,13 @@ the cdr is the 'next' node."
 	     (info w3-current-metainfo)
 	     (links w3-current-links))
 	(set-buffer (get-buffer-create url-working-buffer))
-	(setq url-current-can-be-cached nil)
+	;; (setq url-current-can-be-cached nil)
 	(erase-buffer)
 	(if (consp lastmod)
 	    (if (equal '(0 . 0) lastmod)
 		(setq lastmod nil)
 	      (setq lastmod (current-time-string lastmod))))
-	(setq url-current-mime-type "text/html")
+	;; (setq url-current-mime-type "text/html")
 	(insert "\
 Content-Type: text/html\n
 <html>
@@ -588,7 +571,7 @@ Content-Type: text/html\n
    <tr><td>Location:</td><td>" url "</td></tr>")
 	(if size (insert "\
    <tr><td>Size:</td><td>" (url-pretty-length (if (stringp size)
-						  (string-to-int size)
+						  (string-to-number size)
 						size)) "</td></tr>"))
 	(insert "\
    <tr><td>Last Modified:</td><td>" (or lastmod "None Given") "</td></tr>\n")
@@ -692,8 +675,7 @@ With prefix arg, insert the url under point."
 			(read-string "Link text: " (buffer-name))))))
     (setq buff (read-buffer "Insert into buffer: " nil t))
     (if buff
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  (insert str))
       (message "Cancelled."))))
 
@@ -882,7 +864,9 @@ If there is no link under point, this will try using
               "Content-type: " content-type))
     (re-search-forward mail-header-separator nil)
     (forward-char 1)
-    (if (and (boundp 'mime/editor-mode-flag) mime/editor-mode-flag)
+    (if (and (boundp 'mime/editor-mode-flag)
+             (boundp 'mime-tag-format)
+             mime/editor-mode-flag)
         (insert (format mime-tag-format content-type) "\n"))
     (save-excursion
       (insert str))
@@ -904,8 +888,7 @@ If there is no link under point, this will try using
       (let ((x (buffer-list))
 	    (found nil))
 	(while (and x (not found))
-	  (save-excursion
-	    (set-buffer (car x))
+	  (with-current-buffer (car x)
 	    (setq found (string= (url-view-url t) url))
 	    (if (not found) (setq x (cdr x)))))
 	(cond
@@ -970,13 +953,10 @@ Do this if it is a file: or ftp: reference"
 With prefix ARG, insert URL under point"
   (interactive "P")
   (let ((thebuf (get-buffer (read-buffer "Insert into buffer: ")))
-	(oldbuf (current-buffer))
 	(url (if pref-arg (w3-view-this-url t) (url-view-url t))))
     (if (and url (not (equal "Not on a link!" url)))
-	(progn
-	  (set-buffer thebuf)
-	  (insert url)
-	  (set-buffer oldbuf))
+	(with-current-buffer thebuf
+	  (insert url))
       (message "Not on a link!"))))
 
 (defun w3-in-assoc (elt list)
@@ -1046,24 +1026,25 @@ even though the MIME type is nil or listed in `w3-mime-list-for-code-conversion'
   (interactive)
   (w3-fetch "www://auto/history"))
 
+(defvar ps-spool-buffer-name)
+
 (defun w3-save-as (&optional type)
   "Save a document to the local disk."
   (interactive)
-  (save-excursion
-    (let* ((completion-ignore-case t)
-	   (format (or type (completing-read
-			     "Format: "
-			     '(("HTML Source")
-			       ("Formatted Text")
-			       ("PostScript")
-			       ("Binary"))
-			     nil t)))
-	   (fname (expand-file-name
-		   (read-file-name "File name: " default-directory)))
-	   (source w3-current-source)
-	   (text (buffer-string))
-	   (url (url-view-url t)))
-      (set-buffer (generate-new-buffer " *w3-save-as*"))
+  (let* ((completion-ignore-case t)
+         (format (or type (completing-read
+                           "Format: "
+                           '(("HTML Source")
+                             ("Formatted Text")
+                             ("PostScript")
+                             ("Binary"))
+                           nil t)))
+         (fname (expand-file-name
+                 (read-file-name "File name: " default-directory)))
+         (source w3-current-source)
+         (text (buffer-string))
+         (url (url-view-url t)))
+    (with-current-buffer (generate-new-buffer " *w3-save-as*")
       (cond
        ((equal "Binary" format)
 	(insert source))
@@ -1105,8 +1086,7 @@ even though the MIME type is nil or listed in `w3-mime-list-for-code-conversion'
 (defun w3-log-bad-html (type desc)
   "Log bad HTML to the buffer specified by w3-debug-buffer."
   (if w3-debug-html
-      (save-excursion
-	(set-buffer (get-buffer-create w3-debug-buffer))
+      (with-current-buffer (get-buffer-create w3-debug-buffer)
 	(goto-char (point-max))
 	(insert (make-string (1- (window-width)) w3-horizontal-rule-char) "\n")
 	(cond
@@ -1174,11 +1154,9 @@ even though the MIME type is nil or listed in `w3-mime-list-for-code-conversion'
 		     url-version
 		     url)))
 	 (if (and url (string= url "file:nil")) (setq url nil))
-	 (mapcar
-	  (function
-	   (lambda (x)
-	     (if (not (and (boundp x) (symbol-value x)))
-		 (setq vars (delq x vars))))) vars)
+	 (dolist (x vars)
+           (if (not (and (boundp x) (symbol-value x)))
+               (setq vars (delq x vars))))
 	 (reporter-submit-bug-report w3-bug-address
 				     (concat "WWW v" w3-version-number " of "
 					     w3-version-date)
@@ -1443,8 +1421,7 @@ as high as possible in w3-explicit-conversion-tree"
     (let ((make-backup-files nil)
 	  (version-control nil)
 	  (require-final-newline t))
-      (save-excursion
-	(set-buffer (get-buffer-create " *w3-tmp*"))
+      (with-current-buffer (get-buffer-create " *w3-tmp*")
 	(erase-buffer)
 	(insert "(setq w3-explicit-conversion-tree\n      '"
 		(prin1-to-string w3-explicit-conversion-tree)
@@ -1470,8 +1447,7 @@ as high as possible in w3-explicit-conversion-tree"
   (if mega
       (mapcar
        (lambda (x)
-	 (save-excursion
-	   (set-buffer (get-buffer x))
+	 (with-current-buffer (get-buffer x)
 	   (if (eq major-mode 'w3-mode)
 	       (w3-quit nil))))
        (buffer-list))
@@ -1640,34 +1616,30 @@ No arg means whole window full.  Arg is number of lines to scroll."
       (setq x (cdr x))))
   (message "Cleaning up w3 temporary files... done."))
 
-(eval-and-compile
+(defalias 'w3-warn
   (cond
    ((fboundp 'display-warning)
-    (fset 'w3-warn 'display-warning))
+    #'display-warning)
    ((fboundp 'warn)
-    (defun w3-warn (class message &optional level)
+    (lambda (class message &optional level)
       (if (and (eq class 'html)
 	       (not w3-debug-html))
 	  nil
 	(warn "(%s/%s) %s" class (or level 'warning) message))))
    (t
-    (defun w3-warn (class message &optional level)
+    (lambda (class message &optional level)
       (if (and (eq class 'html)
 	       (not w3-debug-html))
 	  nil
-	(save-excursion
-	  (set-buffer (get-buffer-create "*W3-WARNINGS*"))
+	(with-current-buffer (get-buffer-create "*W3-WARNINGS*")
 	  (goto-char (point-max))
 	  (save-excursion
 	    (insert (format "(%s/%s) %s\n" class (or level 'warning) message)))
 	  (display-buffer (current-buffer))))))))
 
-(defun w3-map-links (function &optional buffer from to maparg)
-  "Map FUNCTION over the hypertext links which overlap region in BUFFER,
-starting at FROM and ending at TO.  FUNCTION is called with the arguments
-WIDGET and MAPARG.
-The arguments FROM, TO, MAPARG, and BUFFER default to the beginning of
-BUFFER, the end of BUFFER, nil, and (current-buffer), respectively."
+(defun w3-map-links (function &optional maparg)
+  "Map FUNCTION over the hypertext links in current buffer,
+FUNCTION is called with the arguments WIDGET and MAPARG."
   (let ((parent)
 	(highly-unlikely-name-for-a-variable-holding-a-function function))
     (widget-map-buttons
@@ -1695,6 +1667,8 @@ BUFFER, the end of BUFFER, nil, and (current-buffer), respectively."
 (defvar w3-loaded-stylesheets nil
   "A list of all the stylesheets Emacs-W3 loaded at startup.")
 
+(defvar w3--package-directory (file-name-directory load-file-name))
+
 (defun w3-find-default-stylesheets ()
   (setq w3-loaded-stylesheets nil)
   (let* ((lightp (css-color-light-p 'default))
@@ -1707,6 +1681,7 @@ BUFFER, the end of BUFFER, nil, and (current-buffer), respectively."
 					 "/this/is/a/highly/unlikely/directory/name"
 				       w3-configuration-directory))
 	 (directories (list
+                       (expand-file-name "etc" w3--package-directory)
 		       (if (fboundp 'locate-data-directory)
 			   (locate-data-directory "w3"))
 		       data-directory
@@ -1714,7 +1689,6 @@ BUFFER, the end of BUFFER, nil, and (current-buffer), respectively."
 		       (expand-file-name "../../w3" data-directory)
 		       w3-lisp
 		       w3-root
-		       (w3-configuration-data 'datadir)
 		       (expand-file-name "w3" w3-root)
 		       (expand-file-name "etc" w3-root)
 		       (expand-file-name "etc/w3" w3-root)
@@ -1863,9 +1837,8 @@ Emacs."
   (message "Reimplement w3-mark-link-as-followed"))
 
 (defun w3-only-links ()
-  (let* (result temp)
-    (w3-map-links (lambda (x y)
-		    (setq result (cons x result))))
+  (let (result)
+    (w3-map-links (lambda (x _y) (push x result)))
     result))
 
 (defun w3-download-redirect-callback (&rest args)
@@ -2026,7 +1999,7 @@ With optional ARG, move across that many fields."
 			  (buffer-substring-no-properties
 			   (widget-get link-at-point :from)
 			   (widget-get link-at-point :to)))))
-    (w3-map-links (lambda (widget arg)
+    (w3-map-links (lambda (widget _arg)
 		    (if (and (widget-get widget :from)
 			     (widget-get widget :to))
 			(setq links-alist (cons
@@ -2077,9 +2050,8 @@ With optional ARG, move across that many fields."
 	(url (url-view-url t)))
     (if (not todo)
 	(error "No HTML errors on this page!  Amazing, isn't it?"))
-    (save-excursion
-      (set-buffer
-       (get-buffer-create (concat "HTML Errors for: " (or url "???"))))
+    (with-current-buffer
+        (get-buffer-create (concat "HTML Errors for: " (or url "???")))
       (setq buffer (current-buffer))
       (erase-buffer)
       (while todo
@@ -2144,7 +2116,7 @@ Current keymap is:
 (require 'url)
 (require 'w3-parse)
 (require 'w3-display)
-(require 'w3-auto)
+;; (require 'w3-auto)
 (require 'w3-emulate)
 (require 'w3-menu)
 (require 'w3-mouse)

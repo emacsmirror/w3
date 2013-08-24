@@ -1,13 +1,13 @@
 ;;; w3-emacs.el --- Emacs-specific functions for emacs-w3
 
-;; Copyright (c) 1997, 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 2001, 2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: hypermedia
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
@@ -45,17 +45,16 @@
 	(cur nil))
     (while (not (eq cur first))
       (setq cur (if cur (next-window cur nil frame) first))
-      (save-excursion
-	(set-buffer (window-buffer cur))
-	(if (and (eq major-mode 'w3-mode)
+      (with-current-buffer (window-buffer cur)
+	(if (and (derived-mode-p 'w3-mode)
 		 (not (eq (window-width cur) w3-emacs-window-width)))
 	    (w3-refresh-buffer))))))
 
+(defvar w3-face-index)
+(defvar w3-display-background-properties)
+
 (defun w3-mode-version-specifics ()
-  (declare (special w3-face-index w3-display-background-properties))
   (setq w3-emacs-window-width (window-width))
-  (if w3-track-mouse
-      (set (make-local-variable 'track-mouse) t))
   (if w3-display-background-properties
       (let ((face (w3-make-face (intern
 				 (format "w3-style-face-%05d" w3-face-index))
@@ -82,16 +81,6 @@
 			    (posn-point start))))
     (if (stringp help)
 	(tooltip-show help))))
-
-(defun w3-mouse-handler (e)
-  "Function to message the url under the mouse cursor"
-  (interactive "e")
-  (let* ((pt (posn-point (event-start e)))
-	 (good (eq (posn-window (event-start e)) (selected-window)))
-	 (mouse-events nil))
-    (if (not (and good pt (number-or-marker-p pt)))
-	nil
-      (widget-echo-help pt))))
 
 (provide 'w3-emacs)
 ;;; w3-emacs.el ends here

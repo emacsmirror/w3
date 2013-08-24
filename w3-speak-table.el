@@ -1,6 +1,31 @@
-;;;$Id: w3-speak-table.el,v 1.4 2001/05/25 14:05:05 wmperry Exp $
-;;;Authors: Thierry Emery <Thierry.Emery@nmu.alcatel.fr>, T.V. Raman <raman@Adobe.COM>
-;;;Description: Speak W3 tables
+;;; w3-speak-table.el --- Speak W3 tables
+
+;; Copyright (c) 2013  Free Software Foundation, Inc.
+
+;; Author: Thierry Emery <Thierry.Emery@nmu.alcatel.fr>
+;;         T.V. Raman <raman@Adobe.COM>
+
+;; This file is not part of GNU Emacs, but the same permissions apply.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
+
+(require 'w3-keymap)
+(require 'w3-vars)
 
 (eval-when-compile
   (require 'cl)
@@ -85,20 +110,20 @@ and return it as (horizontal-offset . vertical-offset)"
 (defmacro w3-table-move-within-cell (at-depth cell-info move-function)
   "Move within a cell (in a temporary buffer) and reflect the same movement
 in the containing table in the original buffer"
+  (declare (indent 2) (debug t))
   `(if (null ,cell-info)
-	 (error "Not inside a W3 cell")
-       (let (table-movement)
-	 (w3-within-cell ,cell-info table-info
-			 (setq table-movement
-			       (w3-table-compute-relative-movement
-				(funcall ,move-function (1- at-depth)))))
-	 (w3-table-redo-relative-movement table-movement))))
-(put 'w3-table-move-within-cell 'lisp-indent-function 2)
-(put 'w3-table-move-within-cell 'edebug-form-spec '(sexp sexp &rest form))
+       (error "Not inside a W3 cell")
+     (let (table-movement)
+       (w3-within-cell ,cell-info table-info
+                       (setq table-movement
+                             (w3-table-compute-relative-movement
+                              (funcall ,move-function (1- ,at-depth)))))
+       (w3-table-redo-relative-movement table-movement))))
 
 (defmacro w3-table-move-within-subtable (at-depth cell-info move-function)
   "Move within a subtable (in a temporary buffer) and reflect the same movement
 in the containing table in the original buffer"
+  (declare (indent 2) (debug t))
   `(if (null ,cell-info)
 	 (error "Not inside a W3 cell")
        (let ((subtable-info (w3-cell-info-current-subtable ,cell-info))
@@ -108,11 +133,8 @@ in the containing table in the original buffer"
 	   (w3-within-cell ,cell-info table-info
 			   (setq table-movement
 				 (w3-table-compute-relative-movement
-				  (funcall ,move-function (1- at-depth) subtable-info))))
+				  (funcall ,move-function (1- ,at-depth) subtable-info))))
 	   (w3-table-redo-relative-movement table-movement)))))
-
-(put 'w3-table-move-within-subtable 'lisp-indent-function 2)
-(put 'w3-table-move-within-subtable 'edebug-form-spec '(sexp sexp &rest form))
 
 ;;}}}
 ;;{{{  find a table
@@ -219,7 +241,6 @@ If no table is found and NOERROR is nil, an error is signaled."
 (defun w3-table-current-column-number (&optional table-info)
   "Return spanless column number"
   (let* ((table-info (or table-info (w3-table-info 0)))
-	 (start (w3-table-info-start table-info))
 	 (char-col (current-column))
 	 (num-cols (w3-table-info-columns table-info))
 	 (col-widths (w3-table-info-column-widths table-info))
@@ -308,7 +329,6 @@ NB: row and col start from 1
 	     (start (w3-table-info-start table-info))
 	     (table-row-heights (w3-table-info-row-heights table-info))
 	     (table-col-widths (w3-table-info-column-widths table-info))
-	     (table-width (+ (apply '+ (map 'list '1+ table-col-widths)) 2))
 	     (table-row-index (1- table-row))
 	     (table-col-index (1- table-col))
 	     cell-beg
@@ -403,8 +423,7 @@ cell for a newspaper style column"
         (buffer (get-buffer-create
                  (format "Cell-%s" (buffer-name))))
         (inhibit-read-only t))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (erase-buffer)
       (w3-mode)
       (insert contents)
@@ -595,10 +614,8 @@ Prefix arg can be used to specify the desired table nesting."
 	(w3-table-move-within-subtable at-depth cell-info
 				       'w3-table-move-to-top-of-table-column)
       (let ((table-start nil)
-	    (table-end nil)
 	    (column (w3-table-current-column-number table-info))
 	    (motion 0)
-	    (top-left nil)
 	    (widths (w3-table-info-column-widths table-info)))
 	(set-mark (point))
 	(save-excursion
@@ -631,8 +648,7 @@ Prefix arg can be used to specify the desired table nesting."
 		(error "Not inside a W3 table")
 	      (w3-within-cell cell-info table-info
                 'w3-table-speak-current-table-column))))
-      (let ((orig (point))
-	    (table-start nil)
+      (let ((table-start nil)
 	    (table-end nil)
 	    (column (w3-table-current-column-number table-info))
 	    (top-left nil)
@@ -661,11 +677,11 @@ Prefix arg can be used to specify the desired table nesting."
 ;;}}}
 ;;{{{  bind them to useful keys
 
-;;;###autoload
+(defvar emacspeak-prefix)
 
+;;;###autoload
 (defun w3-table-setup-keys ()
   "Setup emacspeak table browsing keys in w3 mode"
-  (declare (special emacspeak-prefix w3-mode-map))
   (let ((key (make-vector 1 (aref emacspeak-prefix 0))))
     (define-key w3-mode-map ","
       'w3-table-focus-on-this-cell)

@@ -1,14 +1,13 @@
 ;;; w3-parse.el --- Parse HTML and/or SGML for Emacs W3 browser
 
+;; Copyright © 1993-1997, 2013 Free Software Foundation, Inc.
+
 ;; Author: Joe Wells <jbw@cs.bu.edu>
 ;; Created on: Sat Sep 30 17:25:40 1995
 
-;; Copyright © 1995, 1996, 1997  Joseph Brian Wells
-;; Copyright © 1993, 1994, 1995 by William M. Perry <wmperry@cs.indiana.edu>
-;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
+;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -21,10 +20,11 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Code:
 
-;;;
-;;; Trying to make the best of an evil speed hack.
-;;;
+;;
+;; Trying to make the best of an evil speed hack.
+;;
 
 ;; Explanation:
 
@@ -61,7 +61,7 @@
 (eval-when-compile (require 'cl))
 
 (eval-when-compile
-  (defconst w3-p-s-var-list nil
+  (defvar w3-p-s-var-list nil
     "A list of the scratch variables used by functions called by
 w3-parse-buffer which it is w3-parse-buffer's responsibility to
 \"let\"-bind.")
@@ -69,51 +69,49 @@ w3-parse-buffer which it is w3-parse-buffer's responsibility to
   (defmacro w3-p-s-var-def (var)
     "Declare VAR as a scratch variable which w3-parse-buffer must
 \"let\"-bind."
-    `(eval-when-compile
-         (defvar ,var)
-         (or (memq ',var w3-p-s-var-list)
-             (setq w3-p-s-var-list (cons ',var w3-p-s-var-list)))))
+    (or (memq var w3-p-s-var-list)
+        (setq w3-p-s-var-list (cons var w3-p-s-var-list)))
+    `(defvar ,var))
 
   (defmacro w3-p-s-let-bindings (&rest body)
     "\"let\"-bind all of the variables in w3-p-s-var-list in BODY."
+    (declare (indent 0) (debug t))
     `(let ,w3-p-s-var-list
-         ,@body))
-  (put 'w3-p-s-let-bindings 'lisp-indent-function 0)
-  (put 'w3-p-s-let-bindings 'edebug-form-spec t)
+         ,@body)))
 
-  (defvar w3-p-d-current-element)
-  (put 'w3-p-d-current-element 'variable-documentation
-       "Information structure for the current open element.")
+(defvar w3-p-d-current-element)
+(put 'w3-p-d-current-element 'variable-documentation
+     "Information structure for the current open element.")
   
-  (defvar w3-p-d-exceptions)
-  (put 'w3-p-d-exceptions 'variable-documentation
-       "Alist specifying elements (dis)allowed because of an (ex|in)clusion
+(defvar w3-p-d-exceptions)
+(put 'w3-p-d-exceptions 'variable-documentation
+     "Alist specifying elements (dis)allowed because of an (ex|in)clusion
 exception of some containing element (not necessarily the immediately
 containing element).  Each item specifies a transition for an element
 which overrides that specified by the current element's content model.
 Each item is of the form (TAG ACTION *same ERRORP).")
   
-  (defvar w3-p-d-in-parsed-marked-section)
-  (put 'w3-p-d-in-parsed-marked-section 'variable-documentation
-       "Are we in a parsed marked section so that we have to scan for \"]]>\"?")
+(defvar w3-p-d-in-parsed-marked-section)
+(put 'w3-p-d-in-parsed-marked-section 'variable-documentation
+     "Are we in a parsed marked section so that we have to scan for \"]]>\"?")
 
-  (defvar w3-p-d-non-markup-chars)
-  (put 'w3-p-d-non-markup-chars 'variable-documentation
-       "The characters that do not indicate the start of markup, in the format
+(defvar w3-p-d-non-markup-chars)
+(put 'w3-p-d-non-markup-chars 'variable-documentation
+     "The characters that do not indicate the start of markup, in the format
 for an argument to skip-chars-forward.")
 
-  (defvar w3-p-d-null-end-tag-enabled)
-  (put 'w3-p-d-null-end-tag-enabled 'variable-documentation
-       "Is the null end tag (\"/\") enabled?")
+(defvar w3-p-d-null-end-tag-enabled)
+(put 'w3-p-d-null-end-tag-enabled 'variable-documentation
+     "Is the null end tag (\"/\") enabled?")
 
-  (defvar w3-p-d-open-element-stack)
-  (put 'w3-p-d-open-element-stack 'variable-documentation
-       "A stack of the currently open elements, with the innermost enclosing
+(defvar w3-p-d-open-element-stack)
+(put 'w3-p-d-open-element-stack 'variable-documentation
+     "A stack of the currently open elements, with the innermost enclosing
 element on top and the outermost on bottom.")
 
-  (defvar w3-p-d-shortrefs)
-  (put 'w3-p-d-shortrefs 'variable-documentation
-       "An alist of the magic entity reference strings in the current
+(defvar w3-p-d-shortrefs)
+(put 'w3-p-d-shortrefs 'variable-documentation
+     "An alist of the magic entity reference strings in the current
 between-tags region and their replacements.  Each item is of the format
 \(REGEXP . REPLACEMENT-STRING\).  Although in SGML shortrefs normally name
 entities whose value should be used as the replacement, we have
@@ -122,9 +120,9 @@ strings to be replaced, so they can be used with looking-at.  This should
 never be in an element's overrides field unless
 w3-p-d-shortref-chars is also in the field.")
   
-  (defvar w3-p-d-shortref-chars)
-  (put 'w3-p-d-shortref-chars 'variable-documentation
-       "A string of the characters which can start shortrefs in the current
+(defvar w3-p-d-shortref-chars)
+(put 'w3-p-d-shortref-chars 'variable-documentation
+     "A string of the characters which can start shortrefs in the current
 between-tags region.  This must be in a form which can be passed to
 skip-chars-forward and must contain exactly the characters which start the
 entries in w3-p-d-shortrefs.  If this variable is mentioned in the
@@ -133,18 +131,15 @@ variable w3-p-d-non-markup-chars is saved to the element's undo-list and
 updated at the same time.  This should never be in an element's overrides
 field unless w3-p-d-shortrefs is also in the field.")
   
-  (defvar w3-p-d-tag-name)
-  (put 'w3-p-d-tag-name 'variable-documentation
-       "Name of tag we are looking at, as an Emacs Lisp symbol.
+(defvar w3-p-d-tag-name)
+(put 'w3-p-d-tag-name 'variable-documentation
+     "Name of tag we are looking at, as an Emacs Lisp symbol.
 Only non-nil when we are looking at a tag.")
 
-  (defvar w3-p-d-end-tag-p)
-  (put 'w3-p-d-end-tag-p 'variable-documentation
-       "Is the tag we are looking at an end tag?
+(defvar w3-p-d-end-tag-p)
+(put 'w3-p-d-end-tag-p 'variable-documentation
+     "Is the tag we are looking at an end tag?
 Only non-nil when we are looking at a tag.")
-  
-  )
-
 
 ;;;
 ;;; HTML syntax error messages.
@@ -233,8 +228,7 @@ which must be a string to use as the error message."
                          (delete-char -7))))))) w3-current-badhtml))
 
 (defun w3-quote-for-string (string)
-  (save-excursion
-    (set-buffer (get-buffer-create " w3-quote-whitespace"))
+  (with-current-buffer (get-buffer-create " w3-quote-whitespace")
     (erase-buffer)
     (insert string)
     (goto-char (point-min))
@@ -295,9 +289,9 @@ come from the cp1252 character set rather than Unicode.)  This is an
 alist indexed by numeric code.  The cdr of each element is a list of
 an ASCII substitute and the Unicode for the cp1252 character.")
 
-(eval-and-compile
+(defalias 'w3-int-to-char
   (if (fboundp 'int-to-char)            ; XEmacs
-      (defun w3-int-to-char (c)
+      (lambda (c)
         (cond
          ((characterp c)
           c)
@@ -305,7 +299,7 @@ an ASCII substitute and the Unicode for the cp1252 character.")
           (int-to-char c))
          (t
           ?~)))
-    (defalias 'w3-int-to-char 'identity)))
+    #'identity))
 
 ;; For older Mule-UCS.  This is from Mule-UCS 0.84.
 (if (and (not (fboundp 'decode-char))
@@ -1020,13 +1014,13 @@ skip-chars-forward."
 ;;; A pseudo-DTD for HTML.
 ;;;
 
-(eval-when-compile
-  ;; This works around the following bogus compiler complaint:
-  ;;   While compiling the end of the data in file w3-parse.el:
-  ;;     ** the function w3-expand-parameters is not known to be defined.
-  ;; This is a bogus error.  Anything of this form will trigger this message:
-  ;;   (eval-when-compile (defun xyzzy () (xyzzy)))
-  (defun w3-expand-parameters (pars data) nil))
+;; (eval-when-compile
+;;   ;; This works around the following bogus compiler complaint:
+;;   ;;   While compiling the end of the data in file w3-parse.el:
+;;   ;;     ** the function w3-expand-parameters is not known to be defined.
+;;   ;; This is a bogus error.  Anything of this form will trigger this message:
+;;   ;;   (eval-when-compile (defun xyzzy () (xyzzy)))
+;;   (defun w3-expand-parameters (_pars _data) nil))
 
 (eval-when-compile
   (defun w3-expand-parameters (pars data)
@@ -1155,605 +1149,604 @@ skip-chars-forward."
 ;; *** Be sure to incorporate rfc1867 when attribute-checking is added.
 ;; *** Write function to check sanity of the content-model forms.
 ;; *** I18N: Add Q, BDO, SPAN
-(mapcar
- (function
-  (lambda (pair)
-    (put (car pair) 'html-element-info (cdr pair))))
- ;; The purpose of this complexity is to speed up loading by
- ;; pre-evaluating as much as possible at compile time.
- (eval-when-compile
-   (w3-unfold-dtd
-    (w3-expand-parameters
-     '(
-       (%headempty . (link base meta range))
-       (%headmisc . (script))
-       (%head-deprecated . (nextid))
+(dolist
+    (pair
+     ;; The purpose of this complexity is to speed up loading by
+     ;; pre-evaluating as much as possible at compile time.
+     (eval-when-compile
+       (w3-unfold-dtd
+        (w3-expand-parameters
+         '(
+           (%headempty . (link base meta range))
+           (%headmisc . (script))
+           (%head-deprecated . (nextid))
 
-       ;; client-side imagemaps
-       (%imagemaps . (area map))
-       (%input.fields . (input select textarea keygen label))
-       ;; special action is taken for %text inside %body.content in the
-       ;; content model of each element.
-       (%body.content . (%heading %block style hr div address %imagemaps))
+           ;; client-side imagemaps
+           (%imagemaps . (area map))
+           (%input.fields . (input select textarea keygen label))
+           ;; special action is taken for %text inside %body.content in the
+           ;; content model of each element.
+           (%body.content . (%heading %block style hr div address %imagemaps))
 
-       (%heading . (h1 h2 h3 h4 h5 h6))
+           (%heading . (h1 h2 h3 h4 h5 h6))
 
-       ;; Emacs-w3 extensions
-       (%emacsw3-crud  . (pinhead flame cookie yogsothoth hype peek))
+           ;; Emacs-w3 extensions
+           (%emacsw3-crud  . (pinhead flame cookie yogsothoth hype peek))
 
-       (%block . (p %list dl form %preformatted 
-                    %blockquote isindex fn table fig note
-                    multicol center %block-deprecated %block-obsoleted))
-       (%list . (ul ol))
-       (%preformatted . (pre))
-       (%blockquote . (bq))
-       (%block-deprecated . (dir menu blockquote))
-       (%block-obsoleted . (xmp listing))
+           (%block . (p %list dl form %preformatted 
+                        %blockquote isindex fn table fig note
+                        multicol center %block-deprecated %block-obsoleted))
+           (%list . (ul ol))
+           (%preformatted . (pre))
+           (%blockquote . (bq))
+           (%block-deprecated . (dir menu blockquote))
+           (%block-obsoleted . (xmp listing))
        
-       ;; Why is IMG in this list?
-       (%pre.exclusion . (*include img *discard tab math big small sub sup))
+           ;; Why is IMG in this list?
+           (%pre.exclusion . (*include img *discard tab math big small sub sup))
        
-       (%text . (*data b %notmath sub sup %emacsw3-crud %input.fields))
-       (%notmath . (%special %font %phrase %misc))
-       (%font . (i u s strike tt big small sub sup font
-                   roach secret wired)) ;; B left out for MATH
-       (%phrase . (em strong dfn code samp kbd var cite blink))
-       (%special . (a nobr img applet object font basefont br script style map math tab span bdo))
-       (%misc . (q lang au person acronym abbrev ins del))
+           (%text . (*data b %notmath sub sup %emacsw3-crud %input.fields))
+           (%notmath . (%special %font %phrase %misc))
+           (%font . (i u s strike tt big small sub sup font
+                       roach secret wired)) ;; B left out for MATH
+           (%phrase . (em strong dfn code samp kbd var cite blink))
+           (%special . (a nobr img applet object font basefont br script style map math tab span bdo))
+           (%misc . (q lang au person acronym abbrev ins del))
        
-       (%formula . (*data %math))
-       (%math . (box above below %mathvec root sqrt array sub sup
-                     %mathface))
-       (%mathvec . (vec bar dot ddot hat tilde))
-       (%mathface . (b t bt))
+           (%formula . (*data %math))
+           (%math . (box above below %mathvec root sqrt array sub sup
+                         %mathface))
+           (%mathvec . (vec bar dot ddot hat tilde))
+           (%mathface . (b t bt))
 
-       (%mathdelims . (over atop choose left right of))
+           (%mathdelims . (over atop choose left right of))
 
-       ;; What the hell?  This takes BODYTEXT?????  No way!
-       (%bq-content-model . [(nil
-                              nil
-                              (((bodytext) *include *next))
-                              (bodytext *next))
-                             (nil
-                              nil
-                              (((credit) *include *next))
-                              nil)
-                             (nil nil nil nil)
-                             ])
+           ;; What the hell?  This takes BODYTEXT?????  No way!
+           (%bq-content-model . [(nil
+                                  nil
+                                  (((bodytext) *include *next))
+                                  (bodytext *next))
+                                 (nil
+                                  nil
+                                  (((credit) *include *next))
+                                  nil)
+                                 (nil nil nil nil)
+                                 ])
 
-       ;; non-default bad HTML handling.
-       (%in-text-ignore . ((p %heading) *discard *same error))
-       )
-     '(
-       ;; A dummy element that will contain *document.
-       ((*holder)
-        (content-model . [(nil nil nil nil)]))
-       ;; The root of the parse tree.  We start with a pseudo-element
-       ;; named *document for convenience.
-       ((*document)
-        (content-model . [(nil nil (((html) *include *next)) (html *next))
-                          (nil
-                           nil
-                           nil
-                           (*include *same "after document end"))])
-        (end-tag-omissible . t))
-       ;; HTML O O (HEAD, BODY)
-       ((html)
-        (content-model . [(nil
-                           nil
-                           (((head) *include *next))
-                           (head *next))
-                          (nil
-                           nil
-                           (((body) *include *next)
-                            ;; Netscape stuff
-                            ((frameset) *include 4)
-                            )
-                           (body *next))
-                          (nil
-                           nil
-                           (((plaintext) *include *next))
-                           (*retry *next))
-                          (nil
-                           nil
-                           nil
-                           (*include *same "after BODY"))
-                          (nil
-                           nil
-                           nil
-                           (*include *same "after FRAMESET"))
-                          ])
-        (end-tag-omissible . t))
-       ((head)
-        (content-model . [((title isindex %headempty %headmisc
-                                  style %head-deprecated)
-                           nil
-                           nil
-                           ;; *** Should only close if tag can
-                           ;; legitimately follow head.  So many can that
-                           ;; I haven't bothered to enumerate them.
-                           (*close))])
-        (end-tag-omissible . t))
-       ;; SCRIPT - - (#PCDATA)
-       ((script)
-        (content-model . XCDATA         ; not official, but allows
+           ;; non-default bad HTML handling.
+           (%in-text-ignore . ((p %heading) *discard *same error))
+           )
+         '(
+           ;; A dummy element that will contain *document.
+           ((*holder)
+            (content-model . [(nil nil nil nil)]))
+           ;; The root of the parse tree.  We start with a pseudo-element
+           ;; named *document for convenience.
+           ((*document)
+            (content-model . [(nil nil (((html) *include *next)) (html *next))
+                              (nil
+                               nil
+                               nil
+                               (*include *same "after document end"))])
+            (end-tag-omissible . t))
+           ;; HTML O O (HEAD, BODY)
+           ((html)
+            (content-model . [(nil
+                               nil
+                               (((head) *include *next))
+                               (head *next))
+                              (nil
+                               nil
+                               (((body) *include *next)
+                                ;; Netscape stuff
+                                ((frameset) *include 4)
+                                )
+                               (body *next))
+                              (nil
+                               nil
+                               (((plaintext) *include *next))
+                               (*retry *next))
+                              (nil
+                               nil
+                               nil
+                               (*include *same "after BODY"))
+                              (nil
+                               nil
+                               nil
+                               (*include *same "after FRAMESET"))
+                              ])
+            (end-tag-omissible . t))
+           ((head)
+            (content-model . [((title isindex %headempty %headmisc
+                                      style %head-deprecated)
+                               nil
+                               nil
+                               ;; *** Should only close if tag can
+                               ;; legitimately follow head.  So many can that
+                               ;; I haven't bothered to enumerate them.
+                               (*close))])
+            (end-tag-omissible . t))
+           ;; SCRIPT - - (#PCDATA)
+           ((script)
+            (content-model . XCDATA     ; not official, but allows
                                         ; comment hiding of script, and also
                                         ; idiots that use '</' in scripts.
-                       ))
-       ;; TITLE - - (#PCDATA)
-       ((title)
-        (content-model . RCDATA         ; not official
-                       ;; [((*data) include-space nil nil)]
-                       ))
-       ;; STYLE - O (#PCDATA)
-       ;; STYLE needs to be #PCDATA to allow omitted end tag.  Bleagh.
-       ((style)
-        (content-model . CDATA)
-        (end-tag-omissible . t))
-       ((body)
-        (content-model . [((banner) nil nil (*retry *next))
-                          ((bodytext) nil nil (bodytext *next))
-                          (nil nil (((plaintext) *close)) nil)])
-        (inclusions . (spot))
-        (end-tag-omissible . t))
-       ;; Do I really want to include BODYTEXT?  It has something to do
-       ;; with mixed content screwing things up, and I don't understand
-       ;; it.  Wait!  It's used by BQ!
-       ((bodytext)
-        (content-model . [((%body.content)
-                           nil
-                           ;; Push <P> before data characters.  Non-SGML.
-                           (((%text) p)
-                            ;; Some stupid sites put meta tags in the
-                            ;; middle of their documents.  Sigh.
-                            ;; Allow it, but bitch and moan.
-                            ((meta) *include *same "not allowed here")
-                            ;; Closing when seeing CREDIT is a stupidity
-                            ;; caused by BQ's sharing of BODYTEXT.  BQ
-                            ;; should have its own BQTEXT.
-                            ((credit plaintext) *close))
-                           nil)
-                          ])
-        (end-tag-omissible . t))
-       ((div banner center multicol)
-        (content-model . [((%body.content)
-                           nil
-                           ;; Push <P> before data characters.  Non-SGML.
-                           (((%text) p))
-                           nil)]))
-       ((address)
-        (content-model . [((p)
-                           nil
-                           ;; Push <P> before data characters.  Non-SGML.
-                           (((%text) p))
-                           nil)]))
-       ((%heading)
-        (content-model . [((%text)
-                           include-space
-                           ((%in-text-ignore))
-                           nil)]))
-       ((span bdo)
-        (content-model . [((%text)
-                           include-space
-                           nil
-                           nil)])
-        )
-       ((p)
-        (content-model . [((%text)
-                           include-space
-                           nil
-                           ;; *** Should only close if tag can
-                           ;; legitimately follow P.  So many can that I
-                           ;; don't bother to enumerate here.
-                           (*close))])
-        (end-tag-omissible . t))
-       ((ul ol)
-        (content-model . [((lh)
-                           nil
-                           (((li) *include *next))
-                           (*retry *next))
-                          ((p)
-                           nil
-                           nil
-                           (*retry *next))
-                          ((li)
-                           nil
-                           ;; Push <LI> before data characters or block
-                           ;; elements.
-                           ;; Non-SGML.
-                           (;; ((p) b *same nil)
-                            ((%text %block) li *same error))
-                           nil)]))
-       ((lh)
-        (content-model . [((%text)
-                           include-space
-                           (((dd dt li) *close)
-                            (%in-text-ignore))
-                           nil)])
-        (end-tag-omissible . t))
-       ((dir menu)
-        (content-model . [((li)
-                           nil
-                           (((%text) li *same error))
-                           nil)])
-        (exclusions . (%block)))
-       ((li)
-        (content-model . [((%block)
-                           nil
-                           (((li) *close)
-                            ;; Push <P> before data characters.  Non-SGML.
-                            ((%text) p))
-                           nil)])
-        (end-tag-omissible . t)
-        ;; Better bad HTML handling.
-        ;; Technically, there are a few valid documents that this will
-        ;; hose, because you can have H1 inside FORM inside LI.  However,
-        ;; I don't think that should be allowed anyway.
-        (exclusions . (*discard "not allowed here" %heading)))
-       ((dl)
-        (content-model . [((lh)
-                           nil
-                           (((dt dd) *include *next))
-                           (*retry *next))
-                          ((dt dd)
-                           nil
-                           ;; Push <DD> before data characters or block
-                           ;; items.
-                           ;; Non-SGML.
-                           (((%text %block) dd *same error))
-                           nil)]))
-       ((dt)
-        (content-model . [((%text)
-                           include-space
-                           (((dd dt) *close)
-                            (%in-text-ignore))
-                           nil)])
-        (end-tag-omissible . t))
-       ;; DD is just like LI, but we treat it separately because it can be
-       ;; followed by a different set of elements.
-       ((dd)
-        (content-model . [((%block)
-                           nil
-                           (((dt dd) *close)
-                            ;; Push <P> before data characters.  Non-SGML.
-                            ((%text) p))
-                           nil)])
-        (end-tag-omissible . t)
-        ;; See comment with LI.
-        (exclusions . (*discard "not allowed here" %heading)))
-       ((pre)
-        (content-model . [((%text hr)
-                           include-space
-                           ((%in-text-ignore))
-                           nil)])
-        (exclusions . (%pre.exclusion)))
-       ;; BLOCKQUOTE deprecated, BQ okay
-       ((bq)
-        (content-model . %bq-content-model))
-       ((blockquote)
-        (content-model . %bq-content-model)
-        ;; BLOCKQUOTE is deprecated in favor of BQ in the HTML 3.0 DTD.
-        ;; However, BQ is not even mentioned in the HTML 2.0 DTD.  So I
-        ;; don't think we can enable this yet:
-        ;;(deprecated . t)
-        )
-       ((fn note)
-        (content-model . [((%body.content)
-                           nil
-                           ;; Push <P> before data characters.  Non-SGML.
-                           (((%text) p))
-                           nil)]))
-       ((fig)
-        (content-model . [((overlay) nil nil (*retry *next))
-                          (nil
-                           nil
-                           (((caption) *include *next))
-                           (*retry *next))
-                          (nil
-                           nil
-                           (((figtext) *include *next)
-                            ((credit) *retry *next))
-                           ;; *** Should only do this for elements that
-                           ;; can be in FIGTEXT.
-                           (figtext *next))
-                          (nil nil (((credit) *include *next)) nil)
-                          (nil nil nil nil)]))
-       ((caption credit)
-        (content-model . [((%text)
-                           nil
-                           ((%in-text-ignore))
-                           nil)]))
-       ((figtext)
-        (content-model . [((%body.content)
-                           nil
-                           ;; Push <P> before data characters.  Very non-SGML.
-                           (((%text) p)
-                            ((credit) *close))
-                           nil)])
-        (end-tag-omissible . t))
-       ((%emacsw3-crud basefont)
-        (content-model . EMPTY))
-       ;; FORM - - %body.content -(FORM) +(INPUT|KEYGEN|SELECT|TEXTAREA)
-       ((form)
-        ;; Same as BODY.  Ugh!
-        (content-model . [((%body.content %text)
-                           nil
-                           ;; Push <P> before data characters.  Non-SGML.
-                           nil
-                           nil)])
-        (exclusions . (form))
-        (inclusions . (input select textarea keygen label)))
-       ;; *** Where is the URL describing this?
-       ((label)
-        (content-model . [((%text)
-                           include-space
-                           nil
-                           nil)])
-        ;; *** These are already included, no need to repeat.
-        ;;(inclusions . (input select textarea))
-        ;; *** Is a LABEL allowed inside a LABEL?  I assume no.
-        (exclusions . (label))
-        ;; The next line just does the default so is unneeded:
-        ;;(end-tag-omissible . nil)
-        )
-       ;; SELECT - - (OPTION+) -(INPUT|KEYGEN|TEXTAREA|SELECT)>
-       ;; *** This should be -(everything).
-       ((select)
-        (content-model . [((option) nil nil nil)])
-        (exclusions . (input label select keygen textarea)))
-       ;; option - O (#PCDATA)
-       ;; needs to be #PCDATA to allow omitted end tag.
-       ((option)
-        ;; I'd like to make this RCDATA to avoid problems with inclusions
-        ;; like SPOT, but that would conflict with the omitted end-tag, I
-        ;; think.
-        (content-model . [((*data)
-                           include-space
-                           (((option) *close))
-                           nil)])
-        (end-tag-omissible . t))
-       ;; TEXTAREA - - (#PCDATA) -(INPUT|TEXTAREA|KEYGEN|SELECT)
-       ((textarea)
-        ;; Same comment as for OPTION about RCDATA.
-        (content-model . XCDATA) ;;;[((*data) include-space nil nil)])
-        (exclusions . (input select label keygen textarea)))
-       ((hr br img isindex input keygen overlay wbr spot tab
-            %headempty %mathdelims)
-        (content-model . EMPTY))
-       ((nextid)
-        (content-model . EMPTY)
-        (deprecated . t))
-       ((a)
-        (content-model . [((%text)
-                           include-space
-                           (((%heading)
-                             *include *same "deprecated inside A")
-                            ;; *** I haven't made up my mind whether this
-                            ;; is a good idea.  It can result in a lot of
-                            ;; bad formatting if the A is *never* closed.
-                            ;;((p) *discard *same error)
-                            )
-                           nil)])
-        (exclusions . (a)))
-       ((b font %font %phrase %misc nobr)
-        (content-model . [((%text)
-                           include-space
-                           ((%in-text-ignore))
-                           nil)]))
-       ((plaintext)
-        (content-model . XXCDATA)
-        (end-tag-omissible . t)
-        (deprecated . obsolete))
-       ((xmp listing)
-        (content-model . XCDATA)
-        (deprecated . obsolete))
-       ;; Latest table spec (as of Nov. 13 1995) is at:
-       ;; <URL:ftp://ds.internic.net/internet-drafts/draft-ietf-html-tables-03.txt>
-       ((table)
-        (content-model . [(nil
-                           nil
-                           (((caption) *include *next)
-                            ((%text) tr *same error)
-                            ((col colgroup thead tfoot tbody tr) *retry *next))
-                           (*retry *next)) ;error handling
-                          ((col colgroup)
-                           nil
-                           (((thead tfoot tbody tr) *retry *next))
-                           (*retry *next)) ;error handling
-                          (nil
-                           nil
-                           (((thead) *include *next)
-                            ((tfoot tbody tr) *retry *next))
-                           (*retry *next)) ;error handling
-                          (nil
-                           nil
-                           (((tfoot) *include *next)
-                            ((tbody tr) *retry *next))
-                           (*retry *next)) ;error handling
-                          ((tbody)
-                           nil
-                           (((tr) tbody *same)
-                            ((td th) tr *same)
-                            ;; error handling
-                            ((%body.content) tbody *same error))
-                           nil)]))
-       ((colgroup)
-        (content-model . [((col)
-                           nil
-                           (((colgroup thead tfoot tbody tr) *close))
-                           nil)])
-        (end-tag-omissible . t))
-       ((col)
-        (content-model . EMPTY))
-       ((thead)
-        (content-model . [((tr)
-                           nil
-                           (((tfoot tbody) *close)
-                            ;; error handling
-                            ((%body.content) tr *same error))
-                           nil)])
-        (end-tag-omissible . t))
-       ((tfoot tbody)
-        (content-model . [((tr)
-                           nil
-                           (((tbody) *close)
-                            ;; error handling
-                            ((td th) tr *same error)
-                            ((%body.content) tr *same error))
-                           nil)])
-        (end-tag-omissible . t))
-       ((tr)
-        (content-model . [((td th)
-                           nil
-                           (((tr tfoot tbody) *close)
-                            ;; error handling
-                            ((%body.content %text) td *same error))
-                           nil)])
-        (end-tag-omissible . t))
-       ((td th)
-        ;; Arrgh!  Another %body.content!!!  Stupid!!!
-        (content-model . [((%body.content)
-                           nil
-                           (((td th tr tfoot tbody) *close)
-                            ;; Push <P> before data characters.  Non-SGML.
-                            ((%text) p))
-                           nil)])
-        (end-tag-omissible . t))
-       ((math)
-        (content-model . [((*data) include-space nil nil)])
-        (overrides .
-                   ((w3-p-d-shortref-chars t . "\{_^")
-                    (w3-p-d-shortrefs t . (("\\^" . "<sup>")
-                                           ("_" . "<sub>")
-                                           ("{" . "<box>")))))
-        (inclusions . (%math))
-        (exclusions . (%notmath)))
-       ((sup)
-        (content-model . [((%text)
-                           include-space
-                           ((%in-text-ignore))
-                           nil)])
-        (overrides .
-                   ((w3-p-d-shortref-chars t . "\{_^")
-                    (w3-p-d-shortrefs t . (("\\^" . "</sup>")
-                                           ("_" . "<sub>")
-                                           ("{" . "<box>"))))))
-       ((sub)
-        (content-model . [((%text)
-                           include-space
-                           ((%in-text-ignore))
-                           nil)])
-        (overrides .
-                   ((w3-p-d-shortref-chars t . "\{_^")
-                    (w3-p-d-shortrefs t . (("\\^" . "<sup>")
-                                           ("_" . "</sub>")
-                                           ("{" . "<box>"))))))
-       ((box)
-        (content-model . [((%formula)
-                           include-space
-                           (((left) *include 1)
-                            ((over atop choose) *include 2)
-                            ((right) *include 3))
-                           nil)
-                          ((%formula)
-                           include-space
-                           (((over atop choose) *include 2)
-                            ((right) *include 3))
-                           nil)
-                          ((%formula)
-                           include-space
-                           (((right) *include 3))
-                           nil)
-                          ((%formula) include-space nil nil)])
-        (overrides .
-                   ((w3-p-d-shortref-chars t . "{}_^")
-                    (w3-p-d-shortrefs t . (("\\^" . "<sup>")
-                                           ("_" . "<sub>")
-                                           ("{" . "<box>")
-                                           ("}" . "</box>"))))))
-       ((above below %mathvec t bt sqrt)
-        (content-model . [((%formula) include-space nil nil)]))
-       ;; ROOT has a badly-specified content-model in HTML 3.0.
-       ((root)
-        (content-model . [((%formula)
-                           include-space
-                           (((of) *include *next))
-                           nil)
-                          ((%formula) include-space nil nil)]))
-       ((of)
-        (content-model . [((%formula) include-space nil nil)])
-        ;; There is no valid way to infer a missing end-tag for OF.  This
-        ;; is bizarre.
-        (end-tag-omissible . t))
-       ((array)
-        (content-model . [((row) nil nil nil)]))
-       ((row)
-        (content-model . [((item) nil (((row) *close)) nil)])
-        (end-tag-omissible . t))
-       ((item)
-        (content-model . [((%formula)
-                           include-space
-                           (((row item) *close))
-                           nil)])
-        (end-tag-omissible . t))
-       ;; The old parser would look for the </EMBED> end-tag and include
-       ;; the contents between <EMBED> and </EMBED> as the DATA attribute
-       ;; of the EMBED start-tag.  However, it did not require the
-       ;; </EMBED> end-tag and did nothing if it was missing.  This is
-       ;; completely impossible to specify in SGML.
-       ;;
-       ;; See
-       ;; <URL:http://www.eit.com/goodies/lists/www.lists/www-html.1995q3/0603.html>  
-       ;;
-       ;; Questions: Does EMBED require the end-tag?  How does NOEMBED fit
-       ;; into this?  Where can EMBED appear?
-       ;;
-       ;; Nov. 25 1995: a new spec for EMBED (also an I-D):
-       ;; <URL:http://www.cs.princeton.edu/~burchard/www/interactive/>
-       ;;
-       ;; Here is my guess how to code EMBED:
-       ((embed)
-        (content-model . [((noembed) nil nil (*close))]))
-       ((noembed)
-        (content-model . [((%body.content) ; hack hack hack
-                           nil
-                           (((%text) p))
-                           nil)]))
-       ;;
-       ;; FRAMESET is a Netscape thing.
-       ;; <URL:http://www.eit.com/goodies/lists/www.lists/www-html.1995q3/0588.html>
-       ((frameset)
-        (content-model . [((noframes frame frameset) nil nil nil)]))
-       ((noframes)
-        (content-model . [((%body.content)
-                           nil
-                           ;; Push <P> before data characters.  Non-SGML.
-                           (((%text) p))
-                           nil)]))
-       ((frame)
-        (content-model . EMPTY))
-       ;;
-       ;; APPLET is a Java thing.
-       ;; OBJECT is a cougar thing
-       ;; <URL:http://java.sun.com/JDK-beta/filesinkit/README>
-       ((applet object)
-        ;; I really don't want to add another ANY content-model.
-        (content-model . XINHERIT)
-        (inclusions . (param)))
-       ((param)
-        (content-model . EMPTY))
-       ;; backward compatibility with old Java.
-       ((app)
-        (content-model . EMPTY))
-       ;; Client-side image maps.
-       ;; <URL:ftp://ds.internic.net/internet-drafts/draft-seidman-clientsideimagemap-01.txt>
-       ;; *** The only problem is that I don't know in what elements MAP
-       ;; can appear, so none of this is reachable yet.
-       ((map)
-        (content-model . [((area) nil nil nil)]))
-       ((area)
-        (content-model . EMPTY))
-       )))))
+                           ))
+           ;; TITLE - - (#PCDATA)
+           ((title)
+            (content-model . RCDATA     ; not official
+                           ;; [((*data) include-space nil nil)]
+                           ))
+           ;; STYLE - O (#PCDATA)
+           ;; STYLE needs to be #PCDATA to allow omitted end tag.  Bleagh.
+           ((style)
+            (content-model . CDATA)
+            (end-tag-omissible . t))
+           ((body)
+            (content-model . [((banner) nil nil (*retry *next))
+                              ((bodytext) nil nil (bodytext *next))
+                              (nil nil (((plaintext) *close)) nil)])
+            (inclusions . (spot))
+            (end-tag-omissible . t))
+           ;; Do I really want to include BODYTEXT?  It has something to do
+           ;; with mixed content screwing things up, and I don't understand
+           ;; it.  Wait!  It's used by BQ!
+           ((bodytext)
+            (content-model . [((%body.content)
+                               nil
+                               ;; Push <P> before data characters.  Non-SGML.
+                               (((%text) p)
+                                ;; Some stupid sites put meta tags in the
+                                ;; middle of their documents.  Sigh.
+                                ;; Allow it, but bitch and moan.
+                                ((meta) *include *same "not allowed here")
+                                ;; Closing when seeing CREDIT is a stupidity
+                                ;; caused by BQ's sharing of BODYTEXT.  BQ
+                                ;; should have its own BQTEXT.
+                                ((credit plaintext) *close))
+                               nil)
+                              ])
+            (end-tag-omissible . t))
+           ((div banner center multicol)
+            (content-model . [((%body.content)
+                               nil
+                               ;; Push <P> before data characters.  Non-SGML.
+                               (((%text) p))
+                               nil)]))
+           ((address)
+            (content-model . [((p)
+                               nil
+                               ;; Push <P> before data characters.  Non-SGML.
+                               (((%text) p))
+                               nil)]))
+           ((%heading)
+            (content-model . [((%text)
+                               include-space
+                               ((%in-text-ignore))
+                               nil)]))
+           ((span bdo)
+            (content-model . [((%text)
+                               include-space
+                               nil
+                               nil)])
+            )
+           ((p)
+            (content-model . [((%text)
+                               include-space
+                               nil
+                               ;; *** Should only close if tag can
+                               ;; legitimately follow P.  So many can that I
+                               ;; don't bother to enumerate here.
+                               (*close))])
+            (end-tag-omissible . t))
+           ((ul ol)
+            (content-model . [((lh)
+                               nil
+                               (((li) *include *next))
+                               (*retry *next))
+                              ((p)
+                               nil
+                               nil
+                               (*retry *next))
+                              ((li)
+                               nil
+                               ;; Push <LI> before data characters or block
+                               ;; elements.
+                               ;; Non-SGML.
+                               ( ;; ((p) b *same nil)
+                                ((%text %block) li *same error))
+                               nil)]))
+           ((lh)
+            (content-model . [((%text)
+                               include-space
+                               (((dd dt li) *close)
+                                (%in-text-ignore))
+                               nil)])
+            (end-tag-omissible . t))
+           ((dir menu)
+            (content-model . [((li)
+                               nil
+                               (((%text) li *same error))
+                               nil)])
+            (exclusions . (%block)))
+           ((li)
+            (content-model . [((%block)
+                               nil
+                               (((li) *close)
+                                ;; Push <P> before data characters.  Non-SGML.
+                                ((%text) p))
+                               nil)])
+            (end-tag-omissible . t)
+            ;; Better bad HTML handling.
+            ;; Technically, there are a few valid documents that this will
+            ;; hose, because you can have H1 inside FORM inside LI.  However,
+            ;; I don't think that should be allowed anyway.
+            (exclusions . (*discard "not allowed here" %heading)))
+           ((dl)
+            (content-model . [((lh)
+                               nil
+                               (((dt dd) *include *next))
+                               (*retry *next))
+                              ((dt dd)
+                               nil
+                               ;; Push <DD> before data characters or block
+                               ;; items.
+                               ;; Non-SGML.
+                               (((%text %block) dd *same error))
+                               nil)]))
+           ((dt)
+            (content-model . [((%text)
+                               include-space
+                               (((dd dt) *close)
+                                (%in-text-ignore))
+                               nil)])
+            (end-tag-omissible . t))
+           ;; DD is just like LI, but we treat it separately because it can be
+           ;; followed by a different set of elements.
+           ((dd)
+            (content-model . [((%block)
+                               nil
+                               (((dt dd) *close)
+                                ;; Push <P> before data characters.  Non-SGML.
+                                ((%text) p))
+                               nil)])
+            (end-tag-omissible . t)
+            ;; See comment with LI.
+            (exclusions . (*discard "not allowed here" %heading)))
+           ((pre)
+            (content-model . [((%text hr)
+                               include-space
+                               ((%in-text-ignore))
+                               nil)])
+            (exclusions . (%pre.exclusion)))
+           ;; BLOCKQUOTE deprecated, BQ okay
+           ((bq)
+            (content-model . %bq-content-model))
+           ((blockquote)
+            (content-model . %bq-content-model)
+            ;; BLOCKQUOTE is deprecated in favor of BQ in the HTML 3.0 DTD.
+            ;; However, BQ is not even mentioned in the HTML 2.0 DTD.  So I
+            ;; don't think we can enable this yet:
+            ;;(deprecated . t)
+            )
+           ((fn note)
+            (content-model . [((%body.content)
+                               nil
+                               ;; Push <P> before data characters.  Non-SGML.
+                               (((%text) p))
+                               nil)]))
+           ((fig)
+            (content-model . [((overlay) nil nil (*retry *next))
+                              (nil
+                               nil
+                               (((caption) *include *next))
+                               (*retry *next))
+                              (nil
+                               nil
+                               (((figtext) *include *next)
+                                ((credit) *retry *next))
+                               ;; *** Should only do this for elements that
+                               ;; can be in FIGTEXT.
+                               (figtext *next))
+                              (nil nil (((credit) *include *next)) nil)
+                              (nil nil nil nil)]))
+           ((caption credit)
+            (content-model . [((%text)
+                               nil
+                               ((%in-text-ignore))
+                               nil)]))
+           ((figtext)
+            (content-model . [((%body.content)
+                               nil
+                               ;; Push <P> before data characters.  Very non-SGML.
+                               (((%text) p)
+                                ((credit) *close))
+                               nil)])
+            (end-tag-omissible . t))
+           ((%emacsw3-crud basefont)
+            (content-model . EMPTY))
+           ;; FORM - - %body.content -(FORM) +(INPUT|KEYGEN|SELECT|TEXTAREA)
+           ((form)
+            ;; Same as BODY.  Ugh!
+            (content-model . [((%body.content %text)
+                               nil
+                               ;; Push <P> before data characters.  Non-SGML.
+                               nil
+                               nil)])
+            (exclusions . (form))
+            (inclusions . (input select textarea keygen label)))
+           ;; *** Where is the URL describing this?
+           ((label)
+            (content-model . [((%text)
+                               include-space
+                               nil
+                               nil)])
+            ;; *** These are already included, no need to repeat.
+            ;;(inclusions . (input select textarea))
+            ;; *** Is a LABEL allowed inside a LABEL?  I assume no.
+            (exclusions . (label))
+            ;; The next line just does the default so is unneeded:
+            ;;(end-tag-omissible . nil)
+            )
+           ;; SELECT - - (OPTION+) -(INPUT|KEYGEN|TEXTAREA|SELECT)>
+           ;; *** This should be -(everything).
+           ((select)
+            (content-model . [((option) nil nil nil)])
+            (exclusions . (input label select keygen textarea)))
+           ;; option - O (#PCDATA)
+           ;; needs to be #PCDATA to allow omitted end tag.
+           ((option)
+            ;; I'd like to make this RCDATA to avoid problems with inclusions
+            ;; like SPOT, but that would conflict with the omitted end-tag, I
+            ;; think.
+            (content-model . [((*data)
+                               include-space
+                               (((option) *close))
+                               nil)])
+            (end-tag-omissible . t))
+           ;; TEXTAREA - - (#PCDATA) -(INPUT|TEXTAREA|KEYGEN|SELECT)
+           ((textarea)
+            ;; Same comment as for OPTION about RCDATA.
+            (content-model . XCDATA) ;;;[((*data) include-space nil nil)])
+            (exclusions . (input select label keygen textarea)))
+           ((hr br img isindex input keygen overlay wbr spot tab
+                %headempty %mathdelims)
+            (content-model . EMPTY))
+           ((nextid)
+            (content-model . EMPTY)
+            (deprecated . t))
+           ((a)
+            (content-model . [((%text)
+                               include-space
+                               (((%heading)
+                                 *include *same "deprecated inside A")
+                                ;; *** I haven't made up my mind whether this
+                                ;; is a good idea.  It can result in a lot of
+                                ;; bad formatting if the A is *never* closed.
+                                ;;((p) *discard *same error)
+                                )
+                               nil)])
+            (exclusions . (a)))
+           ((b font %font %phrase %misc nobr)
+            (content-model . [((%text)
+                               include-space
+                               ((%in-text-ignore))
+                               nil)]))
+           ((plaintext)
+            (content-model . XXCDATA)
+            (end-tag-omissible . t)
+            (deprecated . obsolete))
+           ((xmp listing)
+            (content-model . XCDATA)
+            (deprecated . obsolete))
+           ;; Latest table spec (as of Nov. 13 1995) is at:
+           ;; <URL:ftp://ds.internic.net/internet-drafts/draft-ietf-html-tables-03.txt>
+           ((table)
+            (content-model . [(nil
+                               nil
+                               (((caption) *include *next)
+                                ((%text) tr *same error)
+                                ((col colgroup thead tfoot tbody tr) *retry *next))
+                               (*retry *next)) ;error handling
+                              ((col colgroup)
+                               nil
+                               (((thead tfoot tbody tr) *retry *next))
+                               (*retry *next)) ;error handling
+                              (nil
+                               nil
+                               (((thead) *include *next)
+                                ((tfoot tbody tr) *retry *next))
+                               (*retry *next)) ;error handling
+                              (nil
+                               nil
+                               (((tfoot) *include *next)
+                                ((tbody tr) *retry *next))
+                               (*retry *next)) ;error handling
+                              ((tbody)
+                               nil
+                               (((tr) tbody *same)
+                                ((td th) tr *same)
+                                ;; error handling
+                                ((%body.content) tbody *same error))
+                               nil)]))
+           ((colgroup)
+            (content-model . [((col)
+                               nil
+                               (((colgroup thead tfoot tbody tr) *close))
+                               nil)])
+            (end-tag-omissible . t))
+           ((col)
+            (content-model . EMPTY))
+           ((thead)
+            (content-model . [((tr)
+                               nil
+                               (((tfoot tbody) *close)
+                                ;; error handling
+                                ((%body.content) tr *same error))
+                               nil)])
+            (end-tag-omissible . t))
+           ((tfoot tbody)
+            (content-model . [((tr)
+                               nil
+                               (((tbody) *close)
+                                ;; error handling
+                                ((td th) tr *same error)
+                                ((%body.content) tr *same error))
+                               nil)])
+            (end-tag-omissible . t))
+           ((tr)
+            (content-model . [((td th)
+                               nil
+                               (((tr tfoot tbody) *close)
+                                ;; error handling
+                                ((%body.content %text) td *same error))
+                               nil)])
+            (end-tag-omissible . t))
+           ((td th)
+            ;; Arrgh!  Another %body.content!!!  Stupid!!!
+            (content-model . [((%body.content)
+                               nil
+                               (((td th tr tfoot tbody) *close)
+                                ;; Push <P> before data characters.  Non-SGML.
+                                ((%text) p))
+                               nil)])
+            (end-tag-omissible . t))
+           ((math)
+            (content-model . [((*data) include-space nil nil)])
+            (overrides .
+                       ((w3-p-d-shortref-chars t . "\{_^")
+                        (w3-p-d-shortrefs t . (("\\^" . "<sup>")
+                                               ("_" . "<sub>")
+                                               ("{" . "<box>")))))
+            (inclusions . (%math))
+            (exclusions . (%notmath)))
+           ((sup)
+            (content-model . [((%text)
+                               include-space
+                               ((%in-text-ignore))
+                               nil)])
+            (overrides .
+                       ((w3-p-d-shortref-chars t . "\{_^")
+                        (w3-p-d-shortrefs t . (("\\^" . "</sup>")
+                                               ("_" . "<sub>")
+                                               ("{" . "<box>"))))))
+           ((sub)
+            (content-model . [((%text)
+                               include-space
+                               ((%in-text-ignore))
+                               nil)])
+            (overrides .
+                       ((w3-p-d-shortref-chars t . "\{_^")
+                        (w3-p-d-shortrefs t . (("\\^" . "<sup>")
+                                               ("_" . "</sub>")
+                                               ("{" . "<box>"))))))
+           ((box)
+            (content-model . [((%formula)
+                               include-space
+                               (((left) *include 1)
+                                ((over atop choose) *include 2)
+                                ((right) *include 3))
+                               nil)
+                              ((%formula)
+                               include-space
+                               (((over atop choose) *include 2)
+                                ((right) *include 3))
+                               nil)
+                              ((%formula)
+                               include-space
+                               (((right) *include 3))
+                               nil)
+                              ((%formula) include-space nil nil)])
+            (overrides .
+                       ((w3-p-d-shortref-chars t . "{}_^")
+                        (w3-p-d-shortrefs t . (("\\^" . "<sup>")
+                                               ("_" . "<sub>")
+                                               ("{" . "<box>")
+                                               ("}" . "</box>"))))))
+           ((above below %mathvec t bt sqrt)
+            (content-model . [((%formula) include-space nil nil)]))
+           ;; ROOT has a badly-specified content-model in HTML 3.0.
+           ((root)
+            (content-model . [((%formula)
+                               include-space
+                               (((of) *include *next))
+                               nil)
+                              ((%formula) include-space nil nil)]))
+           ((of)
+            (content-model . [((%formula) include-space nil nil)])
+            ;; There is no valid way to infer a missing end-tag for OF.  This
+            ;; is bizarre.
+            (end-tag-omissible . t))
+           ((array)
+            (content-model . [((row) nil nil nil)]))
+           ((row)
+            (content-model . [((item) nil (((row) *close)) nil)])
+            (end-tag-omissible . t))
+           ((item)
+            (content-model . [((%formula)
+                               include-space
+                               (((row item) *close))
+                               nil)])
+            (end-tag-omissible . t))
+           ;; The old parser would look for the </EMBED> end-tag and include
+           ;; the contents between <EMBED> and </EMBED> as the DATA attribute
+           ;; of the EMBED start-tag.  However, it did not require the
+           ;; </EMBED> end-tag and did nothing if it was missing.  This is
+           ;; completely impossible to specify in SGML.
+           ;;
+           ;; See
+           ;; <URL:http://www.eit.com/goodies/lists/www.lists/www-html.1995q3/0603.html>  
+           ;;
+           ;; Questions: Does EMBED require the end-tag?  How does NOEMBED fit
+           ;; into this?  Where can EMBED appear?
+           ;;
+           ;; Nov. 25 1995: a new spec for EMBED (also an I-D):
+           ;; <URL:http://www.cs.princeton.edu/~burchard/www/interactive/>
+           ;;
+           ;; Here is my guess how to code EMBED:
+           ((embed)
+            (content-model . [((noembed) nil nil (*close))]))
+           ((noembed)
+            (content-model . [((%body.content) ; hack hack hack
+                               nil
+                               (((%text) p))
+                               nil)]))
+           ;;
+           ;; FRAMESET is a Netscape thing.
+           ;; <URL:http://www.eit.com/goodies/lists/www.lists/www-html.1995q3/0588.html>
+           ((frameset)
+            (content-model . [((noframes frame frameset) nil nil nil)]))
+           ((noframes)
+            (content-model . [((%body.content)
+                               nil
+                               ;; Push <P> before data characters.  Non-SGML.
+                               (((%text) p))
+                               nil)]))
+           ((frame)
+            (content-model . EMPTY))
+           ;;
+           ;; APPLET is a Java thing.
+           ;; OBJECT is a cougar thing
+           ;; <URL:http://java.sun.com/JDK-beta/filesinkit/README>
+           ((applet object)
+            ;; I really don't want to add another ANY content-model.
+            (content-model . XINHERIT)
+            (inclusions . (param)))
+           ((param)
+            (content-model . EMPTY))
+           ;; backward compatibility with old Java.
+           ((app)
+            (content-model . EMPTY))
+           ;; Client-side image maps.
+           ;; <URL:ftp://ds.internic.net/internet-drafts/draft-seidman-clientsideimagemap-01.txt>
+           ;; *** The only problem is that I don't know in what elements MAP
+           ;; can appear, so none of this is reachable yet.
+           ((map)
+            (content-model . [((area) nil nil nil)]))
+           ((area)
+            (content-model . EMPTY))
+           )))))
+  (put (car pair) 'html-element-info (cdr pair)))
 
 
 ;;;
@@ -2015,9 +2008,8 @@ Do nothing in non-Mule or unibyte session."
              default-enable-multibyte-characters)
     (ethio-sera-to-fidel-marker)))
 
-(if (fboundp 'char-int)
-    (defalias 'w3-char-int 'char-int)
-  (defalias 'w3-char-int 'identity))
+(defalias 'w3-char-int
+  (if (fboundp 'char-int) #'char-int #'identity))
 
 ;; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ;; %                                                    %
@@ -2031,10 +2023,7 @@ BUFF defaults to the current buffer.
 Destructively alters contents of BUFF.
 Returns a data structure containing the parsed information."
   (if (not w3-setup-done) (w3-do-setup))
-  (save-excursion
-    (if buff
-        (set-buffer buff)
-      (setq buff (current-buffer)))
+  (with-current-buffer (or buff (setq buff (current-buffer)))
     (let ((old-syntax-table (syntax-table)))
       (set-syntax-table w3-sgml-md-syntax-table)
       (buffer-disable-undo (current-buffer))
@@ -2078,7 +2067,7 @@ Returns a data structure containing the parsed information."
              ;; The buffer which contains the HTML we are parsing.  This
              ;; variable is used to avoid using the more expensive
              ;; save-excursion.
-             (parse-buffer (current-buffer))
+             ;; (parse-buffer (current-buffer))
          
              ;; Points to start of region of text since the previous tag.
              (between-tags-start (point-min))
@@ -2927,9 +2916,9 @@ Returns a data structure containing the parsed information."
 BUFF defaults to the current buffer.
 Destructively alters contents of BUFF.
 Returns a data structure containing the parsed information."
-  (if nil ;; (w3-fast-parse-find-tidy-program)
-      (fset 'w3-parse-buffer 'w3-fast-parse-buffer)
-    (fset 'w3-parse-buffer 'w3-slow-parse-buffer))
+  (fset 'w3-parse-buffer (if nil ;; (w3-fast-parse-find-tidy-program)
+                             #'w3-fast-parse-buffer
+                           #'w3-slow-parse-buffer))
   (w3-parse-buffer buff))
 
 

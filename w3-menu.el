@@ -1,35 +1,34 @@
 ;;; w3-menu.el --- Menu functions for emacs-w3
+
+;; Copyright (c) 1996-2001, 2007, 2013 Free Software Foundation, Inc.
+
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.15 $
 ;; Keywords: menu, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001, 2007 Free Software Foundation, Inc.
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
 
 (require 'w3-vars)
 (require 'w3-mouse)
 (eval-when-compile
-  (require 'cl)
-  (defvar w3-html-bookmarks))
+  (require 'cl))
+(defvar w3-html-bookmarks)
 (autoload 'url-truncate-url-for-viewing "url-util")
 (autoload 'w3-first-n-items "w3")
 (autoload 'w3-only-links "w3")
@@ -44,11 +43,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Spiffy new menus (for both Emacs and XEmacs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar w3-menu-filters-supported-p
-  (or (featurep 'xemacs)
-      (and (= emacs-major-version 20)
-			      (>= emacs-minor-version 3))
-      (>= emacs-major-version 21)))
 
 (defvar w3-menu-fsfemacs-bookmark-menu nil)
 (defvar w3-menu-fsfemacs-debug-menu nil)
@@ -131,7 +125,7 @@ on that platform."
       (list (vector item nil nil))
     (list "Ignored" (vector item nil nil))))
       
-(defun w3-menu-hotlist-constructor (menu-items)
+(defun w3-menu-hotlist-constructor (_menu-items)
   (require 'w3-hot)
   (easy-menu-define
    w3-menu-hotlist-menu nil "Emacs/W3 Dynamic menu"
@@ -147,7 +141,7 @@ on that platform."
 	 (or hot-menu (w3-menu-dummy-menu "No Hotlist")))))
   w3-menu-hotlist-menu)
 
-(defun w3-menu-html-links-constructor (menu-items)
+(defun w3-menu-html-links-constructor (_menu-items)
   (let ((links (mapcar 'cdr w3-current-links))
 	(menu nil))
     (if links
@@ -184,7 +178,7 @@ on that platform."
 			  (w3-menu-dummy-menu "None")))
     w3-menu-html-links-menu))
 
-(defun w3-menu-links-constructor (menu-items)
+(defun w3-menu-links-constructor (_menu-items)
   (let ((widgets (w3-only-links))
 	widget href menu)
     (while widgets
@@ -291,7 +285,10 @@ on that platform."
     ["Formatted Text" (w3-mail-current-document nil "Formatted Text") t]
     ["PostScript" (w3-mail-current-document nil "PostScript") t]
     )
-   (if (or (featurep 'xemacs) (>= emacs-major-version 21))
+   (if (featurep 'xemacs)
+       ;; FIXME: These fancier separators were added to Emacs-21, but only
+       ;; supported in the Lucid toolkit, whereas in most other toolkits they
+       ;; are not even recognized as separators :-(
        "--:shadowDoubleEtchedIn"
      "---")
    ["Close" delete-frame (not (eq (next-frame) (selected-frame)))]
@@ -358,12 +355,8 @@ on that platform."
    ["Home" w3 w3-default-homepage]
    ["View History..." w3-show-history-list url-history-track]
    "----"
-   (if w3-menu-filters-supported-p
-       '("Links" :filter w3-menu-links-constructor)
-     ["Links..." w3-menu-e19-show-links-menu t])
-   (if w3-menu-filters-supported-p
-       '("Navigate" :filter w3-menu-html-links-constructor)
-     ["Navigate..." w3-menu-e19-show-navigate-menu t])
+   '("Links" :filter w3-menu-links-constructor)
+   '("Navigate" :filter w3-menu-html-links-constructor)
    )
   "W3 menu go list.")
 
@@ -380,9 +373,7 @@ on that platform."
    ["Remove Keyword" w3-hotindex-rm-key t]
    ["Query Keyword" w3-hotindex-query t]
    "----"
-   (if w3-menu-filters-supported-p
-       '("Bookmarks" :filter w3-menu-hotlist-constructor)
-     ["Bookmarks" w3-menu-e19-show-hotlist-menu t])
+   '("Bookmarks" :filter w3-menu-hotlist-constructor)
    )
   "W3 menu bookmark list.")
 
@@ -569,7 +560,7 @@ on that platform."
 		       'go 'view 'edit 'file))))
 	  (while menu-list
 	    (if (null (car menu-list))
-		nil;; no flushright support in FSF Emacs
+		nil;; no flushright support in Emacs
 	      (aset vec 2 (intern (concat "w3-menu-fsfemacs-"
 					  (symbol-name
 					   (car menu-list)) "-menu")))
@@ -638,10 +629,7 @@ on that platform."
       (lookup-key w3-mode-menu-map [rootmenu])))))
 
 (defun w3-menu-install-menus ()
-  (cond ((and (= emacs-major-version 19)
-	      (= emacs-minor-version 28)) ; Hey, get with the times people!!
-	 nil)
-	((consp w3-use-menus)
+  (cond ((consp w3-use-menus)
 	 (w3-menu-install-menubar))
 	((eq w3-use-menus 1)
 	 (w3-menu-install-menubar-item))
@@ -678,12 +666,13 @@ on that platform."
 	(cons "[W3]" 'w3-menu-toggle-menubar)))
     (w3-menu-set-menubar-dirty-flag))))
 
+(defvar print-readably)
+
 (defun w3-menu-save-options ()
   (interactive)
   (let ((output-buffer (find-file-noselect w3-default-configuration-file))
 	output-marker)
-    (save-excursion
-      (set-buffer output-buffer)
+    (with-current-buffer output-buffer
       ;;
       ;; Find and delete the previously saved data, and position to write.
       ;;
@@ -704,53 +693,50 @@ on that platform."
 	    (standard-output output-marker))
 	(princ ";; W3 Options Settings\n")
 	(princ ";; ===================\n")
-	(mapcar (function
-		 (lambda (var)
-		   (princ "  ")
-		   (if (and (symbolp var) (boundp var))
-		       (prin1 (list 'setq-default var
-				    (let ((val (symbol-value var)))
-				      (if (or (memq val '(t nil))
-					      (and (not (symbolp val))
-						   (not (listp val))))
-					  val
-					(list 'quote val))))))
-		   (if var (princ "\n"))))
-		'(
-		  ps-print-color-p
-		  url-automatic-caching
-		  url-honor-refresh-requests
-		  url-privacy-level
-		  url-cookie-confirmation
-		  url-proxy-services
-		  url-standalone-mode
-		  url-use-hypertext-gopher
-		  w3-default-homepage
-		  w3-default-stylesheet
-		  w3-delay-image-loads
-		  w3-do-incremental-display
-		  w3-dump-to-disk
-		  w3-honor-stylesheets
-		  w3-image-mappings
-		  w3-load-hook
-		  w3-mode-hook
-		  w3-netscape-compatible-comments
-		  w3-preferences-cancel-hook
-		  w3-preferences-default-hook
-		  w3-preferences-ok-hook
-		  w3-preferences-setup-hook
-		  w3-source-file-hook
-		  w3-toolbar-orientation
-		  w3-toolbar-type
-		  w3-use-menus
-		  w3-user-colors-take-precedence
-		  )
-		)
+	(dolist (var 
+                 '(
+                   ps-print-color-p
+                   url-automatic-caching
+                   url-honor-refresh-requests
+                   url-privacy-level
+                   url-cookie-confirmation
+                   url-proxy-services
+                   url-standalone-mode
+                   url-use-hypertext-gopher
+                   w3-default-homepage
+                   w3-default-stylesheet
+                   w3-delay-image-loads
+                   w3-do-incremental-display
+                   w3-dump-to-disk
+                   w3-honor-stylesheets
+                   w3-image-mappings
+                   w3-load-hook
+                   w3-mode-hook
+                   w3-netscape-compatible-comments
+                   w3-preferences-cancel-hook
+                   w3-preferences-default-hook
+                   w3-preferences-ok-hook
+                   w3-preferences-setup-hook
+                   w3-source-file-hook
+                   w3-toolbar-orientation
+                   w3-toolbar-type
+                   w3-use-menus
+                   w3-user-colors-take-precedence
+                   ))
+          (princ "  ")
+          (if (and (symbolp var) (boundp var))
+              (prin1 (list 'setq-default var
+                           (let ((val (symbol-value var)))
+                             (if (or (memq val '(t nil))
+                                     (and (not (symbolp val))
+                                          (not (listp val))))
+                                 val
+                               (list 'quote val))))))
+          (if var (princ "\n")))
 	(princ ";; ==========================\n")
 	(princ ";; End of W3 Options Settings\n")))
     (set-marker output-marker nil)
-    (save-excursion
-      (set-buffer output-buffer)
+    (with-current-buffer output-buffer
       (save-buffer))
     ))
 
@@ -758,9 +744,9 @@ on that platform."
 ;;; Functions for emacs variations that do not support the :filter
 ;;; keyword in menu items.  All versions of XEmacs that Emacs/W3 can
 ;;; run on support this, but only really recent (20.3 or later)
-;;; versions of FSF Emacs support this.
+;;; versions of Emacs support this.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun w3-menu-e19-bogus-filter-constructor (name menu)
+(defun w3-menu-e19-bogus-filter-constructor (_name menu)
   (let ((x nil)
 	(y nil))
     (setq x (x-popup-menu t menu)
@@ -768,29 +754,19 @@ on that platform."
     (if (and x y)
 	(funcall y))))
   
-(defun w3-menu-e19-show-hotlist-menu ()
-  (interactive)
-  (w3-menu-e19-bogus-filter-constructor "Hotlist"
-					(w3-menu-hotlist-constructor nil)))
 
-(defun w3-menu-e19-show-links-menu ()
-  (interactive)
-  (w3-menu-e19-bogus-filter-constructor "Links"
-					(w3-menu-links-constructor nil)))
 
-(defun w3-menu-e19-show-navigate-menu ()
-  (interactive)
-  (w3-menu-e19-bogus-filter-constructor "Navigate"
-					(w3-menu-html-links-constructor nil)))
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Context-sensitive popup menu
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(if (fboundp 'event-glyph)
-    (defalias 'w3-event-glyph 'event-glyph)
-  (defalias 'w3-event-glyph 'ignore))
+(defalias 'w3-event-glyph
+  (if (fboundp 'event-glyph) #'event-glyph #'ignore))
 
-(defun w3-menu-popup-menu (e menu)
+(defun w3-menu-popup-menu (menu)
   (if (fboundp 'popup-menu)
       (popup-menu menu)
     (let ((bogus-menu nil))
@@ -812,7 +788,7 @@ on that platform."
 	   (imag (or (and widget (widget-get widget :src))
 		     (and parent (widget-get parent :src))))
 	   (menu (copy-tree w3-popup-menu))
-	   url val trunc-url)
+	   url trunc-url)
       (if href
 	  (progn
 	    (setq url href)
@@ -843,6 +819,6 @@ on that platform."
       (if (not (w3-menubar-active))
 	  (setcdr menu (append (cdr menu)
 			       '("---" ["Show Menubar" w3-toggle-menubar t]))))
-      (w3-menu-popup-menu e menu))))
+      (w3-menu-popup-menu menu))))
 
 (provide 'w3-menu)

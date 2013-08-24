@@ -1,34 +1,33 @@
 ;;; w3-display.el --- W3 display engine
+
+;; Copyright (c) 1996, 97, 98, 99, 2000, 2001, 2007, 2008, 2013 Free Software Foundation, Inc.
+
 ;; Author: William M. Perry <wmperry@cs.indiana.edu>
-;; Version: $Revision: 1.51 $
 ;; Keywords: faces, help, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 97, 98, 99, 2000, 2001, 2007, 2008 Free Software Foundation, Inc.
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;; Code:
+
 (eval-when-compile
   (require 'cl)
-  (require 'w3-props)
-  (defvar w3-last-parse-tree))
+  (require 'w3-props))
+(defvar w3-last-parse-tree)
 (require 'css)
 (require 'font)
 (require 'url-parse)
@@ -95,60 +94,58 @@
 (w3-d-s-var-def w3-display-css-properties)
 (w3-d-s-var-def w3-display-background-properties)
 
-(eval-when-compile
-  (defmacro w3-get-attribute (attr)
-    `(cdr-safe (assq ,attr args)))
+
+(defmacro w3-get-attribute (attr args)
+  `(cdr-safe (assq ,attr ,args)))
   
-  (defmacro w3-get-face-info (info &optional other)
-    (let ((var (intern (format "w3-face-%s" info))))
-      `(push (w3-get-style-info (quote ,info) node
-				(or (and (not w3-user-colors-take-precedence)
-					 (cdr-safe (assq (quote ,other)
-							 (nth 1 node))))
-				    (car ,var)))
-	     ,var)))
+(defmacro w3-get-face-info (info &optional other)
+  (let ((var (intern (format "w3-face-%s" info))))
+    `(push (w3-get-style-info (quote ,info)
+                              (or (and (not w3-user-colors-take-precedence)
+                                       (cdr-safe (assq (quote ,other)
+                                                       (nth 1 node))))
+                                  (car ,var)))
+           ,var)))
 
-  (defmacro w3-pop-face-info (info)
-    (let ((var (intern (format "w3-face-%s" info))))
-      `(pop ,var)))
+(defmacro w3-pop-face-info (info)
+  (let ((var (intern (format "w3-face-%s" info))))
+    `(pop ,var)))
 
-  (defmacro w3-get-all-face-info ()
-    `(progn
-       (w3-get-face-info font-family)
-       ;; This is to handle the 'face' attribute on arbitrary elements
-       (if (cdr-safe (assq 'face (nth 1 node)))
-	   (setf (car w3-face-font-family)
-		 (append (car w3-face-font-family)
-			 (split-string (cdr-safe
-					(assq 'face (nth 1 node)))
-				       " *, *"))))
-       (w3-get-face-info font-style)
-       (w3-get-face-info font-weight)
-       (w3-get-face-info font-variant)
-       (w3-get-face-info font-size)
-       (w3-get-face-info text-decoration)
-       (w3-get-face-info background-image)
-       (w3-get-face-info color color)
-       (w3-get-face-info background-color bgcolor)
-       (setq w3-face-font-spec (make-font
-				:weight (car w3-face-font-weight)
-				:family  (if (not w3-user-fonts-take-precedence)
-					     (car w3-face-font-family))
-				:size (car w3-face-font-size)))))
+(defmacro w3-get-all-face-info ()
+  `(progn
+     (w3-get-face-info font-family)
+     ;; This is to handle the 'face' attribute on arbitrary elements
+     (if (cdr-safe (assq 'face (nth 1 node)))
+         (setf (car w3-face-font-family)
+               (append (car w3-face-font-family)
+                       (split-string (cdr-safe
+                                      (assq 'face (nth 1 node)))
+                                     " *, *"))))
+     (w3-get-face-info font-style)
+     (w3-get-face-info font-weight)
+     (w3-get-face-info font-variant)
+     (w3-get-face-info font-size)
+     (w3-get-face-info text-decoration)
+     (w3-get-face-info background-image)
+     (w3-get-face-info color color)
+     (w3-get-face-info background-color bgcolor)
+     (setq w3-face-font-spec (make-font
+                              :weight (car w3-face-font-weight)
+                              :family  (if (not w3-user-fonts-take-precedence)
+                                           (car w3-face-font-family))
+                              :size (car w3-face-font-size)))))
 
-  (defmacro w3-pop-all-face-info ()
-    `(progn
-       (w3-pop-face-info font-family)
-       (w3-pop-face-info font-weight)
-       (w3-pop-face-info font-variant)
-       (w3-pop-face-info font-size)
-       (w3-pop-face-info font-style)
-       (w3-pop-face-info text-decoration)
-       (w3-pop-face-info background-image)
-       (w3-pop-face-info color)
-       (w3-pop-face-info background-color)))
-
-  )
+(defmacro w3-pop-all-face-info ()
+  `(progn
+     (w3-pop-face-info font-family)
+     (w3-pop-face-info font-weight)
+     (w3-pop-face-info font-variant)
+     (w3-pop-face-info font-size)
+     (w3-pop-face-info font-style)
+     (w3-pop-face-info text-decoration)
+     (w3-pop-face-info background-image)
+     (w3-pop-face-info color)
+     (w3-pop-face-info background-color)))
 
 (defvar w3-display-same-buffer nil)
 (defvar w3-face-cache nil  "Cache for `w3-face-for-element'.")
@@ -179,10 +176,11 @@
 
 (defvar w3-pause-keystroke nil)
 
+(defvar w3--cur-viewing-pos)
+
 (defsubst w3-pause ()
-  (declare (special cur-viewing-pos))
   (save-excursion
-    (goto-char (or cur-viewing-pos (point-min)))
+    (goto-char (or w3--cur-viewing-pos (point-min)))
     (cond
      ((featurep 'xemacs)
       (if (and (not (sit-for 0)) (input-pending-p))
@@ -201,7 +199,7 @@
 		  (otherwise
 		   (call-interactively w3-pause-keystroke))))
 	    (error nil)))))
-    (setq cur-viewing-pos (point))))
+    (setq w3--cur-viewing-pos (point))))
 
 (defmacro w3-get-pad-string (len)
   `(cond
@@ -256,18 +254,18 @@
    (t (concat (w3-decimal-to-alpha (/ n 26))
 	      (w3-decimal-to-alpha (% n 26))))))
 
-(defsubst w3-get-style-info (info node &optional default)
+(defsubst w3-get-style-info (info &optional default)
   (or (cdr-safe (assq info w3-display-css-properties)) default))
 
 (defun w3-decode-area-coords (str)
   (let (retval)
     (while (string-match "\\([ \t0-9]+\\),\\([ \t0-9]+\\)" str)
-      (setq retval (cons (vector (string-to-int (match-string 1 str))
-				 (string-to-int (match-string 2 str))) retval)
+      (setq retval (cons (vector (string-to-number (match-string 1 str))
+				 (string-to-number (match-string 2 str))) retval)
 	    str (substring str (match-end 0) nil)))
     (if (string-match "\\([0-9]+\\)" str)
 	(setq retval (cons (vector (+ (aref (car retval) 0)
-				      (string-to-int (match-string 1 str)))
+				      (string-to-number (match-string 1 str)))
 				   (aref (car retval) 1)) retval)))
     (nreverse retval)))
 
@@ -287,17 +285,17 @@
     (w3-warn 'html (format "Bad color specification: %s" color))
     nil)))
 
-(defsubst w3-voice-for-element (node)
+(defsubst w3-voice-for-element ()
   (if (featurep 'emacspeak)
       (let (family gain left right pitch pitch-range stress richness voice)
-	(setq family (w3-get-style-info 'voice-family node)
-	      gain (w3-get-style-info 'gain node)
-	      left (w3-get-style-info 'left-volume node)
-	      right (w3-get-style-info 'right-volume node)
-	      pitch (w3-get-style-info 'pitch node)
-	      pitch-range (w3-get-style-info 'pitch-range node)
-	      stress (w3-get-style-info 'stress node)
-	      richness (w3-get-style-info 'richness node))
+	(setq family (w3-get-style-info 'voice-family)
+	      gain (w3-get-style-info 'gain)
+	      left (w3-get-style-info 'left-volume)
+	      right (w3-get-style-info 'right-volume)
+	      pitch (w3-get-style-info 'pitch)
+	      pitch-range (w3-get-style-info 'pitch-range)
+	      stress (w3-get-style-info 'stress)
+	      richness (w3-get-style-info 'richness))
 	(if (or family gain left right pitch pitch-range stress richness)
 	    (setq voice (dtk-personality-from-speech-style
 			 (make-dtk-speech-style :family (or family 'paul)
@@ -372,18 +370,15 @@
 	"white"
       "black")))
 
-(defun w3-make-face-emacs19 (name &optional doc-string temporary)
-  "Defines and returns a new FACE described by DOC-STRING.
+(defalias 'w3-make-face
+  (cond
+   ((not (fboundp 'make-face)) #'ignore)
+   ((featurep 'xemacs) #'make-face)
+   (t
+    (lambda (name &optional _doc-string _temporary)
+      "Define and return a new FACE described by DOC-STRING.
 If the face already exists, it is unmodified."
-  (make-face name))
-
-(cond
- ((not (fboundp 'make-face))
-  (defalias 'w3-make-face 'ignore))
- ((featurep 'xemacs)
-  (defalias 'w3-make-face 'make-face))
- (t
-  (defalias 'w3-make-face 'w3-make-face-emacs19)))
+      (make-face name)))))
 
 (defsubst w3-face-for-element (node)
   (w3-get-all-face-info)
@@ -453,8 +448,7 @@ If the face already exists, it is unmodified."
        (> w3-last-fill-pos (point-max)))
       (if (not (eq (char-before (point)) ?\n))
  	  (setq n (1+ n))) ; at least put one line in
-    (let ((fill-column (max (1+ (length fill-prefix)) fill-column))
-	  width)
+    (let ((fill-column (max (1+ (length fill-prefix)) fill-column)))
       (case (car w3-display-alignment-stack)
 	(center
 	 (fill-region-as-paragraph w3-last-fill-pos (point) 'center))
@@ -512,41 +506,40 @@ If the face already exists, it is unmodified."
 (defun w3-display-get-cookie (args)
   (if (not (fboundp 'cookie))
       "Sorry, no cookies today."
-    (let* ((href (or (w3-get-attribute 'href) (w3-get-attribute 'src)))
-	   (fname (or (cdr-safe (assoc href w3-cookie-cache))
-		      (url-generate-unique-filename "%s.cki")))
-	   (st (or (cdr-safe (assq 'start args)) "Loading cookies..."))
-	   (nd (or (cdr-safe (assq 'end args)) "Loading cookies... done.")))
-      (if (not (file-exists-p fname))
-	  (save-excursion
-	    (set-buffer (generate-new-buffer " *cookie*"))
-	    (mm-disable-multibyte)
-	    (url-insert-file-contents href)
- 	    (setq buffer-file-name nil)
- 	    (set-buffer-modified-p nil)    
-	    (let ((coding-system-for-write 'binary))
-	      (write-region (point-min) (point-max) fname 5))
-	    (setq w3-cookie-cache (cons (cons href fname) w3-cookie-cache))))
-      (cookie fname st nd))))
+    (let* ((href (or (w3-get-attribute 'href args)
+                     (w3-get-attribute 'src args)))
+	   (fname (cdr-safe (assoc href w3-cookie-cache))))
+      (unless (and fname (file-exists-p fname))
+        (setq fname (make-temp-file "" nil ".cki"))
+        (with-current-buffer (generate-new-buffer " *cookie*")
+          (mm-disable-multibyte)
+          (url-insert-file-contents href)
+          (setq buffer-file-name nil)
+          (set-buffer-modified-p nil)
+          (let ((coding-system-for-write 'binary))
+            (write-region (point-min) (point-max) fname 5))
+          (push (cons href fname) w3-cookie-cache)))
+      (let ((st (or (cdr-safe (assq 'start args)) "Loading cookies..."))
+            (nd (or (cdr-safe (assq 'end args)) "Loading cookies... done.")))
+        (cookie fname st nd)))))
 
 (defun w3-widget-buffer (widget)
-  (let ((overlay (or (widget-get widget :button-overlay)
-		     (widget-get widget :field-overlay)))
-	(extent (or (widget-get widget :button-extent)
-		    (widget-get widget :field-extent))))
-    (or (and overlay (overlay-buffer overlay))
-	(and extent (extent-buffer extent)))))
+  (if (featurep 'xemacs)
+      (let ((extent (or (widget-get widget :button-extent)
+                        (widget-get widget :field-extent))))
+        (and extent (extent-buffer extent)))
+    (let ((overlay (or (widget-get widget :button-overlay)
+                       (widget-get widget :field-overlay))))
+      (and overlay (overlay-buffer overlay)))))
 
-(defun w3-widget-echo (widget &rest ignore)
-  (save-excursion
-    (set-buffer (or (w3-widget-buffer widget) (current-buffer)))
+(defun w3-widget-echo (widget &rest _ignore)
+  (with-current-buffer (or (w3-widget-buffer widget) (current-buffer))
     (let* ((url (widget-get widget :href))
 	   (name (widget-get widget :name))
 	   (text (buffer-substring (widget-get widget :from)
 				   (widget-get widget :to)))
 	   (title (widget-get widget :title))
-	   (check w3-echo-link)
-	   (msg nil))
+	   (check w3-echo-link))
       (if url
 	  (setq url (url-truncate-url-for-viewing url)))
       (if name
@@ -554,14 +547,17 @@ If the face already exists, it is unmodified."
       (if (not (listp check))
 	  (setq check (cons check '(title url text name))))
       (catch 'exit
-	(while check
-	  (and (boundp (car check))
-	       (stringp (symbol-value (car check)))
-	       (> (length (symbol-value (car check))) 0)
-	       (throw 'exit (symbol-value (car check))))
-	  (pop check))))))
+        (dolist (sym check)
+          (let ((val (ecase sym
+                       (name name)
+                       (url url)
+                       (title title)
+                       (text text))))
+            (and (stringp val)
+                 (> (length val) 0)
+                 (throw 'exit val))))))))
 
-(defun w3-follow-hyperlink (widget &rest ignore)
+(defun w3-follow-hyperlink (widget &rest _ignore)
   (let* ((target (or (widget-get widget :target) w3-base-target))
 	 (visited (widget-get widget :visited-face))
 	 (href (widget-get widget :href)))
@@ -581,7 +577,7 @@ If the face already exists, it is unmodified."
       (otherwise
        (w3-fetch href target)))))
 
-(defun w3-balloon-help-callback (object &optional event)
+(defun w3-balloon-help-callback (object &optional _event)
   (let* ((widget (widget-at (extent-start-position object)))
 	 (href (widget-get widget :href)))
     (if href
@@ -617,7 +613,7 @@ If the face already exists, it is unmodified."
 			       (incf (car w3-display-list-stack))
 			     1))
 		 (margin (1- (car left-margin-stack)))
-		 (indent (w3-get-style-info 'text-indent node 0)))
+		 (indent (w3-get-style-info 'text-indent 0)))
 	     (if (> indent 0)
 		 (setq margin (+ margin indent))
 	       (setq margin (max 0 (- margin indent))))
@@ -651,7 +647,7 @@ If the face already exists, it is unmodified."
 	   )
 	  (otherwise
 	   (insert (w3-get-pad-string (+ (car left-margin-stack)
-					 (w3-get-style-info 'text-indent node 0)))))
+					 (w3-get-style-info 'text-indent 0)))))
 	  )
 	(point))
       (list 'start-open t
@@ -661,11 +657,11 @@ If the face already exists, it is unmodified."
 
   (defmacro w3-display-set-margins ()
     `(progn
-       (push (+ (w3-get-style-info 'margin-left node 0)
+       (push (+ (w3-get-style-info 'margin-left 0)
 		(car left-margin-stack)) left-margin-stack)
        (push (-
 	      (car right-margin-stack)
-	      (w3-get-style-info 'margin-right node 0)) right-margin-stack)
+	      (w3-get-style-info 'margin-right 0)) right-margin-stack)
        (setq fill-column (car right-margin-stack))
        (w3-set-fill-prefix-length (car left-margin-stack))
        (w3-display-handle-list-type)))
@@ -683,17 +679,17 @@ If the face already exists, it is unmodified."
 	  (w3-display-line-break 1))
 	(w3-display-set-margins)
 	(push
-	 (w3-get-style-info 'white-space node
+	 (w3-get-style-info 'white-space
 			    (car w3-display-whitespace-stack))
 	 w3-display-whitespace-stack)
 	(push
-	 (or (w3-get-attribute 'foobarblatz)
-	     (w3-get-style-info 'list-style-type node
+	 (or (w3-get-attribute 'foobarblatz args)
+	     (w3-get-style-info 'list-style-type
 				(car w3-display-liststyle-stack)))
 	 w3-display-liststyle-stack)
 	(push
-	 (or (w3-get-attribute 'align)
-	     (w3-get-style-info 'text-align node
+	 (or (w3-get-attribute 'align args)
+	     (w3-get-style-info 'text-align
 				(car w3-display-alignment-stack)))
 	 w3-display-alignment-stack)
 	(and w3-do-incremental-display (w3-pause)))
@@ -701,17 +697,17 @@ If the face already exists, it is unmodified."
 	(w3-display-line-break 0)
 	(w3-display-set-margins)
 	(push
-	 (or (w3-get-attribute 'foobarblatz)
-	     (w3-get-style-info 'list-style-type node
+	 (or (w3-get-attribute 'foobarblatz args)
+	     (w3-get-style-info 'list-style-type
 				(car w3-display-liststyle-stack)))
 	 w3-display-liststyle-stack)
 	(push
-	 (w3-get-style-info 'white-space node
+	 (w3-get-style-info 'white-space
 			    (car w3-display-whitespace-stack))
 	 w3-display-whitespace-stack)
 	(push
-	 (w3-get-style-info 'text-align node
-			    (or (w3-get-attribute 'align)
+	 (w3-get-style-info 'text-align
+			    (or (w3-get-attribute 'align args)
 				(car w3-display-alignment-stack)))
 	 w3-display-alignment-stack))
        (otherwise			; Assume 'inline' rendering as default
@@ -745,10 +741,10 @@ If the face already exists, it is unmodified."
 
 ;; <link> handling
 (defun w3-parse-link (args)
-  (let* ((type (if (w3-get-attribute 'rel) 'rel 'rev))
-	 (desc (w3-get-attribute type))
+  (let* ((type (if (w3-get-attribute 'rel args) 'rel 'rev))
+	 (desc (w3-get-attribute type args))
 	 (dc-desc (and desc (downcase desc))) ; canonical case
-	 (dest (w3-get-attribute 'href))
+	 (dest (w3-get-attribute 'href args))
 	 (plist (w3-alist-to-plist args))
 	 (node-1 (assq type w3-current-links))
 	 (node-2 (and node-1 desc (or (assoc desc
@@ -863,7 +859,8 @@ If the face already exists, it is unmodified."
 	(url-retrieve src 'w3-finalize-image-download-skip-redirects (list src buf 'background face)))))))
 
 (defun w3-finalize-image-download-skip-redirects (&rest args)
-  (let (redirect-url errorp)
+  (let (;; redirect-url
+        errorp)
     ;; Handle both styles of `url-retrieve' callbacks...
     (cond
      ((listp (car args))
@@ -872,14 +869,14 @@ If the face already exists, it is unmodified."
 	(when (eq (car status) :error)
 	  (setq errorp (cadr status))
 	  (setq status (cddr status)))
-	(when (eq (car status) :redirect)
-	  (setq redirect-url (second (car args))))
+	;; (when (eq (car status) :redirect)
+	;;   (setq redirect-url (second (car args))))
 
 	(setq args (cdr args))))
 
      ((eq (car args) :redirect)
       ;; Pre-22 redirect.
-      (setq redirect-url (cadr args))
+      ;; (setq redirect-url (cadr args))
       (while (eq (car args) :redirect)
 	(setq args (cddr args)))))
 
@@ -890,7 +887,7 @@ If the face already exists, it is unmodified."
       ;; Actually, for images we don't want to know the real URL, as the
       ;; original address is used when putting the images in the right
       ;; place.  Thus we ignore redirect-url.
-      (apply 'w3-finalize-image-download args))))
+      (apply #'w3-finalize-image-download args))))
 
 (defun w3-finalize-image-download (url buffer &optional widget face)
   (let ((glyph nil)
@@ -900,19 +897,19 @@ If the face already exists, it is unmodified."
 		 (widget-get widget 'align))))
     (url-mark-buffer-as-dead (current-buffer))
     ;;(message "Enhancing image...")
-    (let ((default-enable-multibyte-characters nil))
-      (with-temp-buffer
-	(mm-insert-part handle)
-	(setq glyph 
-	      (let ((type (cdr-safe (assoc (car (mm-handle-type handle))
-					   w3-image-mappings))))
-		(if (fboundp 'image-normalize)
-		    (image-normalize type (buffer-string))
-		  (create-image (buffer-string) type 'data
-				:ascent (case align
-					  ((bottom nil) 100)
-					  (center 'center)
-					  (top 0))))))))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (mm-insert-part handle)
+      (setq glyph 
+            (let ((type (cdr-safe (assoc (car (mm-handle-type handle))
+                                         w3-image-mappings))))
+              (if (fboundp 'image-normalize)
+                  (image-normalize type (buffer-string))
+                (create-image (buffer-string) type 'data
+                              :ascent (case align
+                                        ((bottom nil) 100)
+                                        (center 'center)
+                                        (top 0)))))))
     ;;(message "Enhancing image... done")
     (cond
      ((w3-image-invalid-glyph-p glyph)
@@ -921,8 +918,7 @@ If the face already exists, it is unmodified."
      ((and (featurep 'xemacs)
 	   (eq (aref glyph 0) 'xbm))
       (let ((temp-fname (url-generate-unique-filename "%s.xbm")))
-	(save-excursion
-	  (set-buffer (generate-new-buffer " *xbm-garbage*"))
+	(with-current-buffer (generate-new-buffer " *xbm-garbage*")
 	  (erase-buffer)
 	  (insert (aref glyph 2))
 	  (setq glyph temp-fname)
@@ -954,15 +950,14 @@ If the face already exists, it is unmodified."
 				  (glyph-image-instance glyph)
 				  buffer))
      ((not (eq widget 'background))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(if (eq major-mode 'w3-mode)
 	    (widget-value-set widget glyph)
 	  (setq w3-image-widgets-waiting
 		(cons widget w3-image-widgets-waiting))))))))
 
 (defcustom w3-min-img-size 15
-  "*Image size under which the alt string is replaced by `w3-dummy-img-alt-repl'.
+  "Image size under which the alt string is replaced by `w3-dummy-img-alt-repl'.
 15 is a bit aggressive, 5 pixels would be safer"
   :group 'w3-images
   :type 'integer
@@ -975,78 +970,86 @@ If the face already exists, it is unmodified."
   :type 'regexp)
 
 (defcustom w3-dummy-img-alt-repl "*"
-  "*Dummy image alt string replacement."
+  "Dummy image alt string replacement."
   :group 'w3-images
   :type 'string)  
 
+(defvar w3--height)
+(defvar w3--width)
+(defvar w3--args)
+
 (defun w3-default-image-alt-func (fname)
-  ;; Assumes height/width bound by calling function
-  (declare (special height width))
-  (if (or (and (stringp height)
-	       (< (string-to-int height) w3-min-img-size))
-	  (and (stringp width)
-	       (< (string-to-int width) w3-min-img-size))
+  ;; Assumes w3--height/width bound by calling function
+  (if (or (and (stringp w3--height)
+	       (< (string-to-number w3--height) w3-min-img-size))
+	  (and (stringp w3--width)
+	       (< (string-to-number w3--width) w3-min-img-size))
 	  (string-match w3-dummy-img-re fname))
       w3-dummy-img-alt-repl
     (concat "[" (file-name-sans-extension fname) "]")))
 
-(defmacro w3-image-alt (src)
-  `(let* ((doc-alt (w3-get-attribute 'alt))
-	  (alt (or (and (stringp doc-alt) (string-match "[^ \t\n]" doc-alt) doc-alt)
-		   (cond
-		    ((null w3-auto-image-alt) "")
-		    ((eq t w3-auto-image-alt)
-		     (concat "[IMAGE(" (w3-url-file-nondirectory src) ")] "))
-		    ((stringp w3-auto-image-alt)
-		     (format w3-auto-image-alt (w3-url-file-nondirectory src)))
-		    ((functionp w3-auto-image-alt)
-		     (funcall w3-auto-image-alt (w3-url-file-nondirectory src))))))
-	  c)
-     (while (setq c (string-match "[\C-i\C-j\C-l\C-m]" alt))
-       (aset alt c ? ))
-     alt))
+(defsubst w3-image-alt (src)
+  (let* ((doc-alt (w3-get-attribute 'alt w3--args))
+         (alt (or (and (stringp doc-alt) (string-match "[^ \t\n]" doc-alt) doc-alt)
+                  (cond
+                   ((null w3-auto-image-alt) "")
+                   ((eq t w3-auto-image-alt)
+                    (concat "[IMAGE(" (w3-url-file-nondirectory src) ")] "))
+                   ((stringp w3-auto-image-alt)
+                    (format w3-auto-image-alt (w3-url-file-nondirectory src)))
+                   ((functionp w3-auto-image-alt)
+                    (funcall w3-auto-image-alt (w3-url-file-nondirectory src))))))
+         c)
+    (while (setq c (string-match "[\C-i\C-j\C-l\C-m]" alt))
+      (aset alt c ? ))
+    alt))
 
-(defmacro w3-handle-image ()
-  `(let* ((height (w3-get-attribute 'height))
-	  (width (w3-get-attribute 'width))
-	  (src (or (w3-get-attribute 'src) "Error Image"))
-	  (alt (w3-image-alt src))
-	  (ismap (and (assq 'ismap args) 'ismap))
-	  (usemap (w3-get-attribute 'usemap))
-	  (base (w3-get-attribute 'base))
-	  (href (and hyperlink-info
-		     (cadr (widget-plist-member (cadr hyperlink-info) :href))))
-	  (target (and hyperlink-info
-		       (cadr (widget-plist-member (cadr hyperlink-info)
-						  :target))))
-	  (widget nil)
-	  (align (or (w3-get-attribute 'align)
-		     (w3-get-style-info 'vertical-align node)))
-	  (face w3-active-faces))
-     (if (assq '*table-autolayout w3-display-open-element-stack)
-	 (insert alt)
-       (setq hyperimage-info
-	     (list (point)
-		   (list 'image
-			 :src src	; Where to load the image from
-			 'alt alt	; Textual replacement
-			 'ismap ismap	; Is it a server-side map?
-			 'usemap usemap	; Is it a client-side map?
-			 :href href	; Hyperlink destination
-			 :target target	; target frame
-			 :button-face face ; img:link or img:visited entry in stylesheet
-			 'row w3-display-current-row
-			 'column w3-display-current-col
-			 'align align
-			 )))
-       (setq widget (apply (function widget-create) (cadr hyperimage-info)))
-       (widget-put widget 'buffer (current-buffer))
-       ;;(w3-maybe-start-image-download widget) ; in w3-resurrect-images
-       (if (widget-get widget :from)
-	   (add-text-properties (widget-get widget :from)
-				(widget-get widget :to)
-				(list 'html-stack w3-display-open-element-stack)))
-       (goto-char (point-max)))))
+(defvar w3--hyperimage-info)
+(defvar w3--hyperlink-info)
+
+(defvar w3-display-current-row nil)
+(defvar w3-display-current-col nil)
+
+(defsubst w3-handle-image (args)
+  (let* ((w3--height (w3-get-attribute 'height args))
+         (w3--width (w3-get-attribute 'width args))
+         (src (or (w3-get-attribute 'src args) "Error Image"))
+         (alt (w3-image-alt src))
+         (ismap (and (assq 'ismap args) 'ismap))
+         (usemap (w3-get-attribute 'usemap args))
+         (href (and w3--hyperlink-info
+                    (cadr (widget-plist-member (cadr w3--hyperlink-info) :href))))
+         (target (and w3--hyperlink-info
+                      (cadr (widget-plist-member (cadr w3--hyperlink-info)
+                                                 :target))))
+         (widget nil)
+         (align (or (w3-get-attribute 'align args)
+                    (w3-get-style-info 'vertical-align)))
+         (face w3-active-faces))
+    (if (assq '*table-autolayout w3-display-open-element-stack)
+        (insert alt)
+      (setq w3--hyperimage-info
+            (list (point)
+                  (list 'image
+                        :src src	; Where to load the image from
+                        'alt alt	; Textual replacement
+                        'ismap ismap	; Is it a server-side map?
+                        'usemap usemap	; Is it a client-side map?
+                        :href href	; Hyperlink destination
+                        :target target	; target frame
+                        :button-face face ; img:link or img:visited entry in stylesheet
+                        'row w3-display-current-row
+                        'column w3-display-current-col
+                        'align align
+                        )))
+      (setq widget (apply (function widget-create) (cadr w3--hyperimage-info)))
+      (widget-put widget 'buffer (current-buffer))
+      ;;(w3-maybe-start-image-download widget) ; in w3-resurrect-images
+      (if (widget-get widget :from)
+          (add-text-properties (widget-get widget :from)
+                               (widget-get widget :to)
+                               (list 'html-stack w3-display-open-element-stack)))
+      (goto-char (point-max)))))
 
 ;; The table handling
 (eval-and-compile
@@ -1218,13 +1221,12 @@ This will only work if we used glyphs rather than text properties"
 		 (aref w3-table-glyph-border-chars i)
 		 (aref w3-table-ascii-border-chars i)))
       (setq i (1+ i)))
-    (mapcar (function (lambda (buf)
-			(save-excursion
-			  (set-buffer buf)
-			  (if (eq major-mode 'w3-mode)
-			      (translate-region (point-min)
-						(point-max)
-						tr)))))
+    (mapcar (lambda (buf)
+              (with-current-buffer buf
+                (if (eq major-mode 'w3-mode)
+                    (translate-region (point-min)
+                                      (point-max)
+                                      tr))))
 	    buffs)))
 
 (defvar w3-display-table-cut-words-p nil
@@ -1234,8 +1236,6 @@ This will only work if we used glyphs rather than text properties"
   "*Whether to always draw table borders
 Can sometimes make the structure of a document clearer")
 
-(defvar w3-display-current-row nil)
-(defvar w3-display-current-col nil)
 (defvar w3-display-current-cell-offset 0)
 
 (defun w3-display-table-cut ()
@@ -1259,14 +1259,10 @@ Can sometimes make the structure of a document clearer")
   (save-excursion
     (let ((st (point-min))
  	  (nd nil)
-	  (widget nil) parent
- 	  (to-marker nil)
- 	  (from-marker nil))
+	  (widget nil) parent)
       (while (setq st (next-single-property-change st 'button))
  	(setq nd (or (next-single-property-change st 'button) (point-max))
  	      widget (widget-at st)
- 	      to-marker (and widget (widget-get widget :to))
- 	      from-marker (and widget (widget-get widget :from))
  	      parent (and widget (widget-get widget :parent))
  	      )
 	(if (not widget)
@@ -1284,7 +1280,6 @@ Can sometimes make the structure of a document clearer")
  	  (setq st (min (point-max) (1+ nd))))))))
 
 (defun w3-size-of-tree (tree minmax)
-  (declare (special args))
   (save-excursion
     (save-restriction
       (narrow-to-region (point) (point))
@@ -1298,7 +1293,7 @@ Can sometimes make the structure of a document clearer")
 				400))) 
 	    (fill-prefix "")
 	    (w3-last-fill-pos (point-min))
-	    a retval
+            retval
 	    (w3-do-incremental-display nil)
 	    (hr-regexp  (concat "^"
 				(regexp-quote 
@@ -1308,7 +1303,7 @@ Can sometimes make the structure of a document clearer")
 	;;(push 'left  w3-display-alignment-stack)
 	(push (if (eq minmax 'max) 'nowrap) w3-display-whitespace-stack)
 	(while tree
-	  (push (cons '*td args) w3-display-open-element-stack)
+	  (push (cons '*td w3--args) w3-display-open-element-stack)
 	  (w3-display-node (pop tree)))
 	(pop w3-display-whitespace-stack)
 	(goto-char (point-min))
@@ -1330,7 +1325,6 @@ Can sometimes make the structure of a document clearer")
 
 (defun w3-display-table-dimensions (node)
   ;; fill-column sets maximum width
-  (declare (special args))
   (let (min-vector
 	max-vector
 	rows cols
@@ -1343,7 +1337,7 @@ Can sometimes make the structure of a document clearer")
 	      rows       (nth 3 table-info)
 	      cols       (nth 4 table-info))
 
-      (push (cons '*table-autolayout args) w3-display-open-element-stack)
+      (push (cons '*table-autolayout w3--args) w3-display-open-element-stack)
       (let (content
 	    cur
 	    (table-spans (list nil))	; don't make this '(nil) 
@@ -1366,29 +1360,26 @@ Can sometimes make the structure of a document clearer")
 	       (setq col 0)
 	       (setq rows (1+ rows))
 	       (setq ptr table-spans)
-	       (mapcar
-		(function
-		 (lambda (td)
-		   (setq colspan (string-to-int (or (let ((attr (cdr-safe (assq 'colspan (nth 1 td)))))
-						      (unless (zerop (length attr)) attr)) "1"))
-			 rowspan (string-to-int (or (let ((attr (cdr-safe (assq 'rowspan (nth 1 td)))))
-						      (unless (zerop (length attr)) attr))"1"))
-			 min  (w3-size-of-tree  (nth 2 td) 'min)
-			 max  (w3-size-of-tree  (nth 2 td) 'max)
-			 )
-		   (while (eq (car-safe (car-safe (cdr ptr))) col)
-		     (setq col (+ col (cdr (cdr (car (cdr ptr))))))
-		     (if (= 0 (decf (car (cdr (car (cdr ptr))))))
-			 (pop (cdr ptr))
-		       (setq ptr (cdr ptr))))
-		   (push (list col colspan min max)
-			 constraints)
-		   (if (= rowspan 1) nil
-		     (push (cons col (cons (1- rowspan) colspan)) (cdr ptr))
-		     (setq ptr (cdr ptr)))
-		   (setq col (+ col colspan))
-		   ))
-		(nth 2 cur))
+	       (dolist (td (nth 2 cur))
+                 (setq colspan (string-to-number (or (let ((attr (cdr-safe (assq 'colspan (nth 1 td)))))
+                                                       (unless (zerop (length attr)) attr)) "1"))
+                       rowspan (string-to-number (or (let ((attr (cdr-safe (assq 'rowspan (nth 1 td)))))
+                                                       (unless (zerop (length attr)) attr))"1"))
+                       min  (w3-size-of-tree  (nth 2 td) 'min)
+                       max  (w3-size-of-tree  (nth 2 td) 'max)
+                       )
+                 (while (eq (car-safe (car-safe (cdr ptr))) col)
+                   (setq col (+ col (cdr (cdr (car (cdr ptr))))))
+                   (if (= 0 (decf (car (cdr (car (cdr ptr))))))
+                       (pop (cdr ptr))
+                     (setq ptr (cdr ptr))))
+                 (push (list col colspan min max)
+                       constraints)
+                 (if (= rowspan 1) nil
+                   (push (cons col (cons (1- rowspan) colspan)) (cdr ptr))
+                   (setq ptr (cdr ptr)))
+                 (setq col (+ col colspan))
+                 )
 	       (while (cdr ptr)
 		 (if (= 0 (decf (car (cdr (car (cdr ptr))))))
 		     (pop (cdr ptr))
@@ -1403,57 +1394,54 @@ Can sometimes make the structure of a document clearer")
 	    )
 	  )
 	(setq constraints (sort constraints
-				(function
-				 (lambda (a b)
-				   (< (cadr a) (cadr b)))))
+                                (lambda (a b) (< (cadr a) (cadr b))))
 	      min-vector (make-vector cols 0)
 	      max-vector (make-vector cols 0))
 	(let (start end i mincellwidth maxcellwidth)
-	  (mapcar (function (lambda (c)
-			      (cond ((= (cadr c) 1) 
-				     (aset min-vector (car c) 
-					   (max (aref min-vector (car c))
-						(nth 2 c)))
-				     (aset max-vector (car c) 
-					   (max (aref max-vector (car c))
-						(nth 3 c))))
-				    (t 
-				     (setq start (car c)
-					   end (+ (car c) (cadr c))
-					   mincellwidth 0
-					   maxcellwidth 0
-					   i start)
-				     (while (< i end)
-				       (setq mincellwidth (+ mincellwidth
-							     (aref min-vector i))
-					     maxcellwidth (+
-							   maxcellwidth
-							   (aref max-vector i))
-					     i (1+ i)))
-				     (setq i start)
-				     (if (= mincellwidth 0)
-					 ;; if existing width is 0 divide evenly
-					 (while (< i end)
-					   (aset min-vector i
-						 (/ (nth 2 c) (cadr c)))
-					   (aset max-vector i
-						 (/ (nth 3 c) (cadr c)))
-					   (setq i (1+ i)))
-				       ;; otherwise weight it by existing widths
-				       (while (< i end)
-					 (aset min-vector i
-					       (max (aref min-vector i)
-						    (/ (* (nth 2 c)
-							  (aref min-vector i))
-						       mincellwidth)))
-					 (aset max-vector i
-					       (max (aref max-vector i)
-						    (/ (* (nth 3 c)
-							  (aref max-vector i))
-						       maxcellwidth)))
-					 (setq i (1+ i))))
-				     ))))
-		  constraints)))
+	  (dolist (c constraints)
+            (cond ((= (cadr c) 1) 
+                   (aset min-vector (car c) 
+                         (max (aref min-vector (car c))
+                              (nth 2 c)))
+                   (aset max-vector (car c) 
+                         (max (aref max-vector (car c))
+                              (nth 3 c))))
+                  (t 
+                   (setq start (car c)
+                         end (+ (car c) (cadr c))
+                         mincellwidth 0
+                         maxcellwidth 0
+                         i start)
+                   (while (< i end)
+                     (setq mincellwidth (+ mincellwidth
+                                           (aref min-vector i))
+                           maxcellwidth (+
+                                         maxcellwidth
+                                         (aref max-vector i))
+                           i (1+ i)))
+                   (setq i start)
+                   (if (= mincellwidth 0)
+                       ;; if existing width is 0 divide evenly
+                       (while (< i end)
+                         (aset min-vector i
+                               (/ (nth 2 c) (cadr c)))
+                         (aset max-vector i
+                               (/ (nth 3 c) (cadr c)))
+                         (setq i (1+ i)))
+                     ;; otherwise weight it by existing widths
+                     (while (< i end)
+                       (aset min-vector i
+                             (max (aref min-vector i)
+                                  (/ (* (nth 2 c)
+                                        (aref min-vector i))
+                                     mincellwidth)))
+                       (aset max-vector i
+                             (max (aref max-vector i)
+                                  (/ (* (nth 3 c)
+                                        (aref max-vector i))
+                                     maxcellwidth)))
+                       (setq i (1+ i))))
+                   )))))
       (push (cons 'w3-table-info
 		  (list min-vector max-vector rows cols))
 	    (cadr node))
@@ -1542,11 +1530,11 @@ Can sometimes make the structure of a document clearer")
 	     (border-node (cdr-safe (assq 'border args)))
 	     (border (or w3-display-table-force-borders
 			 (and border-node (or
-					   (/= 0 (string-to-int border-node))
+					   (/= 0 (string-to-number border-node))
 					   (string= "border" border-node)))))
 	     (border-char (unless border ? ))
 	     (valign nil)
-	     (align nil)
+	     ;; (align nil)
 	     (content (nth 2 node))
 	     (avgwidth (/ (- fill-column num-cols num-cols) num-cols))
 	     (formatted-cols (make-vector num-cols nil))
@@ -1559,9 +1547,7 @@ Can sometimes make the structure of a document clearer")
 	     (table-colwidth (make-vector num-cols 0))
 	     (fill-prefix "")
 	     (height nil)
-	     (cur-height nil)
 	     (cols nil)
-	     (rows nil)
 	     (row 0)
 	     (this-rectangle nil)
 	     (inhibit-read-only t)
@@ -1610,9 +1596,9 @@ Can sometimes make the structure of a document clearer")
 					      w3-display-open-element-stack))
 	     (setq cols (nth 2 (car content))
 		   valign (or (cdr-safe (assq 'valign (nth 1 (car content))))
-			      (w3-get-style-info 'vertical-align node))
-		   align  (or (cdr-safe (assq 'align  (nth 1 (car content))))
-			      (w3-get-style-info 'text-align node))
+			      (w3-get-style-info 'vertical-align))
+		   ;; align  (or (cdr-safe (assq 'align  (nth 1 (car content))))
+		   ;;            (w3-get-style-info 'text-align))
 		   content (cdr content)
 		   row (1+ row))
 	     (if (and valign (stringp valign))
@@ -1638,7 +1624,7 @@ Can sometimes make the structure of a document clearer")
 						    w3-current-stylesheet
 						    w3-display-open-element-stack))
 		   (push (w3-face-for-element (list tag args nil)) w3-active-faces)
-		   (push (w3-voice-for-element (list tag args nil)) w3-active-voices)
+		   (push (w3-voice-for-element) w3-active-voices)
 		   (push (cons tag args) w3-display-open-element-stack)
 		   (while cols
 		     ;; And need to push these bogus placeholders on there
@@ -1649,16 +1635,16 @@ Can sometimes make the structure of a document clearer")
 		     (let* ((node (car cols))
 			    (attributes (nth 1 node))
 			    (colspan-attr (cdr-safe (assq 'colspan attributes)))
-			    (colspan (string-to-int
+			    (colspan (string-to-number
 				      (or (unless (zerop (length colspan-attr))
 					    colspan-attr)
 					  "1")))
 			    (rowspan-attr (cdr-safe (assq 'rowspan attributes)))
-			    (rowspan (string-to-int
+			    (rowspan (string-to-number
 				      (or (unless (zerop (length rowspan-attr))
 					    rowspan-attr)
 					  "1")))
-			    fill-column column-width
+			    fill-column
 			    (fill-prefix "")
 			    (w3-do-incremental-display nil)
 			    (indent-tabs-mode nil)
@@ -1795,14 +1781,15 @@ Can sometimes make the structure of a document clearer")
 		 (cond
 		  ((= (aref prev-rowspans i) 0)
 		   ;; First row, insert the top horizontal divider
-;;; Everything in this functino commented out with ;;; is done so to
-;;; borderless tables work better.  This was an attempt to not show
-;;; the 'spaces' border around the table, to save screen real estate,
-;;; but it messes up indentation on cell columns.
-;;;		   (if border
+                   ;;BL Everything in this function commented out with ;;BL is
+                   ;;BL done so to borderless tables work better.  This was an
+                   ;;BL attempt to not show the 'spaces' border around the
+                   ;;BL table, to save screen real estate, but it messes up
+                   ;;BL indentation on cell columns.
+                   ;;BL(if border
 		       (w3-insert-terminal-char
 			(w3-table-lookup-char t nil t nil border-char) 
-			(aref column-dimensions i));;;)
+			(aref column-dimensions i));;BL)
 		   (setq i (1+ i)))
 		  ((car (aref formatted-cols i))
 		   ;; Slap in the rows
@@ -1816,11 +1803,11 @@ Can sometimes make the structure of a document clearer")
 		   (setq lflag nil)
 		   (setq i (+ i (max (aref table-colspans i)
 				     (aref prev-colspans  i) 1))))))
-;;;	       (if (not border)
-;;;		   nil
+               ;;BL (if (not border)
+               ;;BL     nil
 		 (w3-insert-terminal-char
 		  (w3-table-lookup-char lflag (/= row 1) nil t border-char))
-		 (insert "\n"));;;)
+		 (insert "\n"));;BL)
 	     
 	     ;; recalculate height (in case we've shortened a rowspanning cell)
 	     (setq height 0 
@@ -1954,9 +1941,9 @@ Can sometimes make the structure of a document clearer")
 	 (name (plist-get plist 'name))
 	 (value (or (plist-get plist 'value) ""))
 	 (size (if (plist-get plist 'size)
-		   (string-to-int (plist-get plist 'size))))
+		   (string-to-number (plist-get plist 'size))))
 	 (maxlength (if (plist-get plist 'maxlength)
-			(string-to-int
+			(string-to-number
 			 (plist-get plist 'maxlength))))
 	 (default value)
 	 (checked (assq 'checked args)))
@@ -1986,7 +1973,7 @@ Format: (((image-alt row column) . offset) ...)")
 (defun w3-resurrect-images ()
   (let ((st (point-min))
 	(inhibit-read-only t)
-	info nd node face widget)
+	info nd widget)
     (while st
       (if (setq info (get-text-property st 'w3-hyperimage-info))
 	  (progn
@@ -2042,7 +2029,7 @@ Format: (((image-alt row column) . offset) ...)")
   (let ((st (point-min))
 	(nd (point-min))
 	(inhibit-read-only t)
-	info node face)
+	info)
     (while st
       (if (setq info (get-text-property st 'w3-hyperlink-info))
 	  (progn
@@ -2082,6 +2069,10 @@ Format: (((image-alt row column) . offset) ...)")
 	(push (cons 'codebase (url-view-url t)) options))
     (w3-java-run-applet options params)))
 
+(defvar filladapt-mode)
+(defvar voice-lock-mode)
+(defvar widget-push-button-gui)
+
 (defun w3-display-node (node &optional nofaces)
   (let (
 	(content-stack (list (list node)))
@@ -2095,12 +2086,10 @@ Format: (((image-alt row column) . offset) ...)")
 	tag
 	args
 	content
-	hyperlink-info
-	hyperimage-info
+	w3--hyperlink-info
+	w3--hyperimage-info
 	break-style
-	cur
 	id
-	class
 	last-element
 	)
     (while content-stack
@@ -2114,27 +2103,27 @@ Format: (((image-alt row column) . offset) ...)")
 	;; goes here.   Couldn't think of any better way to do this when we
 	;; are iterative.  *sigh*
 	(a
-	 (if (not hyperlink-info)
+	 (if (not w3--hyperlink-info)
 	     nil
-	   (add-text-properties (car hyperlink-info) (point)
+	   (add-text-properties (car w3--hyperlink-info) (point)
 				(list
 				 'duplicable t
-				 'balloon-help 'w3-balloon-help-callback
+				 'balloon-help #'w3-balloon-help-callback
 				 'start-open t
 				 'end-open t
 				 'rear-nonsticky t
-				 'w3-hyperlink-info (cadr hyperlink-info))))
-	 (setq hyperlink-info nil))
+				 'w3-hyperlink-info (cadr w3--hyperlink-info))))
+	 (setq w3--hyperlink-info nil))
 	(img
-	 (if hyperimage-info
-	     (add-text-properties (car hyperimage-info) (point)
+	 (if w3--hyperimage-info
+	     (add-text-properties (car w3--hyperimage-info) (point)
 				  (list
 				   'duplicable t
 				   'start-open t
 				   'end-open t
 				   'rear-nonsticky t
-				   'w3-hyperimage-info (cadr hyperimage-info))))
-	 (setq hyperimage-info nil))
+				   'w3-hyperimage-info (cadr w3--hyperimage-info))))
+	 (setq w3--hyperimage-info nil))
 	((ol ul dl dir menu)
 	 (pop w3-display-list-stack))
 	(label
@@ -2161,18 +2150,18 @@ Format: (((image-alt row column) . offset) ...)")
 	  (setq node (pop content)
 		tag (nth 0 node)
 		args (nth 1 node)
-		id (or (w3-get-attribute 'name)
-		       (w3-get-attribute 'id))
+		id (or (w3-get-attribute 'name args)
+		       (w3-get-attribute 'id args))
 		)
 	  ;; This little bit of magic takes care of inline styles.
 	  ;; Evil Evil Evil, but it appears to work.
-	  (if (w3-get-attribute 'style)
-	      (let ((unique-id (or (w3-get-attribute 'id)
+	  (if (w3-get-attribute 'style args)
+	      (let ((unique-id (or (w3-get-attribute 'id args)
 				   (w3-display-create-unique-id)))
 		    (sheet "")
 		    (class (assq 'class args)))
 		(setq sheet (format "%s.%s { %s }\n" tag unique-id
-				    (w3-get-attribute 'style)))
+				    (w3-get-attribute 'style args)))
 		(if class
 		    (setcdr class (cons unique-id (cdr class)))
 		  (setf (nth 1 node) (cons (cons 'class (list unique-id))
@@ -2185,9 +2174,9 @@ Format: (((image-alt row column) . offset) ...)")
 					   (nth 1 node)
 					   w3-current-stylesheet
 					   w3-display-open-element-stack))
-	  (push (w3-get-style-info 'display node) break-style)
-	  (push (w3-get-style-info 'insert-after node) insert-after)
-	  (setq insert-before (w3-get-style-info 'insert-before node))
+	  (push (w3-get-style-info 'display) break-style)
+	  (push (w3-get-style-info 'insert-after) insert-after)
+	  (setq insert-before (w3-get-style-info 'insert-before))
 	  (w3-display-handle-break)
 	  (if (w3-node-visible-p)
 	      nil
@@ -2199,7 +2188,7 @@ Format: (((image-alt row column) . offset) ...)")
 	  (if nofaces
 	      nil
 	    (push (w3-face-for-element node) w3-active-faces)
-	    (push (w3-voice-for-element node) w3-active-voices))
+	    (push (w3-voice-for-element) w3-active-voices))
 	  (setq insert-before nil)
 	  (if id
 	      (setq w3-id-positions (cons
@@ -2210,15 +2199,6 @@ Format: (((image-alt row column) . offset) ...)")
 	  (case tag
 	    (a				; Hyperlinks
 	     (let* (
-		    (title (w3-get-attribute 'title))
-		    (name (or (w3-get-attribute 'id)
-			      (w3-get-attribute 'name)))
-		    (btdt nil)
-		    class
-		    (before nil)
-		    (after nil)
-		    (face nil)
-		    (voice nil)
 		    (st nil)
 		    (old-props w3-display-css-properties)
 		    (active-face nil)
@@ -2246,31 +2226,32 @@ Format: (((image-alt row column) . offset) ...)")
 	       (setq visited-face (w3-face-for-element (list tag munged nil)))
 	       (w3-pop-all-face-info)
 	       (setq w3-display-css-properties old-props)
-	       (if (w3-get-attribute 'href)
+	       (if (w3-get-attribute 'href args)
 		   (setq st (point)
-			 hyperlink-info (list
-					 st
-					 (append
-					  (list :args nil
-						:value "" :tag ""
-						:action 'w3-follow-hyperlink
-						:button-face '(nil)
-						:active-face active-face
-						:visited-face visited-face
-						:from (set-marker
-						       (make-marker) st)
-						:help-echo 'w3-widget-echo
-						:emacspeak-help 'w3-widget-echo
-						)
-					  (w3-display-convert-arglist args)))))
+			 w3--hyperlink-info
+                         (list
+                          st
+                          (append
+                           (list :args nil
+                                 :value "" :tag ""
+                                 :action 'w3-follow-hyperlink
+                                 :button-face '(nil)
+                                 :active-face active-face
+                                 :visited-face visited-face
+                                 :from (set-marker
+                                        (make-marker) st)
+                                 :help-echo 'w3-widget-echo
+                                 :emacspeak-help 'w3-widget-echo
+                                 )
+                           (w3-display-convert-arglist args)))))
 	       (w3-handle-content node)
 	       )
 	     )
 	    ((ol ul dl menu)
-	     (push (if (or (w3-get-attribute 'start)
-			   (w3-get-attribute 'seqnum))
-		       (1- (string-to-int (or (w3-get-attribute 'start)
-					      (w3-get-attribute 'seqnum))))
+	     (push (if (or (w3-get-attribute 'start args)
+			   (w3-get-attribute 'seqnum args))
+		       (1- (string-to-number (or (w3-get-attribute 'start args)
+					      (w3-get-attribute 'seqnum args))))
 		     0) w3-display-list-stack)
 	     (w3-handle-content node))
 	    (dir
@@ -2288,7 +2269,7 @@ Format: (((image-alt row column) . offset) ...)")
 				     (w3-display-chop-into-table node 2)))))
 	     (w3-handle-content node))
 	    (img			; inlined image
-	     (w3-handle-image)
+             (w3-handle-image args)
 	     (w3-handle-empty-tag))
 	    (frameset
 	     (if w3-display-frames
@@ -2310,11 +2291,11 @@ Format: (((image-alt row column) . offset) ...)")
 	       (w3-handle-content node)))
 	    (frame
 	     (if w3-display-frames
-		 (let* ((href (or (w3-get-attribute 'src)
-				  (w3-get-attribute 'href)))
-			(name (or (w3-get-attribute 'name)
-				  (w3-get-attribute 'title)
-				  (w3-get-attribute 'alt)
+		 (let* ((href (or (w3-get-attribute 'src args)
+				  (w3-get-attribute 'href args)))
+			(name (or (w3-get-attribute 'name args)
+				  (w3-get-attribute 'title args)
+				  (w3-get-attribute 'alt args)
 				  "Unknown frame name")))
 		   (push (list 'frame name href) w3-frameset-structure)
 		   (w3-handle-content
@@ -2341,19 +2322,19 @@ Format: (((image-alt row column) . offset) ...)")
 	     (w3-handle-content node)
 	     )
 	    (hr				; Cause line break & insert rule
-	     (let* ((perc (or (w3-get-attribute 'width)
-			      (w3-get-style-info 'width node)
+	     (let* ((perc (or (w3-get-attribute 'width args)
+			      (w3-get-style-info 'width)
 			      "100%"))
 		    (width nil))
 	       (if (stringp perc)
-		   (setq perc (/ (min (string-to-int perc) 100) 100.0)
+		   (setq perc (/ (min (string-to-number perc) 100) 100.0)
 			 width (truncate (* fill-column perc)))
 		 (setq width perc))
 	       (w3-insert-terminal-char (w3-horizontal-rule-char) width)
 	       (w3-handle-empty-tag)))
 	    (map			; Client side imagemaps
-	     (let ((name (or (w3-get-attribute 'name)
-			     (w3-get-attribute 'id)
+	     (let ((name (or (w3-get-attribute 'name args)
+			     (w3-get-attribute 'id args)
 			     "unnamed"))
 		   (areas
 		    (mapcar
@@ -2361,16 +2342,16 @@ Format: (((image-alt row column) . offset) ...)")
 		      (lambda (node)
 			(let* ((args (nth 1 node))
 			       (type (downcase (or
-						(w3-get-attribute 'shape)
+						(w3-get-attribute 'shape args)
 						"rect")))
 			       (coords (w3-decode-area-coords
 					(or (cdr-safe
 					     (assq 'coords args)) "")))
-			       (alt (w3-get-attribute 'alt))
+			       (alt (w3-get-attribute 'alt args))
 			       (href (if (assq 'nohref args)
 					 t
-				       (or (w3-get-attribute 'src)
-					   (w3-get-attribute 'href))))
+				       (or (w3-get-attribute 'src args)
+					   (w3-get-attribute 'href args))))
 			       )
 			  (vector type coords href alt))
 			)
@@ -2393,23 +2374,24 @@ Format: (((image-alt row column) . offset) ...)")
 					(list 'td (list 'align 'right)
 					      (list
 					       (concat
-						(or (w3-get-attribute 'role)
+						(or (w3-get-attribute 'role args)
 						    "CAUTION") ":")))
 					(list 'td nil
 					      (nth 2 node)))))))))
 	     (w3-handle-content node)
 	     )
 	    (table
-	     (w3-display-table node)
+             (let ((w3--args args))
+               (w3-display-table node))
 	     (setq w3-last-fill-pos (point))
 	     (w3-handle-empty-tag)
 	     )
 	    (isindex
-	     (let ((prompt (or (w3-get-attribute 'prompt)
+	     (let ((prompt (or (w3-get-attribute 'prompt args)
 			       "Search on (+ separates keywords): "))
 		   action node)
-	       (setq action (or (w3-get-attribute 'src)
-				(w3-get-attribute 'href)
+	       (setq action (or (w3-get-attribute 'src args)
+				(w3-get-attribute 'href args)
 				(url-view-url t)))
 	       (if (and prompt (string-match "[^: \t-]+$" prompt))
 		   (setq prompt (concat prompt ": ")))
@@ -2431,12 +2413,12 @@ Format: (((image-alt row column) . offset) ...)")
 	       (setq w3-current-isindex (cons action prompt)))
 	     )
 	    ((html body)
-	     (let ((fore (car (delq nil (copy-list w3-face-color))))
-		   (back (car (delq nil (copy-list w3-face-background-color))))
-		   (pixm (car (delq nil (copy-list w3-face-background-image))))
-		   (alink (w3-get-attribute 'alink))
-		   (vlink (w3-get-attribute 'vlink))
-		   (link  (w3-get-attribute 'link))
+	     (let ((fore (car (remq nil w3-face-color)))
+		   (back (car (remq nil w3-face-background-color)))
+		   (pixm (car (remq nil w3-face-background-image)))
+		   (alink (w3-get-attribute 'alink args))
+		   (vlink (w3-get-attribute 'vlink args))
+		   (link  (w3-get-attribute 'link args))
 		   (sheet "")
 		   )
 	       (if link
@@ -2453,14 +2435,14 @@ Format: (((image-alt row column) . offset) ...)")
 		 (if (/= (length sheet) 0)
 		     (w3-handle-style (list 'data sheet
 					    'notation "text/css")))
-		 (if (and (w3-get-attribute 'background)
+		 (if (and (w3-get-attribute 'background args)
 			  (not pixm))
 		     (progn
-		       (setq pixm (w3-get-attribute 'background))
+		       (setq pixm (w3-get-attribute 'background args))
 		       (setf (car w3-face-background-image) pixm)))
-		 (if (and (w3-get-attribute 'text) (not fore))
+		 (if (and (w3-get-attribute 'text args) (not fore))
 		     (progn
-		       (setq fore (w3-fix-color (w3-get-attribute 'text)))
+		       (setq fore (w3-fix-color (w3-get-attribute 'text args)))
 		       (setf (car w3-face-color) fore)))
 
 		 ;; Here we do some sanity checking of the colors
@@ -2498,7 +2480,8 @@ Format: (((image-alt row column) . offset) ...)")
 		       (font-set-face-background 'default back (current-buffer)))))
 	       (w3-handle-content node)))
 	    (*document
-	     (let ((info (mapcar (lambda (x) (cons x (and (boundp x) (symbol-value x))))
+	     (let ((info (mapcar (lambda (x)
+                                   (cons x (and (boundp x) (symbol-value x))))
 				 w3-persistent-variables)))
 	       (if (not w3-display-same-buffer)
 		   (set-buffer (generate-new-buffer "Untitled")))
@@ -2515,14 +2498,14 @@ Format: (((image-alt row column) . offset) ...)")
 		 (error (message  "W3 buffer %s is being drawn." (buffer-name (current-buffer)))))
 
 	       (buffer-disable-undo (current-buffer))
-	       (mapcar (function (lambda (x)
-				   (if (boundp (car x))
-				       (set (car x) (cdr x))))) info)
+	       (dolist (x info)
+                 (if (boundp (car x))
+                     (set (car x) (cdr x))))
 	       ;; ACK!  We don't like filladapt mode!
 	       (set (make-local-variable 'filladapt-mode) nil)
 	       (set (make-local-variable 'adaptive-fill-mode) nil)
 	       (set (make-local-variable 'voice-lock-mode) t)
-	       (set (make-local-variable 'cur-viewing-pos) (point-min))
+	       (set (make-local-variable 'w3--cur-viewing-pos) (point-min))
 	       (setq w3-current-stylesheet (css-copy-stylesheet
 					    w3-user-stylesheet)
 		     w3-last-fill-pos (point)
@@ -2533,8 +2516,8 @@ Format: (((image-alt row column) . offset) ...)")
 	    (*invisible
 	     (w3-handle-empty-tag))
 	    (meta
-	     (let ((name (w3-get-attribute 'name))
-		   (value (or (w3-get-attribute 'content) "")))
+	     (let ((name (w3-get-attribute 'name args))
+		   (value (or (w3-get-attribute 'content args) "")))
 	       ;; http-equiv is dealt with by `w3-fetch-callback'.
 	       (if name
 		   (setq w3-current-metainfo (cons
@@ -2562,9 +2545,7 @@ Format: (((image-alt row column) . offset) ...)")
 	     (w3-handle-content node))
 	    (form
 	     (setq w3-current-form-number (1+ w3-current-form-number))
-	     (let* (
-		    (action (w3-get-attribute 'action))
-		    (url nil))
+	     (let* ((action (w3-get-attribute 'action args)))
 	       (if (not action)
 		   (setq args (cons (cons 'action (url-view-url t)) args)))
 	       (setq w3-display-form-id (cons
@@ -2764,8 +2745,7 @@ Format: (((image-alt row column) . offset) ...)")
 	 (w3-display-same-buffer t)
 	 (parse nil))
     (save-window-excursion
-      (save-excursion
-	(set-buffer (get-buffer-create " *w3-region*"))
+      (with-current-buffer (get-buffer-create " *w3-region*")
 	(erase-buffer)
 	(insert source)
 	(setq parse (w3-parse-buffer (current-buffer))))
@@ -2831,8 +2811,7 @@ Format: (((image-alt row column) . offset) ...)")
   (let ((bufs (buffer-list))
 	(found nil))
     (while (and bufs (not found))
-      (save-excursion
-	(set-buffer (car bufs))
+      (with-current-buffer (car bufs)
 	(setq found (if (and
 			 (not (string-match "^ " (buffer-name (car bufs))))
 			 (eq major-mode 'w3-mode)
@@ -2930,13 +2909,11 @@ Format: (((image-alt row column) . offset) ...)")
 			    next-frame-window (selected-window)))
 		     (t
 		      (w3-fetch href)))
-	       (let ((buf (current-buffer))
-		     (framebuf (w3-buffer-visiting href)))
+	       (let ((framebuf (w3-buffer-visiting href)))
 		 (cond (framebuf
-			(set-buffer framebuf)
-			(setq w3-frame-name name
-			      w3-target-window-distances nil)
-			(set-buffer buf)
+			(with-current-buffer framebuf
+                          (setq w3-frame-name name
+                                w3-target-window-distances nil))
 			(select-window next-frame-window))))))
 	    ((eq (car (car structure)) 'frameset)
 	     (cond (inhibit-frame

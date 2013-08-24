@@ -1,45 +1,50 @@
 ;;; w3-latex.el --- Emacs-W3 printing via LaTeX
+
+;; Copyright (c) 1996-1997, 2013  Free Software Foundation, Inc.
+
 ;; Author: wmperry
 ;; Created: 1996/06/30 18:08:34
-;; Version: 1.3
 ;; Keywords: hypermedia, printing, typesetting
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996, 1997 by Stephen Peters <speters@cygnus.com>
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Elisp code to convert a W3 parse tree into a LaTeX buffer.
-;;;
-;;; Heavily hacked upon by William Perry <wmperry@cs.indiana.edu> to add more
-;;; bells and whistles.
-;;;
-;;; KNOWN BUGS:
-;;; 1) This does not use stylesheets to get the formatting information
-;;; 2) This means that the new drawing routines need to be abstracted
-;;;    further so that the same main engine can be used for either
-;;;    text-output (standard stuff in w3-draw), LaTeX output (this file),
-;;;    Postscript (to-be-implemented), etc., etc.
-;;; 3) This still doesn't handle tables.
-;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;; Elisp code to convert a W3 parse tree into a LaTeX buffer.
+;;
+;; Heavily hacked upon by William Perry <wmperry@cs.indiana.edu> to add more
+;; bells and whistles.
+;;
+;; KNOWN BUGS:
+;; 1) This does not use stylesheets to get the formatting information
+;; 2) This means that the new drawing routines need to be abstracted
+;;    further so that the same main engine can be used for either
+;;    text-output (standard stuff in w3-draw), LaTeX output (this file),
+;;    Postscript (to-be-implemented), etc., etc.
+;; 3) This still doesn't handle tables.
+;;
+
+;;; Code:
+
 (require 'w3-cus)
 (require 'w3-print)
+(require 'w3-vars)
+(require 'url-vars)
 
 ;; Internal variables - do not touch!
 (defvar w3-latex-current-url nil "What URL we are formatting")
@@ -143,7 +148,14 @@
     (yacute . "\\'{y}")
 ;   (thorn . "")
     (yuml . "\\\"{y}"))
-  "Defines mappings between `w3-html-entities' and LaTeX characters.") 
+  "Defines mappings between `w3-html-entities' and LaTeX characters.")
+
+(defvar w3-latex-use-maketitle t)
+(defvar w3-latex-print-links t
+  "Can be nil, t, or `footnote'.")
+(defvar w3-latex-use-latex2e t)
+(defvar w3-latex-docstyle "{article}")
+(defvar w3-latex-packages nil)
 
 (defun w3-latex-replace-entities (str)
   (let ((start 0))
@@ -173,8 +185,7 @@
     (if w3-latex-verbatim
 	(setq todo (append todo '(("\n" . "\\\\newline\\\\nullspace\n")
 				  (" " . "\\\\ ")))))
-    (save-excursion
-      (set-buffer (get-buffer-create " *w3-latex-munging*"))
+    (with-current-buffer (get-buffer-create " *w3-latex-munging*")
       (erase-buffer)
       (insert str)
       (while todo
@@ -185,7 +196,7 @@
       (setq str (w3-latex-replace-entities (buffer-string))))
     (insert str)))
 
-(defun w3-latex-ignore (tree)
+(defun w3-latex-ignore (_tree)
   ;;; ignores any contents of this tree.
   nil)
 
@@ -211,9 +222,9 @@
   (insert "\\end{document}\n"))
 
 (defun w3-latex-title (tree)
-  (if w3-latex-use-maketitle
-      (insert "\\title{")
-    (insert "\\section*{\\centering "))
+  (insert (if w3-latex-use-maketitle
+              "\\title{"
+            "\\section*{\\centering "))
   (w3-latex-contents tree)
   (insert "}\n")
   (if w3-latex-use-maketitle
@@ -281,7 +292,7 @@
   (w3-latex-contents tree)
   (insert "\\end{center}"))
 
-(defun w3-latex-rule (tree)
+(defun w3-latex-rule (_tree)
   ; use \par to make paragraph division clear.
   (insert "\n\\par\\noindent\\rule{\\textwidth}{.01in}\n"))
 
@@ -305,7 +316,7 @@
   (w3-latex-contents tree)
   (insert "\\end{quote}\n"))
 
-(defun w3-latex-break (tree)
+(defun w3-latex-break (_tree)
   ;; no content allowed
   (insert "\\newline "))
 
@@ -429,9 +440,10 @@
   (setq w3-latex-current-url url)
   (erase-buffer)
   (goto-char (point-min))
-  (if w3-latex-use-latex2e
-      (insert (concat "\\documentclass" w3-latex-docstyle "\n"))
-    (insert (concat "\\documentstyle" w3-latex-docstyle "\n")))
+  (insert (if w3-latex-use-latex2e
+              "\\documentclass"
+            "\\documentstyle")
+          w3-latex-docstyle "\n")
   (if (and w3-latex-use-latex2e
 	   w3-latex-packages)
       (insert (apply 'concat
@@ -448,14 +460,23 @@
   (w3-parse-tree-to-latex w3-current-parse)
   (save-window-excursion
     (set-buffer url-working-buffer)
-    (let ((coding-system-for-write 'binary))
+    (let ((coding-system-for-write 'binary)
+          (file (make-temp-file "w3" nil ".tex")))
       (write-region
-       (point-min) (point-max)
-       (expand-file-name "w3-tmp.latex"
-			 w3-temporary-directory) nil 5))
-    (shell-command
-     (format 
-      "(cd %s ; latex w3-tmp.latex ; latex w3-tmp.latex ; xdvi w3-tmp.dvi ; rm -f w3-tmp*) &"
-      w3-temporary-directory))))
+       (point-min) (point-max) file nil 5)
+      ;; FIXME: Race-condition.  We should run this in temporary-file-directory!
+      ;; (let ((default-directory (file-name-directory file)))
+      ;;   (call-process "latex" nil t nil (file-relative-name file))
+      ;;   (call-process "latex" nil t nil (file-relative-name file))
+      (delete-file file)
+      (error "Not implemented")
+      ;;   (call-process "xdvi" nil nil nil
+      ;;                 (replace-regexp-in-string "\\.tex\\'" ".dvi"
+      ;;                                           (file-relative-name file)))
+      ;;   (shell-command
+      ;;    (format 
+      ;;     "(cd %s ; latex w3-tmp.latex ; latex w3-tmp.latex ; xdvi w3-tmp.dvi ; rm -f w3-tmp*) &"
+      ;;     temporary-file-directory)))
+      )))
 
 (provide 'w3-latex)

@@ -1,47 +1,47 @@
-;;; w3-speak.el,v --- Emacs-W3 speech interface
+;;; w3-speak.el --- Emacs-W3 speech interface
+
+;; Copyright (c) 1997, 1998, 2013 Free Software Foundation, Inc.
+
 ;; Author: wmperry
 ;; Original author: William Perry --<wmperry@cs.indiana.edu>
 ;; Cloned from emacspeak-w3.el
 ;; Created: 1996/10/16 20:56:40
-;; Version: 1.14
 ;; Keywords: hypermedia, speech
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 by T.V. Raman (raman@adobe.com)
-;;; Copyright (c) 1996, 1997 by William M. Perry (wmperry@spry.com)
-;;; Copyright (c) 1997, 1998 Free Software Foundation, Inc.
-;;;
-;;; This file is not part of GNU Emacs, but the same permissions apply.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is not part of GNU Emacs, but the same permissions apply.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; A replacement module for emacspeak-w3 that uses all the new functionality
-;;; of Emacs/W3 3.0.
-;;;
-;;; This file would not be possible without the help of
-;;; T.V. Raman (raman@adobe.com) and his continued efforts to make Emacs/W3
-;;; even remotely useful. :)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commentary:
 
-;;; This conforms to http://www4.inria.fr/speech2.html
+;; A replacement module for emacspeak-w3 that uses all the new functionality
+;; of Emacs/W3 3.0.
+;;
+;; This file would not be possible without the help of
+;; T.V. Raman (raman@adobe.com) and his continued efforts to make Emacs/W3
+;; even remotely useful. :)
+
+;; This conforms to http://www4.inria.fr/speech2.html
+
+;;; Code:
 
 (require 'widget)
 (require 'w3-forms)
+(require 'w3-cus)
+(require 'w3-keymap)
 (require 'advice)
 ;; This condition-case needs to be here or it completely chokes
 ;; byte-compilation for people who do not have Emacspeak installed.
@@ -52,8 +52,9 @@
       (require 'dtk-voices)
       (require 'emacspeak-speak)
       (require 'emacspeak-sounds)
-      (eval-when (compile)
-		 (require 'emacspeak-fix-interactive)))
+      ;; (eval-when (compile)
+      ;;   	 (require 'emacspeak-fix-interactive))
+      )
   (error (message "Emacspeak not found - speech will not work.")))
 
 
@@ -124,12 +125,14 @@
     (emacspeak-auditory-icon 'close-object)
     (emacspeak-speak-mode-line)))
 
+(defvar dtk-punctuation-mode)
+(defvar voice-lock-mode)
+
 (defadvice w3-fetch (around  emacspeak  act comp )
   "First produce an auditory icon to indicate retrieval.
 After retrieval, 
-set  voice-lock-mode to t after displaying the buffer,
-and then speak the mode-line. "
-  (declare (special dtk-punctuation-mode))
+set `voice-lock-mode' to t after displaying the buffer,
+and then speak the mode-line."
   (emacspeak-auditory-icon 'select-object)
   ad-do-it)
 
@@ -139,39 +142,36 @@ and then speak the mode-line. "
   (emacspeak-auditory-icon 'open-object)
   (emacspeak-speak-mode-line))
 
-;;; This is really the only function you should need to call unless
-;;; you are adding functionality.
+;; This is really the only function you should need to call unless
+;; you are adding functionality.
 (defun w3-speak-use-voice-locking (&optional arg) 
   "Tells w3 to start using voice locking.
 This is done by setting the w3 variables so that anchors etc are not marked by
-delimiters. We then turn on voice-lock-mode. 
-Interactive prefix arg does the opposite. "
+delimiters.  We then turn on `voice-lock-mode'.
+Interactive prefix arg does the opposite."
   (interactive "P")
-  (declare (special w3-echo-link))
   (setq w3-echo-link 'text)
   (if arg
       (remove-hook 'w3-mode-hook 'w3-speak-mode-hook)
     (add-hook 'w3-mode-hook 'w3-speak-mode-hook)))
 
 (defun w3-speak-browse-page ()
-  "Browse a WWW page"
+  "Browse a WWW page."
   (interactive)
   (emacspeak-audio-annotate-paragraphs)
   (emacspeak-execute-repeatedly 'forward-paragraph))
 
-(declaim (special w3-mode-map))
 (define-key w3-mode-map "." 'w3-speak-browse-page)
 
-(defvar url-speak-last-progress-indication 0
-  "Caches when we last produced a progress auditory icon")
+(defvar w3-speak--last-progress-indication 0
+  "Caches when we last produced a progress auditory icon.")
 
 (defadvice url-lazy-message (around emacspeak pre act)
-  "Provide pleasant auditory feedback about progress"
-  (declare (special url-speak-last-progress-indication ))
+  "Provide pleasant auditory feedback about progress."
   (let ((now (nth 1 (current-time))))
     (when (> now
-	     (+ 3 url-speak-last-progress-indication))
-	  (setq url-speak-last-progress-indication now)
+	     (+ 3 w3-speak--last-progress-indication))
+	  (setq w3-speak--last-progress-indication now)
 	  (apply 'message (ad-get-args 0))
 	  (emacspeak-auditory-icon 'progress))))
 
