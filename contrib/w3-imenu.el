@@ -1,5 +1,24 @@
-;;;$Id: w3-imenu.el,v 1.1 1998/12/01 22:11:57 wmperry Exp $
-;;;Description: Build up navigation index for W3 documents:
+;;; w3-imenu.el --- Build up navigation index for W3 documents
+
+;; Copyright (c) 2013  Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
+
 (require 'cl)
 (require 'imenu)
 ;;{{{ Tags to index
@@ -46,7 +65,6 @@ Return nil and leave point at end of buffer  if not found."
 
 (defun w3-imenu-create-index ()
   "Returns an alist suitable for use by imenu"
-  (declare (special w3-imenu-index-html-elements))
   (let ((index nil)
         (position nil)
         (marker nil))
@@ -67,13 +85,12 @@ Return nil and leave point at end of buffer  if not found."
 
 ;;}}}
 ;;{{{ Tell W3 to start using it:
-(declaim (special imenu-create-index-function))
+(defvar imenu-create-index-function)
 (add-hook
  'w3-mode-hook
- (function
-  (lambda ()
-    (setq imenu-create-index-function 'w3-imenu-create-index)
-    (define-key w3-mode-map "j" 'imenu))))
+ (lambda ()
+   (setq imenu-create-index-function 'w3-imenu-create-index)
+   (define-key w3-mode-map "j" 'imenu)))
 
 ;;}}}
 (provide 'w3-imenu)
