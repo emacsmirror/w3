@@ -3,7 +3,7 @@
 ;; Copyright (c) 1996-2001, 2007-2008, 2013 Free Software Foundation, Inc.
 
 ;; Author: William Perry and many more
-;; Version: 4.0.48
+;; Version: 4.0.49
 ;; Keywords: faces, help, comm, news, mail, processes, mouse, hypermedia
 
 ;; This file is part of GNU Emacs.
@@ -1828,7 +1828,7 @@ Emacs."
     (or w3-default-homepage
 	(setq w3-default-homepage
 	      (or (getenv "WWW_HOME")
-		  "http://www.gnu.org/software/w3/")))
+		  "http://elpa.gnu.org/packages/w3.html")))
 
     (run-hooks 'w3-load-hook)))
 
